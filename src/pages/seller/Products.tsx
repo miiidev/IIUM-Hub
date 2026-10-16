@@ -276,7 +276,7 @@ export default function Products() {
               Available for sale
             </label>
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <SellerFormConfigurator fields={fields} onChange={setFields} basePrice={Number(price) || 0} disabled={saving} recommendedKey={shop ? getPresetForCategory(shop.category) : null} />
+              <SellerFormConfigurator fields={fields} onChange={setFields} basePrice={Number(price) || 0} shopId={shop?.id ?? ''} disabled={saving} recommendedKey={shop ? getPresetForCategory(shop.category) : null} />
               {activeFields(fields).length > 0 && (
                 <button
                   type="button"
