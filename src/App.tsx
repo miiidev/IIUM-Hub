@@ -14,7 +14,7 @@ import Settings from './pages/seller/Settings';
 
 export default function App() {
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900">
+    <div className="min-h-screen bg-cream text-ink">
       <AuthProvider>
         <BrowserRouter>
           <Routes>
@@ -33,9 +33,9 @@ export default function App() {
             <Route
               path="*"
               element={
-                <div className="mx-auto w-full max-w-md sm:max-w-lg p-6 text-center min-h-screen bg-slate-50">
-                  <h1 className="text-xl font-bold text-slate-900">404 — Page not found</h1>
-                  <a href="/" className="mt-2 inline-block h-12 px-6 py-3 font-bold text-emerald-700">
+                <div className="mx-auto flex min-h-screen w-full max-w-md flex-col items-center justify-center p-6 text-center sm:max-w-lg">
+                  <h1 className="text-xl font-bold text-ink">404 — Page not found</h1>
+                  <a href="/" className="mt-3 inline-flex h-12 items-center px-6 font-bold text-emerald">
                     ← Back to Marketplace
                   </a>
                 </div>
