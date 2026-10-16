@@ -117,7 +117,7 @@ export default function Settings() {
       await refreshShop();
       setOk(true);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to save settings.');
+      setError(e instanceof Error ? e.message : 'Failed to save profile settings.');
     } finally {
       setSaving(false);
     }
@@ -127,6 +127,7 @@ export default function Settings() {
     <div className="flex min-h-screen flex-col pb-10">
       <SellerNav />
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-6 sm:px-8">
+        <h1 className="mb-5 text-2xl font-bold text-ink sm:text-3xl">Profile Settings</h1>
         <Card className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:p-6">
           <div className="sm:col-span-2">
             <label htmlFor="set-name" className="mb-1 block text-sm font-semibold text-ink">Shop name *</label>
@@ -252,11 +253,11 @@ export default function Settings() {
         )}
         {ok && (
           <div className="mt-3 rounded-control border border-emerald/30 bg-mint/40 p-3 text-sm font-semibold text-emerald">
-            Settings saved.
+            Profile settings saved.
           </div>
         )}
         <Button onClick={handleSave} disabled={saving} className="mt-4 w-full">
-          {saving ? 'Saving...' : 'Save Settings'}
+          {saving ? 'Saving...' : 'Save Profile'}
         </Button>
       </main>
     </div>

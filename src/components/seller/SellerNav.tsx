@@ -9,7 +9,7 @@ export default function SellerNav() {
   const tabs = [
     { to: '/seller', label: 'Orders' },
     { to: '/seller/products', label: 'Products' },
-    { to: '/seller/settings', label: 'Settings' },
+    { to: '/seller/settings', label: 'Profile Settings' },
   ];
 
   return (

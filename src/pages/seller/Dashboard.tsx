@@ -78,7 +78,9 @@ export default function Dashboard() {
       if (o.status === 'pending_verification') pending++;
       if (o.status === 'completed') completed++;
       if (!o.created_at || new Date(o.created_at).toDateString() === today) {
-        if (o.status !== 'cancelled') todayRM += Number(o.total_amount) || 0;
+        if (o.status === 'confirmed' || o.status === 'ready' || o.status === 'completed') {
+          todayRM += Number(o.total_amount) || 0;
+        }
       }
     }
     return { pending, completed, todayRM, total: orders.length };
@@ -97,7 +99,7 @@ export default function Dashboard() {
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">Pending</p>
           </Card>
           <Card className="p-3 text-center sm:p-5">
-            <p className="text-2xl font-bold text-ink sm:text-3xl">RM {stats.todayRM.toFixed(0)}</p>
+            <p className="text-2xl font-bold text-ink sm:text-3xl">RM {stats.todayRM.toFixed(2)}</p>
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">Today</p>
           </Card>
           <Card className="p-3 text-center sm:p-5">
