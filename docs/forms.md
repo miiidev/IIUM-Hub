@@ -31,10 +31,10 @@ Shared bits: `BottomSheet.tsx`, `fieldLabels.ts` (plain type names), `formUi.ts`
 
 ## Presets (`src/utils/formPresets.ts` — single source of truth)
 
-`printing`, `shoe_wash`, `food_addons`, `services`, `custom` (empty starter).
+`printing`, `shoe_wash`, `food_addons`, `repairs`, `rentals`, `custom` (empty starter).
 Category map: food→food_addons, printing→printing, shoe_wash→shoe_wash,
-repairs/rentals/custom→services. New products pre-fill; bulk apply covers
-empty-only or overwrite-with-confirm. Backfilled live + in `seed.sql`.
+repairs→repairs, rentals→rentals, custom→custom. New products pre-fill; bulk apply
+covers empty-only or overwrite-with-confirm. Backfilled live + in `seed.sql`.
 
 Base-price convention: base = flat fee, modifiers add on top. Printing sellers should
 set base to 0 and charge per page (RM0.10) + size/color modifiers. Old bases are never
@@ -43,12 +43,14 @@ migrated silently.
 ## Field types
 
 `select` (single, modifiers) · `multiselect` (string[], modifiers summed) · `text` ·
-`number` (optional `price_per_unit`, `min`, `max`) · `textarea` · `date` (`min` today) ·
-`phone` (normalized to `+601…`) · `file` (upload, URL-or-path value).
+`number` (optional `price_per_unit`, `min`, `max`, `integer`, `quickPicks`) · `textarea` ·
+`date` (`min` today) · `phone` (normalized to `+601…`) · `file` (upload, URL-or-path value).
 
 `CustomField` = { id, label, type, required, enabled, options?, placeholder?,
-price_per_unit?, min?, max? }. `enabled: false` hides a field everywhere but keeps it
-for re-editing. Sellers tune labels/options/prices/required + add cards; types are locked.
+price_per_unit?, min?, max?, integer?, quickPicks? }. `integer: true` requires a whole
+number and renders the stepper + quick-pick chips; `quickPicks` are the suggested values.
+`enabled: false` hides a field everywhere but keeps it for re-editing. Sellers tune
+labels/options/prices/required + add cards; types are locked.
 
 ## Pricing semantics
 

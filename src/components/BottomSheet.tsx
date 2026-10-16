@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
 
 interface Props {
   open: boolean;
@@ -30,7 +30,7 @@ function unlockScroll() {
 
 export default function BottomSheet({ open, onClose, title, children, footer, busy = false }: Props) {
   const panelRef = useRef<HTMLDivElement>(null);
-  const titleIdRef = useRef(`sheet-${Math.random().toString(36).slice(2, 10)}`);
+  const titleId = useId();
   const prevFocusRef = useRef<Element | null>(null);
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function BottomSheet({ open, onClose, title, children, footer, bu
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby={titleIdRef.current}>
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby={titleId}>
       <button
         type="button"
         aria-label="Close"
@@ -77,7 +77,7 @@ export default function BottomSheet({ open, onClose, title, children, footer, bu
           className="pointer-events-auto flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-2xl bg-white outline-none sm:max-w-lg sm:rounded-2xl"
         >
           <div className="flex items-center justify-between gap-2 border-b border-slate-200 p-4">
-            <h2 id={titleIdRef.current} className="text-lg font-bold text-slate-900">
+            <h2 id={titleId} className="text-lg font-bold text-slate-900">
               {title}
             </h2>
             <button

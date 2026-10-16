@@ -44,10 +44,56 @@ Evidence (file:line) is recorded in the Phase B checklist below.
 ## Phase checklist
 
 - [x] **Phase A** — Safety + baseline (branch `overhaul`, tag `pre-overhaul`, this log)
-- [ ] **Phase B** — Audit Phases 1–5 vs code; fix only residual gaps (lint, docs drift)
+- [x] **Phase B** — Audit Phases 1–5 vs code; fix only residual gaps (lint, docs drift)
 - [ ] **Phase C** — Figma access + `docs/design-gap-report.md`
 - [ ] **Phase D** — Apply design (tokens, fonts, `src/components/ui/`, buyer then seller)
 - [ ] **Phase E** — Polish, `docs/design-system.md`, `docs/forms.md`, final report
+
+---
+
+## Phase B — audit result (Phases 1–5 verified against code)
+
+Every prompt requirement in Phases 1–5 was checked against the working tree. Result: **all
+present**, no re-implementation needed. Evidence:
+
+| Requirement | Status | Evidence |
+|---|---|---|
+| Number validation (finite, min/max, `integer`, exact message) | DONE | `src/utils/formPresets.ts:328-360`; tests `formPresets.test.ts:311-353` (cases 0, -5, 1.5, 500, 501, 9999, "abc", "", with/without integer+min+max) |
+| `integer?` on `CustomField`, kept in sanitize | DONE | `src/types/index.ts:52`; `formPresets.ts:408` |
+| Printing preset `print_pages` integer + min/max | DONE | `formPresets.ts:74-85` |
+| `orderTotalCheck` (tolerance 0.01, legacy→unknown) + badge | DONE | `src/utils/orderSnapshot.ts:22`; `SellerDashboard.tsx:7,218`; tests `orderSnapshot.test.ts:123-165` |
+| Duplicate option block (case-insensitive, keep-first) | DONE | `ProductWizard.tsx:133` (`Duplicate option "…" in "…".`), `QuestionEditorSheet.tsx:63`; sanitize keep-first `formPresets.ts:392-403`; test `formPresets.test.ts:355` |
+| `0008_duitnow_qr_bucket.sql` + README migration list | DONE | file present; `supabase/README.md` lists through `0014` |
+| Client UUID order id + insert without `.select()` | DONE | `src/utils/uuid.ts` (getRandomValues fallback); `CheckoutModal.tsx:102,115` |
+| `0011_orders_privacy.sql` (get_order RPC, drop anon SELECT, pending check) | WRITTEN, NOT APPLIED | `supabase/migrations/0011_orders_privacy.sql` (has the apply-order header) |
+| OrderTracker via `rpc('get_order')` + 5s visible-aware polling | DONE | `OrderTracker.tsx:40,51,72,96` |
+| Phase 3 utils (`BottomSheet`, `fieldLabels`, `priceRange`, `cart`, `formUi`) | DONE | files present + tests |
+| Chips / radio cards / stepper / quick picks | DONE | `DynamicFormEngine.tsx`; `formUi.ts:11`; test `formUi.test.ts:24-37` |
+| `ProductSheet` + cart + 3-step checkout | DONE | `components/buyer/ProductSheet.tsx`, `Storefront.tsx`, `CheckoutModal.tsx` |
+| Seller `QuestionRow`/`QuestionEditorSheet`/`ProductWizard`/`copyFields` | DONE | files present; `formPresets.ts:197`; test `formPresets.test.ts:80` |
+
+### Phase B fixes applied (residual gaps only)
+
+1. **`BottomSheet.tsx`** — replaced `useRef(\`sheet-${Math.random()…}\`)` + `.current` reads
+   during render with `useId()`. Resolves 3 oxlint warnings (react/purity + 2× react/refs),
+   behavior unchanged. No test covers BottomSheet (no DOM lib), so verified by type-check +
+   build + existing suite.
+2. **`docs/forms.md`** — corrected preset drift (`services` → `repairs` + `rentals`) and the
+   `CustomField` shape (added `integer?`, `quickPicks?` and the stepper/chips note).
+
+Baseline 8 oxlint warnings → **5 now**.
+
+### Deferred oxlint warnings (logged, not fixed — non-trivial or behavior-risky)
+
+| Warning | Site | Why deferred |
+|---|---|---|
+| react(only-export-components) | `src/context/AuthContext.tsx:247` | Real fix = move `useAuth` + the context object into a new module and update 11 import sites. Not "trivial"; conservative rule applied. (Locked dir from Phase C, left as-is deliberately.) |
+| react(purity) `Date` | `src/pages/seller/Dashboard.tsx:64` | `new Date().toDateString()` for "today" stats; no behavior-preserving trivial fix without a stored clock. |
+| react(set-state-in-effect) | `src/pages/OrderTracker.tsx:35` | Guards missing `:orderId` route param; hoisting would change render/loading semantics. |
+| react(set-state-in-effect) | `src/pages/Storefront.tsx:77` | Syncs highlight from `?product=`; effect also drives scroll + timeout. |
+| react(set-state-in-effect) | `src/pages/seller/Settings.tsx:33` | Form hydration when `shop` loads; moving it risks saving stale values. |
+
+Rules stay error-free (0 errors). Lint "green" = 0 errors; warnings are DX-only.
 
 ---
 
