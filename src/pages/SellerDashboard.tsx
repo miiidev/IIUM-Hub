@@ -4,7 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { Order, Shop } from '../types';
 import { normalizeOrderFields, orderTotalCheck, type NormalizedEntry } from '../utils/orderSnapshot';
-import { isFilePath, isLegacyFileUrl, signBuyerFile } from '../utils/uploadFile';
+import { isFilePath, isLegacyFileUrl, signBuyerFile, storagePathFromValue } from '../utils/uploadFile';
 
 function SellerFileLink({ path, name }: { path: string; name: string }) {
   const [url, setUrl] = useState<string | null>(null);
@@ -65,13 +65,17 @@ function SellerFileLink({ path, name }: { path: string; name: string }) {
 
 function renderEntry(entry: NormalizedEntry) {
   const raw = Array.isArray(entry.value) ? '' : String(entry.value);
+  const legacyPath = !isFilePath(entry.value) ? storagePathFromValue(entry.value) : null;
   const body = entry.isFile ? (
     isFilePath(entry.value) ? (
       <SellerFileLink path={raw} name={entry.display} />
+    ) : legacyPath ? (
+      <SellerFileLink path={legacyPath} name={entry.display} />
     ) : isLegacyFileUrl(entry.value) ? (
-      <a href={raw} target="_blank" rel="noreferrer" className="font-bold text-emerald-700 underline">
-        View file ({entry.display})
-      </a>
+      <span>
+        {entry.display}{' '}
+        <span className="text-xs font-medium text-slate-500">(file unavailable)</span>
+      </span>
     ) : (
       entry.display
     )

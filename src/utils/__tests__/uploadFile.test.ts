@@ -4,6 +4,7 @@ import {
   fileNameFromValue,
   isFilePath,
   isLegacyFileUrl,
+  storagePathFromValue,
   validateUploadFile,
 } from '../uploadFile';
 
@@ -45,5 +46,14 @@ describe('displayFileName', () => {
   it('extracts names from storage paths', () => {
     expect(fileNameFromValue('shop1/12345678-1234-1234-1234-123456789012-doc.pdf')).toBe('doc.pdf');
     expect(fileNameFromValue('')).toBe('View file');
+  });
+
+  it('resolves signable paths from values', () => {
+    expect(storagePathFromValue('shop1/abc.pdf')).toBe('shop1/abc.pdf');
+    expect(
+      storagePathFromValue('https://xyz.supabase.co/storage/v1/object/public/buyer-uploads/shop1/12345678-1234-1234-1234-123456789012-doc.pdf')
+    ).toBe('shop1/12345678-1234-1234-1234-123456789012-doc.pdf');
+    expect(storagePathFromValue('https://drive.google.com/x')).toBeNull();
+    expect(storagePathFromValue('')).toBeNull();
   });
 });

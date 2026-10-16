@@ -34,8 +34,22 @@ export function isLegacyFileUrl(v: unknown): boolean {
   return typeof v === 'string' && /^https?:\/\//.test(v);
 }
 
-export function fileNameFromValue(v: unknown): string {
-  if (typeof v !== 'string' || v === '') return 'View file';
+export function storagePathFromValue(v: unknown): string | null {
+  if (typeof v !== 'string' || v === '') return null;
+  if (isFilePath(v)) return v;
+  if (!isLegacyFileUrl(v)) return null;
+  const marker = '/buyer-uploads/';
+  const i = v.indexOf(marker);
+  if (i === -1) return null;
+  const path = v.slice(i + marker.length).split('?')[0];
+  try {
+    return decodeURIComponent(path) || null;
+  } catch {
+    return path || null;
+  }
+}
+
+export function fileNameFromValue(v: unknown): string {  if (typeof v !== 'string' || v === '') return 'View file';
   const withoutOrigin = v.replace(/^https?:\/\/[^/]+\//, '');
   const path = withoutOrigin.includes('/storage/v1/object/public/buyer-uploads/')
     ? withoutOrigin.split('/storage/v1/object/public/buyer-uploads/').pop() ?? withoutOrigin
