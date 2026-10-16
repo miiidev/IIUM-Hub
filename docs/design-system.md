@@ -85,7 +85,9 @@ Where it's applied:
 - Mobile-first: base = 390px, `sm` breakpoint (640px) for desktop. Min tap target 44px
   (48px primary). Use `dvh` (e.g. `max-h-[92dvh]`), respect `safe-bottom`.
 - Dialogs/sheets: `role="dialog"`, `aria-modal`, labelled title, Escape closes, focus is moved
-  in and restored, background scroll locked (see `BottomSheet`).
+  in and restored, background scroll locked (see `BottomSheet`). **Modals (`BottomSheet`,
+  `ConfirmDialog`) render via `createPortal(document.body)`** so `position: fixed` overlays are
+  unaffected by layout containers (e.g. `space-y-*` margin).
 - Radio-card groups are real `<input type="radio">` in a `role="radiogroup"`; errors use
   `role="alert"`; `prefers-reduced-motion` is honoured in `index.css`.
 - Prefer tokens/primitives over ad-hoc classes. Keep existing DOM hooks and accessible names

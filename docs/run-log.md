@@ -264,6 +264,15 @@ the time of writing):
    "file values are names, never URLs" guarantee is intact. (Also a deliberate `src/utils/` edit.)
 9. **Upload field standout** — `DynamicFormEngine` buyer file field is now a prominent dashed
    dropzone (icon, "Tap to upload", accepted types/size, drag-and-drop, Uploading…/Replace states).
+10. **All `window.confirm` replaced** — custom `ConfirmDialog` now covers the products bulk
+    apply ("Apply to empty products" / "Overwrite all") and the wizard/configurator preset +
+    copy replaces. No `window.confirm` remains in `src/`. `Button` gained a `danger` variant
+    (no more class-override for destructive actions). `ConfirmDialog` + `BottomSheet` now render
+    via `createPortal(document.body)` so `position: fixed` overlays are no longer offset by
+    `space-y-*` parents.
+11. **Product rename fix** — the wizard's edit flow opens on Review (step 3) with no editable
+    name, so renaming was not discoverable. Review now has inline editable Name / Price /
+    Available fields, saved via "Save Changes".
 
 Verification: build clean, 78 tests pass, 0 lint errors, locked-area diff empty; new screens
 screenshotted below `sm` (500px) and at 800/1440 → `design/shots/`.
