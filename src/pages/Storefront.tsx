@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Minus, Plus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { CustomValue, OrderItemSummary, Product, Shop } from '../types';
@@ -17,6 +17,8 @@ const wrapCls =
 
 export default function Storefront() {
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams] = useSearchParams();
+  const [highlightId, setHighlightId] = useState<string | null>(null);
   const [shop, setShop] = useState<Shop | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,11 +28,13 @@ export default function Storefront() {
   const [values, setValues] = useState<Record<string, Record<string, CustomValue>>>({});
   const [errors, setErrors] = useState<Record<string, Record<string, string>>>({});
   const [showCheckout, setShowCheckout] = useState(false);
+  const [uploadingCount, setUploadingCount] = useState(0);
+  const uploading = uploadingCount > 0;
 
   useEffect(() => {
     async function load() {
       if (!slug) {
-        setError('Slug kedai tiada.');
+        setError('Missing shop slug.');
         setLoading(false);
         return;
       }
@@ -55,13 +59,29 @@ export default function Storefront() {
         if (prodErr) throw prodErr;
         setProducts((prodData as Product[]) ?? []);
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : 'Gagal muat kedai.');
+        setError(e instanceof Error ? e.message : 'Failed to load shop.');
       } finally {
         setLoading(false);
       }
     }
     load();
   }, [slug]);
+
+  useEffect(() => {
+    const target = searchParams.get('product');
+    if (!target || products.length === 0) return;
+    setHighlightId(target);
+    const scroll = setTimeout(() => {
+      document
+        .getElementById(`product-${target}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 150);
+    const clear = setTimeout(() => setHighlightId(null), 3000);
+    return () => {
+      clearTimeout(scroll);
+      clearTimeout(clear);
+    };
+  }, [products, searchParams]);
 
   function setValue(productId: string, fieldId: string, value: CustomValue) {
     setValues((prev) => ({
@@ -72,6 +92,7 @@ export default function Storefront() {
       ...prev,
       [productId]: { ...(prev[productId] ?? {}), [fieldId]: '' },
     }));
+    setQty((prev) => (prev[productId] ?? 0) > 0 ? prev : { ...prev, [productId]: 1 });
   }
 
   function changeQty(productId: string, delta: number) {
@@ -106,7 +127,7 @@ export default function Storefront() {
   }, [products, qty, values]);
 
   function handleCheckoutOpen() {
-    if (count === 0 || total <= 0) return;
+    if (count === 0 || total <= 0 || uploading) return;
     const nextErrors: Record<string, Record<string, string>> = {};
     let invalid = false;
     for (const p of products) {
@@ -125,7 +146,7 @@ export default function Storefront() {
   if (loading) {
     return (
       <div className={`${wrapCls} p-4 sm:p-6`}>
-        <p className="text-sm text-slate-500">Memuatkan kedai...</p>
+        <p className="text-sm text-slate-500">Loading shop...</p>
       </div>
     );
   }
@@ -134,10 +155,10 @@ export default function Storefront() {
     return (
       <div className={`${wrapCls} p-4 sm:p-6`}>
         <Link to="/" className="inline-flex h-11 items-center text-sm font-bold text-slate-700">
-          ← Kembali
+          ← Back
         </Link>
         <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-          {error ?? 'Kedai tidak dijumpai (invalid slug).'}
+          {error ?? 'Shop not found (invalid slug).'}
         </div>
       </div>
     );
@@ -164,7 +185,7 @@ export default function Storefront() {
         <div>
           {products.length === 0 && (
             <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-600">
-              Tiada produk tersedia buat masa ini.
+              No products available right now.
             </div>
           )}
 
@@ -178,7 +199,13 @@ export default function Storefront() {
               const extra = unit - (Number(p.price) || 0);
 
               return (
-                <div key={p.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                <div
+                  key={p.id}
+                  id={`product-${p.id}`}
+                  className={`rounded-xl border bg-white p-4 ${
+                    highlightId === p.id ? 'border-slate-900 ring-2 ring-slate-900' : 'border-slate-200'
+                  }`}
+                >
                   <div className="flex justify-between gap-2">
                     <div className="min-w-0">
                       <h3 className="break-words font-bold text-slate-900">{p.title}</h3>
@@ -186,32 +213,56 @@ export default function Storefront() {
                         RM {Number(p.price).toFixed(2)}
                       </p>
                     </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <button
-                        className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 bg-white"
-                        onClick={() => changeQty(p.id, -1)}
-                        aria-label={`Kurang ${p.title}`}
-                      >
-                        <Minus size={18} />
-                      </button>
-                      <span className="w-6 text-center font-bold">{q}</span>
-                      <button
-                        className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white"
-                        onClick={() => changeQty(p.id, 1)}
-                        aria-label={`Tambah ${p.title}`}
-                      >
-                        <Plus size={18} />
-                      </button>
-                    </div>
+                    {hasForm ? (
+                      q > 0 && (
+                        <div className="flex shrink-0 items-center gap-2">
+                          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
+                            ✓ 1 in order
+                          </span>
+                          <button
+                            onClick={() => changeQty(p.id, -q)}
+                            aria-label={`Remove ${p.title}`}
+                            className="h-11 px-2 text-xs font-bold text-red-600"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      )
+                    ) : (
+                      <div className="flex shrink-0 items-center gap-2">
+                        <button
+                          className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 bg-white"
+                          onClick={() => changeQty(p.id, -1)}
+                          aria-label={`Decrease ${p.title}`}
+                        >
+                          <Minus size={18} />
+                        </button>
+                        <span className="w-6 text-center font-bold">{q}</span>
+                        <button
+                          className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white"
+                          onClick={() => changeQty(p.id, 1)}
+                          aria-label={`Add ${p.title}`}
+                        >
+                          <Plus size={18} />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
-                  {hasForm && q > 0 && (
+                  {hasForm && (
                     <div className="mt-3 border-t border-slate-200 pt-3">
+                      <p className="mb-2 text-xs text-slate-500">
+                        Fill in the form to order — quantity is automatically 1.
+                      </p>
                       <DynamicFormEngine
                         fields={fields}
                         values={vals}
                         onChange={(fid, v) => setValue(p.id, fid, v)}
                         errors={errors[p.id]}
+                        shopId={shop.id}
+                        onBusyChange={(busy) =>
+                          setUploadingCount((c) => Math.max(0, c + (busy ? 1 : -1)))
+                        }
                       />
                       <p className="mt-3 text-sm text-slate-700">
                         RM {Number(p.price).toFixed(2)}
@@ -227,9 +278,9 @@ export default function Storefront() {
         </div>
 
         <aside className="sticky top-24 hidden rounded-xl border border-slate-200 bg-white p-5 lg:block">
-          <h2 className="font-bold text-slate-900">Ringkasan Order</h2>
+          <h2 className="font-bold text-slate-900">Order Summary</h2>
           {itemsSummary.length === 0 ? (
-            <p className="mt-2 text-sm text-slate-500">Belum ada item. Pilih menu di kiri.</p>
+            <p className="mt-2 text-sm text-slate-500">No items yet. Pick from the menu.</p>
           ) : (
             <ul className="mt-3 space-y-2">
               {itemsSummary.map((it, i) => (
@@ -247,7 +298,7 @@ export default function Storefront() {
             <p className="text-lg font-bold text-slate-900">RM {total.toFixed(2)}</p>
             <button
               onClick={handleCheckoutOpen}
-              disabled={count === 0}
+              disabled={count === 0 || uploading}
               className="mt-3 h-12 w-full rounded-xl bg-emerald-600 font-bold text-white disabled:opacity-40"
             >
               Proceed to Checkout

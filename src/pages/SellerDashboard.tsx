@@ -2,7 +2,21 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import type { Order, Shop } from '../types';
+import type { CustomValue, Order, Shop } from '../types';
+import { displayFileName } from '../utils/uploadFile';
+
+function renderValue(v: CustomValue) {
+  if (Array.isArray(v)) return v.join(', ');
+  const s = String(v);
+  if (/^https?:\/\//.test(s)) {
+    return (
+      <a href={s} target="_blank" rel="noreferrer" className="font-bold text-emerald-700 underline">
+        View file ({displayFileName(s)})
+      </a>
+    );
+  }
+  return s;
+}
 
 export default function SellerDashboard() {
   const { orderId } = useParams<{ orderId: string }>();
@@ -16,7 +30,7 @@ export default function SellerDashboard() {
   useEffect(() => {
     async function load() {
       if (!orderId) {
-        setError('Order ID tiada.');
+        setError('Missing order ID.');
         setLoading(false);
         return;
       }
@@ -38,7 +52,7 @@ export default function SellerDashboard() {
           .single();
         if (sData) setShop(sData as Shop);
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : 'Gagal muat order.');
+        setError(e instanceof Error ? e.message : 'Failed to load order.');
       } finally {
         setLoading(false);
       }
@@ -59,30 +73,39 @@ export default function SellerDashboard() {
     };
   }, [orderId]);
 
-  async function updateStatus(status: 'confirmed' | 'rejected' | 'completed') {
+  async function updateStatus(
+    status: 'confirmed' | 'ready' | 'completed' | 'rejected' | 'cancelled',
+    cancelReason?: string
+  ) {
     if (!orderId || !order) return;
     setUpdating(true);
     setError(null);
     const prev = order.status;
-    setOrder({ ...order, status });
+    setOrder({ ...order, status, cancel_reason: cancelReason ?? order.cancel_reason });
     try {
       const { error: err } = await supabase
         .from('orders')
-        .update({ status })
+        .update(cancelReason !== undefined ? { status, cancel_reason: cancelReason } : { status })
         .eq('id', orderId);
       if (err) throw err;
     } catch (e: unknown) {
       setOrder({ ...order, status: prev });
-      setError(e instanceof Error ? e.message : 'Gagal update status.');
+      setError(e instanceof Error ? e.message : 'Failed to update status.');
     } finally {
       setUpdating(false);
     }
   }
 
+  function handleCancel() {
+    const reason = window.prompt('Reason for cancelling this order?');
+    if (reason === null) return;
+    updateStatus('cancelled', reason.trim());
+  }
+
   if (loading) {
     return (
       <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6">
-        <p className="text-sm text-slate-500">Memuatkan order seller...</p>
+        <p className="text-sm text-slate-500">Loading seller order...</p>
       </div>
     );
   }
@@ -107,7 +130,7 @@ export default function SellerDashboard() {
           ← Dashboard
         </Link>
         <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700">
-          403 — Order ini bukan dari kedai anda.
+          403 — This order is not from your shop.
         </div>
       </div>
     );
@@ -121,11 +144,11 @@ export default function SellerDashboard() {
         ← Dashboard
       </Link>
       <h1 className="mt-1 text-xl sm:text-2xl font-bold text-slate-900">Seller Control</h1>
-      <p className="text-sm text-slate-600 break-all">{shop?.name ?? 'Kedai'} — {order.id.slice(0, 8)}...</p>
+      <p className="text-sm text-slate-600 break-all">{shop?.name ?? 'Shop'} — {order.id.slice(0, 8)}...</p>
 
       <div className="mt-4 grid gap-4 lg:grid-cols-2 lg:items-start">
       <div className="rounded-xl border-2 border-slate-900 bg-white p-4">
-        <p className="text-sm font-bold text-slate-500">DUITNOW REF ID — CROSS-CHECK 2 SAAT</p>
+        <p className="text-sm font-bold text-slate-500">DUITNOW REF ID — 2-SECOND CROSS-CHECK</p>
         <p className="font-mono text-3xl sm:text-4xl font-bold tracking-widest text-slate-900 break-all">
           ...{refLast}
         </p>
@@ -152,7 +175,7 @@ export default function SellerDashboard() {
           <div className="mt-2 border-t border-slate-200 pt-2">
             {Object.entries(order.custom_data).map(([k, v]) => (
               <p key={k} className="text-sm text-slate-700">
-                <span className="font-bold">{k}:</span> {Array.isArray(v) ? v.join(', ') : String(v)}
+                <span className="font-bold">{k}:</span> {renderValue(v)}
               </p>
             ))}
           </div>
@@ -168,14 +191,14 @@ export default function SellerDashboard() {
         </div>
       )}
 
-      {order.status === 'pending' && (
+      {order.status === 'pending_verification' && (
         <div className="mt-4 lg:mt-0 lg:col-span-2 grid gap-3 sm:grid-cols-2">
           <button
             onClick={() => updateStatus('confirmed')}
             disabled={updating}
             className="h-14 w-full rounded-xl bg-emerald-600 text-lg font-bold text-white disabled:opacity-60"
           >
-            Confirm & Start Prep
+            Verify Payment
           </button>
           <button
             onClick={() => updateStatus('rejected')}
@@ -189,17 +212,43 @@ export default function SellerDashboard() {
 
       {order.status === 'confirmed' && (
         <button
+          onClick={() => updateStatus('ready')}
+          disabled={updating}
+          className="mt-4 lg:col-span-2 h-14 w-full rounded-xl bg-slate-900 text-lg font-bold text-white disabled:opacity-60"
+        >
+          Mark Ready
+        </button>
+      )}
+
+      {order.status === 'ready' && (
+        <button
           onClick={() => updateStatus('completed')}
           disabled={updating}
           className="mt-4 lg:col-span-2 h-14 w-full rounded-xl bg-slate-900 text-lg font-bold text-white disabled:opacity-60"
         >
-          Mark Completed / Ready
+          Mark Completed
         </button>
+      )}
+
+      {!['completed', 'rejected', 'cancelled'].includes(order.status) && (
+        <button
+          onClick={handleCancel}
+          disabled={updating}
+          className="mt-3 lg:col-span-2 h-11 w-full rounded-xl border border-slate-300 text-sm font-bold text-slate-600 disabled:opacity-60"
+        >
+          Cancel order
+        </button>
+      )}
+
+      {order.status === 'cancelled' && order.cancel_reason && (
+        <div className="mt-4 lg:col-span-2 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
+          <span className="font-bold">Cancel reason:</span> {order.cancel_reason}
+        </div>
       )}
 
       {(order.status === 'completed' || order.status === 'rejected') && (
         <div className="mt-4 lg:col-span-2 rounded-xl border border-slate-200 bg-white p-4 text-center text-sm font-bold text-slate-700">
-          Order {order.status}. Tiada tindakan lanjut.
+          Order {order.status}. No further action.
         </div>
       )}
       </div>

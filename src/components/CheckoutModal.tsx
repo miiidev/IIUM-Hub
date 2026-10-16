@@ -26,21 +26,27 @@ export default function CheckoutModal({
   const [buyerName, setBuyerName] = useState('');
   const [location, setLocation] = useState('');
   const [refId, setRefId] = useState('');
+  const [step, setStep] = useState<1 | 2>(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const inputCls =
     'h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 outline-none focus:border-slate-900';
 
+  function handleNext() {
+    setError(null);
+    if (!buyerName.trim()) return setError('Buyer name is required.');
+    if (!location.trim()) return setError('Mahalla / Room is required.');
+    setStep(2);
+  }
+
   async function handleSubmit() {
     setError(null);
-    if (!buyerName.trim()) return setError('Nama pembeli diperlukan.');
-    if (!location.trim()) return setError('Mahalla / Room diperlukan.');
     if (!/^\d{4,6}$/.test(refId.trim()))
-      return setError('DuitNow Ref ID mesti 4-6 digit.');
+      return setError('DuitNow Ref ID must be 4-6 digits.');
 
     if (!shop.whatsapp_number) {
-      return setError('Nombor WhatsApp seller tiada. Tidak boleh teruskan.');
+      return setError("Seller has no WhatsApp number. Can't continue.");
     }
 
     setLoading(true);
@@ -53,7 +59,7 @@ export default function CheckoutModal({
         payment_ref_id: refId.trim(),
         custom_data,
         items: itemsSummary,
-        status: 'pending' as const,
+        status: 'pending_verification' as const,
       };
 
       const { data, error: insErr } = await supabase
@@ -83,7 +89,7 @@ export default function CheckoutModal({
       onClose();
       navigate(`/order/${orderId}/track`);
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Gagal cipta order. Cuba lagi.';
+      const msg = e instanceof Error ? e.message : 'Failed to create order. Try again.';
       setError(msg);
     } finally {
       setLoading(false);
@@ -94,11 +100,11 @@ export default function CheckoutModal({
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
       <div className="safe-bottom w-full max-w-md sm:max-w-lg rounded-t-2xl bg-white p-5 pb-8 sm:rounded-2xl sm:pb-5 max-h-[92dvh] overflow-y-auto">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900">Bayar via DuitNow</h2>
+          <h2 className="text-lg font-bold text-slate-900">Pay via DuitNow</h2>
           <button
             onClick={onClose}
             className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200"
-            aria-label="Tutup"
+            aria-label="Close"
           >
             <X size={20} />
           </button>
@@ -123,47 +129,57 @@ export default function CheckoutModal({
             Total: RM {total.toFixed(2)}
           </p>
           <p className="text-xs text-slate-600">
-            Scan QR DuitNow seller, kemudian masukkan Ref ID di bawah.
+            Scan the seller's DuitNow QR, then enter the Ref ID below.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {step === 1 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="mb-1 block text-sm font-bold text-slate-900">
+                Buyer Name *
+              </label>
+              <input
+                className={inputCls}
+                value={buyerName}
+                onChange={(e) => setBuyerName(e.target.value)}
+                placeholder="e.g. Ahmad Ali"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-bold text-slate-900">
+                Mahalla / Room *
+              </label>
+              <input
+                className={inputCls}
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. Mahalla Faruq, C2-3-12"
+              />
+            </div>
+          </div>
+        ) : (
           <div>
             <label className="mb-1 block text-sm font-bold text-slate-900">
-              Nama Pembeli *
-            </label>
-            <input
-              className={inputCls}
-              value={buyerName}
-              onChange={(e) => setBuyerName(e.target.value)}
-              placeholder="cth: Ahmad Ali"
-            />
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-bold text-slate-900">
-              Mahalla / Room *
-            </label>
-            <input
-              className={inputCls}
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="cth: Mahalla Faruq, C2-3-12"
-            />
-          </div>
-          <div className="sm:col-span-2">
-            <label className="mb-1 block text-sm font-bold text-slate-900">
-              DuitNow Ref ID (4-6 digit terakhir) *
+              DuitNow Ref ID (last 4-6 digits) *
             </label>
             <input
               className={inputCls}
               value={refId}
               onChange={(e) => setRefId(e.target.value)}
-              placeholder="cth: 9412"
+              placeholder="e.g. 9412"
               inputMode="numeric"
               maxLength={6}
             />
+            <button
+              type="button"
+              onClick={() => setStep(1)}
+              className="mt-2 h-11 text-sm font-bold text-slate-600"
+            >
+              ← Back
+            </button>
           </div>
-        </div>
+        )}
 
         {error && (
           <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
@@ -171,15 +187,24 @@ export default function CheckoutModal({
           </div>
         )}
 
-        <button
-          onClick={handleSubmit}
-          disabled={loading}
-          className="mt-4 h-12 w-full rounded-xl bg-emerald-600 font-bold text-white disabled:opacity-60"
-        >
-          {loading ? 'Menghantar...' : 'Hantar Order via WhatsApp'}
-        </button>
+        {step === 1 ? (
+          <button
+            onClick={handleNext}
+            className="mt-4 h-12 w-full rounded-xl bg-emerald-600 font-bold text-white"
+          >
+            Next
+          </button>
+        ) : (
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="mt-4 h-12 w-full rounded-xl bg-emerald-600 font-bold text-white disabled:opacity-60"
+          >
+            {loading ? 'Sending...' : 'Send Order via WhatsApp'}
+          </button>
+        )}
         <p className="mt-2 text-center text-xs text-slate-500">
-          Order disimpan, kemudian WhatsApp dibuka di tab baru.
+          Order is saved, then WhatsApp opens in a new tab.
         </p>
       </div>
     </div>

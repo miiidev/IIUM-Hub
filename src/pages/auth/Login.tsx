@@ -28,7 +28,7 @@ export default function Login() {
       await signIn(email, password);
       navigate(from, { replace: true });
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Log masuk gagal. Cuba lagi.');
+      setError(e instanceof Error ? e.message : 'Login failed. Try again.');
     } finally {
       setLoading(false);
     }
@@ -39,20 +39,20 @@ export default function Login() {
       <Link to="/" className="inline-flex h-11 items-center text-sm font-bold text-slate-700">
         ← Marketplace
       </Link>
-      <h1 className="mt-2 text-xl sm:text-2xl font-bold text-slate-900">Seller Log Masuk</h1>
+      <h1 className="mt-2 text-xl sm:text-2xl font-bold text-slate-900">Seller Log In</h1>
       <p className="text-sm text-slate-600">
-        Akaun <span className="font-bold">@{IIUM_EMAIL_DOMAIN}</span> sahaja.
+        Only <span className="font-bold">@{IIUM_EMAIL_DOMAIN}</span> accounts.
       </p>
 
       <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 space-y-3">
         <div>
-          <label className="mb-1 block text-sm font-bold text-slate-900">Email IIUM *</label>
+          <label className="mb-1 block text-sm font-bold text-slate-900">IIUM Email *</label>
           <input
             className={inputCls}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder={`cth: ali@${IIUM_EMAIL_DOMAIN}`}
+            placeholder={`e.g. ali@${IIUM_EMAIL_DOMAIN}`}
             autoComplete="email"
           />
         </div>
@@ -80,12 +80,12 @@ export default function Login() {
         disabled={loading}
         className="mt-4 h-12 w-full rounded-xl bg-emerald-600 font-bold text-white disabled:opacity-60"
       >
-        {loading ? 'Log masuk...' : 'Log Masuk'}
+        {loading ? 'Logging in...' : 'Log In'}
       </button>
       <p className="mt-3 text-center text-sm text-slate-600">
-        Belum ada akaun?{' '}
+        No account yet?{' '}
         <Link to="/seller/signup" className="font-bold text-emerald-700">
-          Daftar kedai
+          Register shop
         </Link>
       </p>
     </div>

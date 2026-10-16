@@ -211,7 +211,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     mahalla: string;
     category: string;
   }): Promise<void> {
-    if (!user) throw new Error('Sesi tamat. Sila log masuk semula.');
+    if (!user) throw new Error('Session expired. Please log in again.');
     let slug = slugifyShopName(args.shopName);
     let attempt = 0;
     while (true) {

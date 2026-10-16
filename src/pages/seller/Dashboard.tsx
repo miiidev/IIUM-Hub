@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import type { Order, OrderStatus } from '../../types';
 import SellerNav from '../../components/seller/SellerNav';
 
-const FILTERS: Array<'all' | OrderStatus> = ['all', 'pending', 'confirmed', 'completed', 'rejected'];
+const FILTERS: Array<'all' | OrderStatus> = ['all', 'pending_verification', 'confirmed', 'ready', 'completed', 'cancelled', 'rejected'];
 
 function refLast(ref: string): string {
   return ref.length <= 4 ? ref : ref.slice(-4);
@@ -16,7 +16,7 @@ export default function Dashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [filter, setFilter] = useState<'all' | OrderStatus>('pending');
+  const [filter, setFilter] = useState<'all' | OrderStatus>('pending_verification');
 
   useEffect(() => {
     if (!shop) return;
@@ -34,7 +34,7 @@ export default function Dashboard() {
         if (err) throw err;
         if (!cancelled) setOrders((data as Order[]) ?? []);
       } catch (e: unknown) {
-        if (!cancelled) setError(e instanceof Error ? e.message : 'Gagal muat orders.');
+        if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load orders.');
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -66,10 +66,10 @@ export default function Dashboard() {
     let completed = 0;
     let todayRM = 0;
     for (const o of orders) {
-      if (o.status === 'pending') pending++;
+      if (o.status === 'pending_verification') pending++;
       if (o.status === 'completed') completed++;
       if (!o.created_at || new Date(o.created_at).toDateString() === today) {
-        if (o.status !== 'rejected') todayRM += Number(o.total_amount) || 0;
+        if (o.status !== 'rejected' && o.status !== 'cancelled') todayRM += Number(o.total_amount) || 0;
       }
     }
     return { pending, completed, todayRM, total: orders.length };
@@ -89,11 +89,11 @@ export default function Dashboard() {
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4 text-center">
             <p className="text-2xl sm:text-3xl font-bold text-slate-900">RM {stats.todayRM.toFixed(0)}</p>
-            <p className="text-xs font-bold text-slate-600">HARI INI</p>
+            <p className="text-xs font-bold text-slate-600">TODAY</p>
           </div>
           <div className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4 text-center">
             <p className="text-2xl sm:text-3xl font-bold text-emerald-600">{stats.completed}</p>
-            <p className="text-xs font-bold text-slate-600">SIAP</p>
+            <p className="text-xs font-bold text-slate-600">DONE</p>
           </div>
         </div>
 
@@ -108,7 +108,7 @@ export default function Dashboard() {
                   : 'bg-white text-slate-700 border-slate-200'
               }`}
             >
-              {f === 'all' ? `Semua (${orders.length})` : f}
+              {f === 'all' ? `All (${orders.length})` : f}
             </button>
           ))}
         </div>
@@ -127,8 +127,8 @@ export default function Dashboard() {
         )}
         {!loading && !error && visible.length === 0 && (
           <div className="mt-3 rounded-xl border border-slate-200 bg-white p-6 text-center">
-            <p className="font-bold text-slate-900">Tiada order {filter !== 'all' ? `(${filter})` : ''}</p>
-            <p className="text-sm text-slate-600">Order baru dari buyer akan muncul di sini live.</p>
+            <p className="font-bold text-slate-900">No orders {filter !== 'all' ? `(${filter})` : ''}</p>
+            <p className="text-sm text-slate-600">New buyer orders appear here live.</p>
           </div>
         )}
 

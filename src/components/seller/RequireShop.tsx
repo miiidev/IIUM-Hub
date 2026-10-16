@@ -44,7 +44,7 @@ export default function RequireShop({ children }: { children: ReactNode }) {
   if (loading) {
     return (
       <div className="mx-auto w-full max-w-md min-h-screen bg-slate-50 p-4">
-        <p className="text-sm text-slate-500">Memeriksa sesi...</p>
+        <p className="text-sm text-slate-500">Checking session...</p>
       </div>
     );
   }
@@ -55,7 +55,7 @@ export default function RequireShop({ children }: { children: ReactNode }) {
 
   async function handleSubmit() {
     setError(null);
-    if (!name.trim()) return setError('Nama kedai diperlukan.');
+    if (!name.trim()) return setError('Shop name is required.');
     const wErr = validateWhatsappMY(whatsapp);
     if (wErr) return setError(wErr);
     setSaving(true);
@@ -69,7 +69,7 @@ export default function RequireShop({ children }: { children: ReactNode }) {
       prefilled = true;
       localStorage.removeItem('iium-pending-shop');
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Gagal buka kedai. Cuba lagi.');
+      setError(e instanceof Error ? e.message : 'Failed to open shop. Try again.');
     } finally {
       setSaving(false);
     }
@@ -78,16 +78,16 @@ export default function RequireShop({ children }: { children: ReactNode }) {
   return (
     <div className="mx-auto w-full max-w-md sm:max-w-2xl min-h-screen bg-slate-50 pb-10">
       <main className="p-4 sm:p-6">
-        <h2 className="text-xl font-bold text-slate-900">Siapkan Kedai Anda</h2>
-        <p className="text-sm text-slate-600">Lengkapkan butiran untuk mula berjualan.</p>
+        <h2 className="text-xl font-bold text-slate-900">Set Up Your Shop</h2>
+        <p className="text-sm text-slate-600">Complete the details to start selling.</p>
         <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="sm:col-span-2">
-            <label className="mb-1 block text-sm font-bold text-slate-900">Nama Kedai *</label>
+            <label className="mb-1 block text-sm font-bold text-slate-900">Shop Name *</label>
             <input
               className={inputCls}
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="cth: Nasi Lemak Kak Jah"
+              placeholder="e.g. Kak Jah Nasi Lemak"
             />
           </div>
           <div className="sm:col-span-2">
@@ -96,7 +96,7 @@ export default function RequireShop({ children }: { children: ReactNode }) {
               className={inputCls}
               value={whatsapp}
               onChange={(e) => setWhatsapp(e.target.value)}
-              placeholder="cth: 60123456789"
+              placeholder="e.g. 60123456789"
               inputMode="tel"
             />
           </div>
@@ -123,7 +123,7 @@ export default function RequireShop({ children }: { children: ReactNode }) {
           disabled={saving}
           className="mt-4 h-12 w-full rounded-xl bg-emerald-600 font-bold text-white disabled:opacity-60"
         >
-          {saving ? 'Menyediakan...' : 'Buka Kedai'}
+          {saving ? 'Setting up...' : 'Open Shop'}
         </button>
       </main>
     </div>

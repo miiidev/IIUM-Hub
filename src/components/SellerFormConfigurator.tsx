@@ -6,21 +6,25 @@ interface Props {
   onChange: (fields: CustomField[]) => void;
   basePrice: number;
   disabled?: boolean;
+  recommendedKey?: PresetKey | null;
 }
 
 const smallInput =
   'h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-slate-900 disabled:opacity-50';
 
 const TYPE_LABEL: Record<CustomFieldType, string> = {
-  select: 'Pilihan',
-  text: 'Teks',
-  number: 'Nombor',
-  textarea: 'Catatan',
+  select: 'Choice',
+  text: 'Text',
+  number: 'Number',
+  textarea: 'Notes',
+  date: 'Date',
+  phone: 'Phone',
+  file: 'File Upload',
 };
 
-export default function SellerFormConfigurator({ fields, onChange, basePrice, disabled = false }: Props) {
+export default function SellerFormConfigurator({ fields, onChange, basePrice, disabled = false, recommendedKey = null }: Props) {
   function applyPreset(key: PresetKey) {
-    if (fields.length > 0 && !window.confirm('Ganti semua soalan semasa dengan preset ini?')) return;
+    if (fields.length > 0 && !window.confirm('Replace all current questions with this preset?')) return;
     onChange(clonePresetFields(key));
   }
 
@@ -55,7 +59,7 @@ export default function SellerFormConfigurator({ fields, onChange, basePrice, di
   return (
     <div className="space-y-4">
       <div>
-        <p className="mb-2 text-sm font-bold text-slate-900">1. Pilih preset</p>
+        <p className="mb-2 text-sm font-bold text-slate-900">1. Choose a preset</p>
         <div className="grid grid-cols-2 gap-2">
           {PRESETS.map((p) => (
             <button
@@ -63,9 +67,18 @@ export default function SellerFormConfigurator({ fields, onChange, basePrice, di
               type="button"
               disabled={disabled}
               onClick={() => applyPreset(p.key)}
-              className="min-h-[44px] rounded-xl border border-slate-300 bg-white px-3 py-2 text-left disabled:opacity-50"
+              className={`min-h-[44px] rounded-xl border bg-white px-3 py-2 text-left disabled:opacity-50 ${
+                recommendedKey === p.key ? 'border-slate-900' : 'border-slate-300'
+              }`}
             >
-              <span className="block text-sm font-bold text-slate-900">{p.label}</span>
+              <span className="flex items-center gap-1 text-sm font-bold text-slate-900">
+                {p.label}
+                {recommendedKey === p.key && (
+                  <span className="rounded-full bg-slate-900 px-2 py-0.5 text-xs font-bold text-white">
+                    Recommended
+                  </span>
+                )}
+              </span>
               <span className="block text-xs text-slate-600">{p.description}</span>
             </button>
           ))}
@@ -73,10 +86,10 @@ export default function SellerFormConfigurator({ fields, onChange, basePrice, di
       </div>
 
       <div>
-        <p className="mb-2 text-sm font-bold text-slate-900">2. Atur soalan ({fields.length})</p>
+        <p className="mb-2 text-sm font-bold text-slate-900">2. Arrange questions ({fields.length})</p>
         {fields.length === 0 && (
           <div className="rounded-xl border border-dashed border-slate-300 bg-white p-4 text-center text-sm text-slate-600">
-            Belum ada soalan. Pilih preset atau tambah kad soalan di bawah.
+            No questions yet. Pick a preset or add a question card below.
           </div>
         )}
         <div className="space-y-3">
@@ -107,7 +120,7 @@ export default function SellerFormConfigurator({ fields, onChange, basePrice, di
                   onClick={() => remove(i)}
                   className="h-11 rounded-lg border border-red-200 px-3 text-xs font-bold text-red-700 disabled:opacity-40"
                 >
-                  Buang
+                  Remove
                 </button>
               </div>
 
@@ -116,7 +129,7 @@ export default function SellerFormConfigurator({ fields, onChange, basePrice, di
                 value={f.label}
                 disabled={disabled}
                 onChange={(e) => patch(i, { label: e.target.value })}
-                placeholder="Label soalan"
+                placeholder="Question label"
                 className={`mt-2 ${smallInput}`}
               />
               <label className="mt-1 flex min-h-[44px] cursor-pointer items-center gap-2 text-sm font-bold text-slate-900">
@@ -127,12 +140,12 @@ export default function SellerFormConfigurator({ fields, onChange, basePrice, di
                   onChange={(e) => patch(i, { required: e.target.checked })}
                   className="h-5 w-5 accent-emerald-600"
                 />
-                Wajib diisi
+                Required
               </label>
 
               {f.type === 'select' && (
                 <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
-                  <p className="text-xs font-bold text-slate-700">Pilihan dan tambahan harga (RM)</p>
+                  <p className="text-xs font-bold text-slate-700">Options and price add-ons (RM)</p>
                   <div className="mt-2 space-y-2">
                     {(f.options ?? []).map((o, oi) => (
                       <div key={oi} className="flex items-center gap-2">
@@ -141,7 +154,7 @@ export default function SellerFormConfigurator({ fields, onChange, basePrice, di
                           value={o.name}
                           disabled={disabled}
                           onChange={(e) => patchOption(i, oi, { name: e.target.value })}
-                          placeholder="Nama pilihan"
+                          placeholder="Option name"
                           className={`min-w-0 flex-1 ${smallInput}`}
                         />
                         <input
@@ -152,14 +165,14 @@ export default function SellerFormConfigurator({ fields, onChange, basePrice, di
                           value={o.price_modifier}
                           disabled={disabled}
                           onChange={(e) => patchOption(i, oi, { price_modifier: Number(e.target.value) || 0 })}
-                          aria-label="Tambahan harga"
+                          aria-label="Price add-on"
                           className="h-11 w-20 shrink-0 rounded-lg border border-slate-300 bg-white px-2 text-sm text-slate-900 outline-none focus:border-slate-900 disabled:opacity-50"
                         />
                         <button
                           type="button"
                           disabled={disabled}
                           onClick={() => removeOption(i, oi)}
-                          aria-label="Buang pilihan"
+                          aria-label="Remove option"
                           className="h-11 w-11 shrink-0 rounded-lg border border-slate-300 text-lg font-bold text-red-700 disabled:opacity-40"
                         >
                           ×
@@ -173,7 +186,7 @@ export default function SellerFormConfigurator({ fields, onChange, basePrice, di
                     onClick={() => addOption(i)}
                     className="mt-2 h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-bold text-slate-800 disabled:opacity-40"
                   >
-                    + Tambah pilihan
+                    + Add option
                   </button>
                 </div>
               )}
@@ -183,7 +196,7 @@ export default function SellerFormConfigurator({ fields, onChange, basePrice, di
       </div>
 
       <div>
-        <p className="mb-2 text-sm font-bold text-slate-900">3. Tambah kad soalan</p>
+        <p className="mb-2 text-sm font-bold text-slate-900">3. Add question cards</p>
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {QUESTION_CARD_TYPES.map((t) => (
             <button
@@ -201,17 +214,17 @@ export default function SellerFormConfigurator({ fields, onChange, basePrice, di
 
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-800">
         <p>
-          Harga asas: <span className="font-bold">RM {basePrice.toFixed(2)}</span>
+          Base price: <span className="font-bold">RM {basePrice.toFixed(2)}</span>
         </p>
         <p>
-          Harga maksimum (semua tambahan dipilih):{' '}
+          Maximum (all add-ons selected):{' '}
           <span className="font-bold">RM {(basePrice + maxExtra).toFixed(2)}</span>
         </p>
       </div>
 
       <details className="rounded-xl border border-slate-200 bg-white">
         <summary className="flex min-h-[44px] cursor-pointer items-center px-3 text-sm font-bold text-slate-800">
-          Lihat JSON
+          View JSON
         </summary>
         <pre className="max-h-64 overflow-auto border-t border-slate-200 p-3 text-xs text-slate-800">
           {JSON.stringify(fields, null, 2)}

@@ -35,7 +35,7 @@ select s.id, v.buyer_name, v.location, v.total_amount, v.payment_ref_id, v.custo
 from public.shops s
 join (values
   ('makcik-nasi-lemak', 'Ahmad Test', 'Mahalla Faruq, C2-3-12', 13.50, '9412', '{}',
-    '[{"title":"Nasi Lemak Ayam Goreng","qty":1,"unitPrice":8.5,"lineTotal":8.5},{"title":"Nasi Lemak Biasa","qty":1,"unitPrice":5,"lineTotal":5}]', 'pending'),
+    '[{"title":"Nasi Lemak Ayam Goreng","qty":1,"unitPrice":8.5,"lineTotal":8.5},{"title":"Nasi Lemak Biasa","qty":1,"unitPrice":5,"lineTotal":5}]', 'pending_verification'),
   ('print-express-ali', 'Siti Test', 'Mahalla Ali, B1-2-05', 3.40, '2210', '{}',
     '[{"title":"Print A4 Color (per page)","qty":2,"unitPrice":1,"lineTotal":2},{"title":"Print A4 Black & White (per page)","qty":7,"unitPrice":0.2,"lineTotal":1.4}]', 'confirmed'),
   ('burger-aminah', 'Ali Test', 'Mahalla Aminah, A3-1-20', 16.00, '7788', '{}',
@@ -44,6 +44,19 @@ join (values
     '[{"title":"Basikal Sewa Harian","qty":1,"unitPrice":10,"lineTotal":10}]', 'rejected'),
   ('fixphone-bilal', 'Custom Test', 'Mahalla Bilal, E1-1-01', 50.00, '5566',
     '{"Model Telefon":"iPhone 11","Jenis Kerosakan":"Screen Crack","Nota Tambahan":"segera"}',
-    '[{"title":"Repair Phone Custom","qty":1,"unitPrice":50,"lineTotal":50}]', 'pending')
+    '[{"title":"Repair Phone Custom","qty":1,"unitPrice":50,"lineTotal":50}]', 'pending_verification')
 ) as v(slug, buyer_name, location, total_amount, payment_ref_id, custom_data, items, status) on v.slug = s.slug
 where not exists (select 1 from public.orders o where o.payment_ref_id = v.payment_ref_id and o.shop_id = s.id);
+
+-- Backfill shop-category presets onto products with empty forms (never overwrites).
+update public.products set custom_fields = '[{"id":"print_size","label":"Paper Size","type":"select","required":true,"enabled":true,"options":[{"name":"A4","price_modifier":0},{"name":"A3","price_modifier":0.5}]},{"id":"print_color","label":"Color Mode","type":"select","required":true,"enabled":true,"options":[{"name":"Black & White","price_modifier":0},{"name":"Color","price_modifier":0.4}]},{"id":"print_duplex","label":"Duplex","type":"select","required":true,"enabled":true,"options":[{"name":"Single-sided","price_modifier":0},{"name":"Double-sided","price_modifier":0}]},{"id":"print_file","label":"File / File Link","type":"text","required":false,"enabled":true,"placeholder":"e.g. filename or Google Drive link"}]'::jsonb
+where (custom_fields is null or custom_fields = '[]'::jsonb)
+and shop_id in (select id from public.shops where category = 'printing');
+
+update public.products set custom_fields = '[{"id":"food_size","label":"Size","type":"select","required":true,"enabled":true,"options":[{"name":"Regular","price_modifier":0},{"name":"Large","price_modifier":2}]},{"id":"food_addons","label":"Add-ons","type":"select","required":false,"enabled":true,"options":[{"name":"None","price_modifier":0},{"name":"Egg","price_modifier":1},{"name":"Cheese","price_modifier":1.5},{"name":"Egg + Cheese","price_modifier":2.5}]},{"id":"food_notes","label":"Notes","type":"textarea","required":false,"enabled":true,"placeholder":"e.g. less spicy"}]'::jsonb
+where (custom_fields is null or custom_fields = '[]'::jsonb)
+and shop_id in (select id from public.shops where category = 'food');
+
+update public.products set custom_fields = '[{"id":"service_item","label":"Service / Item","type":"select","required":true,"enabled":true,"options":[{"name":"General Service","price_modifier":0},{"name":"Repair","price_modifier":0},{"name":"Rental","price_modifier":0}]},{"id":"service_date","label":"Date","type":"date","required":true,"enabled":true},{"id":"service_phone","label":"Phone Number","type":"phone","required":true,"enabled":true},{"id":"service_notes","label":"Notes","type":"textarea","required":false,"enabled":true,"placeholder":"e.g. describe the issue or rental period"}]'::jsonb
+where (custom_fields is null or custom_fields = '[]'::jsonb)
+and shop_id in (select id from public.shops where category in ('repairs', 'rentals', 'custom'));

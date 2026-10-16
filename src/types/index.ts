@@ -1,8 +1,14 @@
 export type ShopCategory = 'food' | 'printing' | 'shoe_wash' | 'repairs' | 'rentals' | 'custom';
 
-export type PresetKey = 'printing' | 'shoe_wash' | 'food_addons' | 'custom';
+export type PresetKey = 'printing' | 'shoe_wash' | 'food_addons' | 'services' | 'custom';
 
-export type OrderStatus = 'pending' | 'confirmed' | 'rejected' | 'completed';
+export type OrderStatus =
+  | 'pending_verification'
+  | 'confirmed'
+  | 'ready'
+  | 'completed'
+  | 'cancelled'
+  | 'rejected';
 
 export interface Shop {
   id: string;
@@ -27,7 +33,7 @@ export interface CustomOption {
   price_modifier: number;
 }
 
-export type CustomFieldType = 'select' | 'text' | 'number' | 'textarea';
+export type CustomFieldType = 'select' | 'text' | 'number' | 'textarea' | 'date' | 'phone' | 'file';
 
 export type CustomValue = string | number | string[];
 
@@ -56,6 +62,10 @@ export interface Product {
   custom_fields: CustomField[] | null;
 }
 
+export interface ProductWithShop extends Product {
+  shops: Shop;
+}
+
 export interface OrderItemSummary {
   title: string;
   qty: number;
@@ -74,6 +84,7 @@ export interface Order {
   custom_data: Record<string, CustomValue>;
   items: OrderItemSummary[];
   status: OrderStatus;
+  cancel_reason?: string | null;
   created_at?: string;
 }
 

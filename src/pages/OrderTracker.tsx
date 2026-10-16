@@ -2,18 +2,34 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import type { Order } from '../types';
+import type { CustomValue, Order } from '../types';
+import { displayFileName } from '../utils/uploadFile';
 
-const STEPS = ['Sent via WhatsApp', 'Payment Verification', 'Preparing', 'Ready'];
+function renderValue(v: CustomValue) {
+  if (Array.isArray(v)) return v.join(', ');
+  const s = String(v);
+  if (/^https?:\/\//.test(s)) {
+    return (
+      <a href={s} target="_blank" rel="noreferrer" className="font-bold text-emerald-700 underline">
+        View file ({displayFileName(s)})
+      </a>
+    );
+  }
+  return s;
+}
+
+const STEPS = ['Order Placed', 'Payment Verified', 'Preparing', 'Ready'];
 
 function statusToStep(status: Order['status']): number {
   switch (status) {
-    case 'pending':
-      return 1;
+    case 'pending_verification':
+      return 0;
     case 'confirmed':
       return 2;
+    case 'ready':
     case 'completed':
       return 3;
+    case 'cancelled':
     case 'rejected':
       return -1;
     default:
@@ -30,7 +46,7 @@ export default function OrderTracker() {
 
   useEffect(() => {
     if (!orderId) {
-      setError('Order ID tiada.');
+      setError('Missing order ID.');
       setLoading(false);
       return;
     }
@@ -45,7 +61,7 @@ export default function OrderTracker() {
         if (err) throw err;
         setOrder(data as Order);
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : 'Gagal muat order.');
+        setError(e instanceof Error ? e.message : 'Failed to load order.');
       } finally {
         setLoading(false);
       }
@@ -73,7 +89,7 @@ export default function OrderTracker() {
   if (loading) {
     return (
       <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6">
-        <p className="text-sm text-slate-500">Memuatkan status order...</p>
+        <p className="text-sm text-slate-500">Loading order status...</p>
       </div>
     );
   }
@@ -83,7 +99,7 @@ export default function OrderTracker() {
       <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6">
         <Link to="/" className="inline-flex h-11 items-center text-sm font-bold text-slate-700">← Marketplace</Link>
         <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-          {error ?? 'Order tidak dijumpai.'}
+          {error ?? 'Order not found.'}
         </div>
       </div>
     );
@@ -115,7 +131,7 @@ export default function OrderTracker() {
           <div className="mt-2 border-t border-slate-200 pt-2">
             {Object.entries(order.custom_data).map(([k, v]) => (
               <p key={k} className="text-sm text-slate-700">
-                <span className="font-bold">{k}:</span> {Array.isArray(v) ? v.join(', ') : String(v)}
+                <span className="font-bold">{k}:</span> {renderValue(v)}
               </p>
             ))}
           </div>
@@ -124,9 +140,9 @@ export default function OrderTracker() {
           className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-bold ${
             order.status === 'completed'
               ? 'bg-emerald-100 text-emerald-700'
-              : order.status === 'rejected'
+              : order.status === 'rejected' || order.status === 'cancelled'
                 ? 'bg-red-100 text-red-700'
-                : order.status === 'confirmed'
+                : order.status === 'confirmed' || order.status === 'ready'
                   ? 'bg-blue-100 text-blue-700'
                   : 'bg-amber-100 text-amber-700'
           }`}
@@ -135,9 +151,10 @@ export default function OrderTracker() {
         </span>
       </div>
 
-      {order.status === 'rejected' ? (
+      {order.status === 'rejected' || order.status === 'cancelled' ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700">
-          Order ditolak seller. Sila hubungi seller via WhatsApp untuk refund / info.
+          {order.status === 'cancelled' ? 'Order cancelled.' : 'Order rejected by seller.'}{' '}
+          {order.cancel_reason ? `Reason: ${order.cancel_reason}` : 'Please contact the seller on WhatsApp for info.'}
         </div>
       ) : (
         <div className="rounded-xl border border-slate-200 bg-white p-4">
@@ -157,7 +174,7 @@ export default function OrderTracker() {
                   <p className={`font-bold ${current ? 'text-slate-900' : done ? 'text-slate-700' : 'text-slate-400'}`}>
                     {s}
                   </p>
-                  {current && <p className="text-xs text-slate-500">Status semasa</p>}
+                  {current && <p className="text-xs text-slate-500">Current status</p>}
                 </div>
               </div>
             );
@@ -166,7 +183,7 @@ export default function OrderTracker() {
       )}
 
       <p className="mt-4 text-xs text-slate-500 lg:col-span-2">
-        {live ? 'LIVE - status dikemaskini automatik tanpa refresh.' : 'Menyambung ke status live... (refresh jika tiada kemaskini)'}
+        {live ? 'LIVE - status updates automatically, no refresh needed.' : 'Connecting to live status... (refresh if nothing updates)'}
       </p>
       </div>
     </div>

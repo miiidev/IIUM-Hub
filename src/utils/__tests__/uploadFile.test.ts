@@ -1,0 +1,30 @@
+import { describe, expect, it } from 'vitest';
+import { displayFileName, validateUploadFile } from '../uploadFile';
+
+describe('validateUploadFile', () => {
+  it('accepts an in-limit image', () => {
+    expect(validateUploadFile({ size: 1024, type: 'image/jpeg' })).toBeNull();
+  });
+
+  it('rejects disallowed types', () => {
+    expect(validateUploadFile({ size: 1024, type: 'application/x-msdownload' })).toContain(
+      'not allowed'
+    );
+  });
+
+  it('rejects files over 5MB', () => {
+    expect(validateUploadFile({ size: 6 * 1024 * 1024, type: 'application/pdf' })).toContain('5MB');
+  });
+});
+
+describe('displayFileName', () => {
+  it('strips the uuid prefix and decodes', () => {
+    expect(
+      displayFileName('https://x/abc/12345678-1234-1234-1234-123456789012-my%20doc.pdf')
+    ).toBe('my doc.pdf');
+  });
+
+  it('falls back for plain urls', () => {
+    expect(displayFileName('https://x/y.pdf')).toBe('y.pdf');
+  });
+});

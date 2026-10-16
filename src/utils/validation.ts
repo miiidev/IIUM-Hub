@@ -5,22 +5,22 @@ export function isIiumEmail(email: string): boolean {
 }
 
 export function validateIiumEmail(email: string): string | null {
-  if (!email.trim()) return 'Email IIUM diperlukan.';
-  if (!isIiumEmail(email)) return `Guna email @${IIUM_EMAIL_DOMAIN} sahaja.`;
+  if (!email.trim()) return 'IIUM email is required.';
+  if (!isIiumEmail(email)) return `Use @${IIUM_EMAIL_DOMAIN} only.`;
   return null;
 }
 
 export function validatePassword(password: string): string | null {
-  if (!password) return 'Password diperlukan.';
+  if (!password) return 'Password is required.';
   if (password.length < 6) return 'Password minima 6 aksara.';
   return null;
 }
 
 export function validateWhatsappMY(raw: string): string | null {
   const digits = (raw || '').replace(/\D/g, '');
-  if (!digits) return 'Nombor WhatsApp diperlukan.';
+  if (!digits) return 'WhatsApp number is required.';
   if (!/^60\d{8,10}$/.test(digits))
-    return 'Format: 60123456789 (mula dengan 60).';
+    return 'Format: 60123456789 (starts with 60).';
   return null;
 }
 

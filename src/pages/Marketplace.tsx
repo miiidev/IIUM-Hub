@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search, Store } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import type { Shop } from '../types';
+import type { ProductWithShop } from '../types';
 import { MAHALLAS } from '../utils/mahallas';
 import { SHOP_CATEGORIES, categoryLabel } from '../utils/categories';
 
@@ -11,7 +11,7 @@ const MAHALLA_FILTERS = ['All', ...MAHALLAS];
 
 export default function Marketplace() {
   const { user } = useAuth();
-  const [shops, setShops] = useState<Shop[]>([]);
+  const [products, setProducts] = useState<ProductWithShop[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cat, setCat] = useState('all');
@@ -19,34 +19,42 @@ export default function Marketplace() {
   const [q, setQ] = useState('');
 
   useEffect(() => {
-    async function fetchShops() {
+    async function fetchProducts() {
       setLoading(true);
       setError(null);
       try {
         const { data, error: err } = await supabase
-          .from('shops')
-          .select('*')
-          .eq('is_active', true)
-          .order('name');
+          .from('products')
+          .select('*, shops!inner(id,slug,name,mahalla,category,is_active)')
+          .eq('is_available', true)
+          .eq('shops.is_active', true)
+          .order('title')
+          .limit(100);
         if (err) throw err;
-        setShops((data as Shop[]) ?? []);
+        setProducts((data as ProductWithShop[]) ?? []);
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : 'Gagal muat kedai.');
+        setError(e instanceof Error ? e.message : 'Failed to load services.');
       } finally {
         setLoading(false);
       }
     }
-    fetchShops();
+    fetchProducts();
   }, []);
 
   const filtered = useMemo(() => {
-    return shops.filter((s) => {
-      if (cat !== 'all' && s.category !== cat) return false;
-      if (mahalla !== 'All' && s.mahalla !== mahalla) return false;
-      if (q && !s.name.toLowerCase().includes(q.toLowerCase())) return false;
+    const needle = q.trim().toLowerCase();
+    return products.filter((p) => {
+      if (cat !== 'all' && p.shops.category !== cat) return false;
+      if (mahalla !== 'All' && p.shops.mahalla !== mahalla) return false;
+      if (
+        needle &&
+        !p.title.toLowerCase().includes(needle) &&
+        !p.shops.name.toLowerCase().includes(needle)
+      )
+        return false;
       return true;
     });
-  }, [shops, cat, mahalla, q]);
+  }, [products, cat, mahalla, q]);
 
   return (
     <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 pb-10">
@@ -54,13 +62,13 @@ export default function Marketplace() {
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
             <h1 className="text-xl sm:text-2xl font-bold text-slate-900">IIUM Hub</h1>
-            <p className="text-sm text-slate-600">Marketplace kampus — zero cost</p>
+            <p className="text-sm text-slate-600">Campus marketplace — zero cost</p>
           </div>
           <Link
             to="/seller"
             className="inline-flex h-11 items-center rounded-xl bg-slate-900 px-4 text-sm font-bold text-white"
           >
-            {user ? 'Seller Dashboard' : 'Jual di sini'}
+            {user ? 'Seller Dashboard' : 'Sell here'}
           </Link>
         </div>
         <div className="mt-3 flex flex-col sm:flex-row gap-2">
@@ -68,7 +76,7 @@ export default function Marketplace() {
             <Search size={18} className="shrink-0 text-slate-500" />
             <input
               className="w-full bg-transparent outline-none text-slate-900"
-              placeholder="Cari kedai..."
+              placeholder="Search services, food, printing..."
               value={q}
               onChange={(e) => setQ(e.target.value)}
             />
@@ -80,7 +88,7 @@ export default function Marketplace() {
           >
             {MAHALLA_FILTERS.map((m) => (
               <option key={m} value={m}>
-                {m === 'All' ? 'Semua Mahalla' : m}
+                {m === 'All' ? 'All Mahallas' : m}
               </option>
             ))}
           </select>
@@ -109,7 +117,7 @@ export default function Marketplace() {
             {[1, 2, 3].map((i) => (
               <div key={i} className="h-24 rounded-xl bg-white border border-slate-200" />
             ))}
-            <p className="text-sm text-slate-500">Memuatkan kedai...</p>
+            <p className="text-sm text-slate-500">Loading...</p>
           </div>
         )}
 
@@ -122,36 +130,31 @@ export default function Marketplace() {
         {!loading && !error && filtered.length === 0 && (
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
             <Store className="mx-auto text-slate-400" />
-            <p className="mt-2 font-bold text-slate-900">Tiada kedai dijumpai</p>
-            <p className="text-sm text-slate-600">Cuba tukar kategori / carian.</p>
+            <p className="mt-2 font-bold text-slate-900">No services found</p>
+            <p className="text-sm text-slate-600">Try a different search or filter.</p>
           </div>
         )}
 
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((s) => (
+          {filtered.map((p) => (
             <Link
-              key={s.id}
-              to={`/s/${s.slug}`}
+              key={p.id}
+              to={`/s/${p.shops.slug}?product=${p.id}`}
               className="rounded-xl border border-slate-200 bg-white p-4 min-h-[88px]"
             >
-              <div className="flex items-center justify-between">
-                <h2 className="font-bold text-slate-900">{s.name}</h2>
-                <span
-                  className={`rounded-full px-2 py-1 text-xs font-bold ${
-                    s.is_active
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-slate-100 text-slate-500'
-                  }`}
-                >
-                  {s.is_active ? 'Open' : 'Closed'}
+              <div className="flex items-center justify-between gap-2">
+                <h2 className="font-bold text-slate-900">{p.title}</h2>
+                <span className="shrink-0 font-bold text-slate-900">
+                  RM {Number(p.price).toFixed(2)}
                 </span>
               </div>
+              <p className="mt-1 text-sm text-slate-600">{p.shops.name}</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                  {s.mahalla}
+                  {p.shops.mahalla}
                 </span>
                 <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                  {categoryLabel(s.category)}
+                  {categoryLabel(p.shops.category)}
                 </span>
               </div>
             </Link>

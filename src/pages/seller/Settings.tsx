@@ -50,7 +50,7 @@ export default function Settings() {
       const { data } = supabase.storage.from('duitnow-qr').getPublicUrl(path);
       setQrUrl(`${data.publicUrl}?t=${Date.now()}`);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Gagal muat naik QR.');
+      setError(e instanceof Error ? e.message : 'Failed to upload QR.');
     } finally {
       setUploading(false);
     }
@@ -60,7 +60,7 @@ export default function Settings() {
     if (!shop) return;
     setError(null);
     setOk(false);
-    if (!name.trim()) return setError('Nama kedai diperlukan.');
+    if (!name.trim()) return setError('Shop name is required.');
     const wErr = validateWhatsappMY(whatsapp);
     if (wErr) return setError(wErr);
     setSaving(true);
@@ -81,7 +81,7 @@ export default function Settings() {
       await refreshShop();
       setOk(true);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Gagal simpan tetapan.');
+      setError(e instanceof Error ? e.message : 'Failed to save settings.');
     } finally {
       setSaving(false);
     }
@@ -93,7 +93,7 @@ export default function Settings() {
       <main className="p-4 sm:p-6">
         <div className="rounded-xl border border-slate-200 bg-white p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div className="sm:col-span-2">
-            <label className="mb-1 block text-sm font-bold text-slate-900">Nama Kedai *</label>
+            <label className="mb-1 block text-sm font-bold text-slate-900">Shop Name *</label>
             <input className={inputCls} value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div className="sm:col-span-2">
@@ -107,14 +107,19 @@ export default function Settings() {
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-bold text-slate-900">Kategori</label>
+            <label className="mb-1 block text-sm font-bold text-slate-900">Category</label>
+            {shop && category !== shop.category && (
+              <p className="mt-1 text-xs text-slate-600">
+                Category changed — go to Products to apply the new preset.
+              </p>
+            )}
             <select className={inputCls} value={category} onChange={(e) => setCategory(e.target.value)}>
               {SHOP_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
             </select>
           </div>
           <div className="sm:col-span-2">
-            <label className="mb-1 block text-sm font-bold text-slate-900">No. Akaun DuitNow (dipapar di checkout)</label>
-            <input className={inputCls} value={account} onChange={(e) => setAccount(e.target.value)} placeholder="cth: 60123456789 / 1234567890" inputMode="numeric" />
+            <label className="mb-1 block text-sm font-bold text-slate-900">DuitNow Account No. (shown at checkout)</label>
+            <input className={inputCls} value={account} onChange={(e) => setAccount(e.target.value)} placeholder="e.g. 60123456789 / 1234567890" inputMode="numeric" />
           </div>
           <div className="sm:col-span-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
             <p className="text-sm font-bold text-slate-900">QR DuitNow</p>
@@ -123,11 +128,11 @@ export default function Settings() {
                 <img src={qrUrl} alt="QR DuitNow" className="h-24 w-24 rounded-xl border border-slate-200 bg-white object-contain" />
               ) : (
                 <div className="flex h-24 w-24 items-center justify-center rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-400">
-                  Tiada QR
+                  No QR
                 </div>
               )}
               <label className="inline-flex h-12 cursor-pointer items-center rounded-xl bg-slate-900 px-4 text-sm font-bold text-white">
-                {uploading ? 'Muat naik...' : 'Muat naik QR'}
+                {uploading ? 'Uploading...' : 'Upload QR'}
                 <input
                   type="file"
                   accept="image/*"
@@ -142,12 +147,12 @@ export default function Settings() {
             </div>
           </div>
           <label className="sm:col-span-2 flex min-h-[48px] items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4">            <span className="text-sm font-bold text-slate-900">
-              Kedai Open {isActive ? '(nampak di Marketplace)' : '(disorok)'}
+              Shop Open {isActive ? '(visible on Marketplace)' : '(hidden)'}
             </span>
             <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} className="h-6 w-6" />
           </label>
           <p className="sm:col-span-2 text-xs text-slate-500 break-all">
-            Link kedai: /s/{shop!.slug}
+            Shop link: /s/{shop!.slug}
           </p>
         </div>
 
@@ -158,7 +163,7 @@ export default function Settings() {
         )}
         {ok && (
           <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-bold text-emerald-700">
-            Tetapan disimpan.
+            Settings saved.
           </div>
         )}
         <button
@@ -166,7 +171,7 @@ export default function Settings() {
           disabled={saving}
           className="mt-4 h-12 w-full rounded-xl bg-emerald-600 font-bold text-white disabled:opacity-60"
         >
-          {saving ? 'Menyimpan...' : 'Simpan Tetapan'}
+          {saving ? 'Saving...' : 'Save Settings'}
         </button>
       </main>
     </div>

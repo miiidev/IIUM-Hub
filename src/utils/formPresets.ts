@@ -12,6 +12,23 @@ export interface FormPreset {
   fields: CustomField[];
 }
 
+export const CATEGORY_PRESET_MAP: Record<string, PresetKey | null> = {
+  food: 'food_addons',
+  printing: 'printing',
+  shoe_wash: 'shoe_wash',
+  repairs: 'services',
+  rentals: 'services',
+  custom: 'services',
+};
+
+export function getPresetForCategory(category: string): PresetKey | null {
+  return CATEGORY_PRESET_MAP[category] ?? null;
+}
+
+export function isFormApplicable(category: string): boolean {
+  return getPresetForCategory(category) !== null;
+}
+
 function select(
   id: string,
   label: string,
@@ -40,71 +57,86 @@ export const PRESETS: FormPreset[] = [
   {
     key: 'printing',
     label: 'Printing',
-    description: 'Saiz kertas, warna, duplex dan fail.',
+    description: 'Paper size, color, duplex and file.',
     fields: [
-      select('print_size', 'Saiz Kertas', [
+      select('print_size', 'Paper Size', [
         ['A4', 0],
         ['A3', 0.5],
       ]),
-      select('print_color', 'Mod Warna', [
-        ['Hitam Putih', 0],
-        ['Berwarna', 0.4],
+      select('print_color', 'Color Mode', [
+        ['Black & White', 0],
+        ['Color', 0.4],
       ]),
       select('print_duplex', 'Duplex', [
-        ['Satu muka', 0],
-        ['Dua muka', 0],
+        ['Single-sided', 0],
+        ['Double-sided', 0],
       ]),
-      text(
-        'print_file',
-        'Fail / Pautan Fail',
-        false,
-        'cth: nama fail atau pautan Google Drive'
-      ),
+      { id: 'print_file', label: 'Upload File', type: 'file', required: true, enabled: true },
     ],
   },
   {
     key: 'shoe_wash',
     label: 'Shoe Wash',
-    description: 'Tahap cucian, butiran kasut dan pickup bilik.',
+    description: 'Treatment level, shoe details and room pickup.',
     fields: [
-      select('shoe_level', 'Tahap Cucian', [
+      select('shoe_level', 'Treatment Level', [
         ['Basic', 0],
         ['Deep Clean', 5],
       ]),
-      text('shoe_details', 'Butiran Kasut', true, 'cth: Nike putih, saiz 42'),
-      select('shoe_pickup', 'Pickup di Bilik', [
-        ['Ya, ambil di bilik', 1],
-        ['Tidak, saya hantar sendiri', 0],
+      text('shoe_details', 'Shoe Details', true, 'e.g. white Nike, size 42'),
+      select('shoe_pickup', 'Room Pickup', [
+        ['Yes, pick up from my room', 1],
+        ['No, I will send it myself', 0],
       ]),
     ],
   },
   {
     key: 'food_addons',
     label: 'Food + Add-ons',
-    description: 'Saiz, add-ons dan nota.',
+    description: 'Size, add-ons and notes.',
     fields: [
-      select('food_size', 'Saiz', [
-        ['Biasa', 0],
-        ['Besar', 2],
+      select('food_size', 'Size', [
+        ['Regular', 0],
+        ['Large', 2],
       ]),
       select(
         'food_addons',
         'Add-ons',
         [
-          ['Tiada', 0],
-          ['Telur', 1],
+          ['None', 0],
+          ['Egg', 1],
           ['Cheese', 1.5],
-          ['Telur + Cheese', 2.5],
+          ['Egg + Cheese', 2.5],
         ],
         false
       ),
-      textarea('food_notes', 'Nota', false, 'cth: kurang pedas'),
+      textarea('food_notes', 'Notes', false, 'e.g. less spicy'),
+    ],
+  },
+  {
+    key: 'services',
+    label: 'Services & Booking',
+    description: 'Item, date, phone and notes. Fits repairs, rentals and custom jobs.',
+    fields: [
+      select(
+        'service_item',
+        'Service / Item',
+        [
+          ['General Service', 0],
+          ['Repair', 0],
+          ['Rental', 0],
+        ],
+        true
+      ),
+      { id: 'service_date', label: 'Date', type: 'date', required: true, enabled: true },
+      { id: 'service_phone', label: 'Phone Number', type: 'phone', required: true, enabled: true },
+      textarea('service_notes', 'Notes', false, 'e.g. describe the issue or rental period'),
     ],
   },
   {
     key: 'custom',
     label: 'Custom',
-    description: 'Susun sendiri kad soalan.',
+    description: 'Stack your own question cards.',
     fields: [],
   },
 ];
@@ -128,10 +160,11 @@ function randomId(): string {
 }
 
 export const QUESTION_CARD_TYPES: Array<{ type: CustomFieldType; label: string }> = [
-  { type: 'select', label: 'Pilihan' },
-  { type: 'text', label: 'Teks' },
-  { type: 'number', label: 'Nombor' },
-  { type: 'textarea', label: 'Catatan' },
+  { type: 'select', label: 'Choice' },
+  { type: 'text', label: 'Text' },
+  { type: 'number', label: 'Number' },
+  { type: 'textarea', label: 'Notes' },
+  { type: 'file', label: 'File Upload' },
 ];
 
 export function createQuestionCard(type: CustomFieldType): CustomField {
@@ -185,7 +218,7 @@ export function validateRequired(
     const v = values[f.id];
     const empty =
       v === undefined || v === null || (Array.isArray(v) ? v.length === 0 : String(v).trim() === '');
-    if (empty) errs[f.id] = `${f.label || 'Ruang ini'} diperlukan`;
+    if (empty) errs[f.id] = `${f.label || 'This field'} is required`;
   }
   return errs;
 }

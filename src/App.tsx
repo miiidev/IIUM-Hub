@@ -34,9 +34,9 @@ export default function App() {
               path="*"
               element={
                 <div className="mx-auto w-full max-w-md sm:max-w-lg p-6 text-center min-h-screen bg-slate-50">
-                  <h1 className="text-xl font-bold text-slate-900">404 — Tiada page</h1>
+                  <h1 className="text-xl font-bold text-slate-900">404 — Page not found</h1>
                   <a href="/" className="mt-2 inline-block h-12 px-6 py-3 font-bold text-emerald-700">
-                    ← Kembali ke Marketplace
+                    ← Back to Marketplace
                   </a>
                 </div>
               }
