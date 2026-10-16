@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import BottomSheet from '../components/BottomSheet';
 import type { Order, Shop } from '../types';
 import { normalizeOrderFields, orderTotalCheck, type NormalizedEntry } from '../utils/orderSnapshot';
 import { isFilePath, isLegacyFileUrl, signBuyerFile, storagePathFromValue } from '../utils/uploadFile';
@@ -102,6 +103,8 @@ export default function SellerDashboard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [updating, setUpdating] = useState(false);
+  const [showCancel, setShowCancel] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
 
   useEffect(() => {
     async function load() {
@@ -173,9 +176,22 @@ export default function SellerDashboard() {
   }
 
   function handleCancel() {
-    const reason = window.prompt('Reason for cancelling this order?');
-    if (reason === null) return;
-    updateStatus('cancelled', reason.trim());
+    setCancelReason('');
+    setShowCancel(true);
+  }
+
+  const CANCEL_REASONS = [
+    'Payment not received',
+    'Out of stock',
+    "Can't fulfill",
+    'Buyer requested',
+  ];
+
+  async function confirmCancel() {
+    const reason = cancelReason.trim();
+    if (!reason) return;
+    await updateStatus('cancelled', reason);
+    setShowCancel(false);
   }
 
   if (loading) {
@@ -347,6 +363,61 @@ export default function SellerDashboard() {
         </div>
       )}
       </div>
+
+      <BottomSheet
+        open={showCancel}
+        onClose={() => setShowCancel(false)}
+        title="Cancel order"
+        busy={updating}
+        footer={
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setShowCancel(false)}
+              disabled={updating}
+              className="h-12 rounded-xl border border-slate-300 px-6 font-bold text-slate-700 disabled:opacity-50"
+            >
+              Keep order
+            </button>
+            <button
+              type="button"
+              onClick={confirmCancel}
+              disabled={updating || !cancelReason.trim()}
+              className="h-12 flex-1 rounded-xl bg-red-600 font-bold text-white disabled:opacity-50"
+            >
+              {updating ? 'Cancelling…' : 'Cancel order'}
+            </button>
+          </div>
+        }
+      >
+        <p className="text-sm font-bold text-slate-900">Why are you cancelling?</p>
+        <p className="mt-1 text-xs text-slate-500">The buyer sees this reason on their tracker.</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {CANCEL_REASONS.map((r) => (
+            <button
+              key={r}
+              type="button"
+              onClick={() => setCancelReason((prev) => (prev === r ? '' : r))}
+              className={`h-11 rounded-full border px-4 text-sm font-bold ${
+                cancelReason === r
+                  ? 'border-slate-900 bg-slate-900 text-white'
+                  : 'border-slate-300 bg-white text-slate-800'
+              }`}
+            >
+              {r}
+            </button>
+          ))}
+        </div>
+        <label className="mt-3 block">
+          <span className="text-xs font-bold text-slate-600">Or type your own</span>
+          <input
+            value={cancelReason}
+            onChange={(e) => setCancelReason(e.target.value)}
+            placeholder="e.g. Ingredient ran out"
+            className="mt-1 h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none focus:border-slate-900"
+          />
+        </label>
+      </BottomSheet>
     </div>
   );
 }
