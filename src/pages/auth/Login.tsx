@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { ArrowUpRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { IIUM_EMAIL_DOMAIN, validateIiumEmail, validatePassword } from '../../utils/validation';
+import Logo from '../../components/site/Logo';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
 
 const inputCls =
-  'h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 outline-none focus:border-emerald-600';
+  'h-12 w-full rounded-control border border-line bg-white px-4 text-ink outline-none transition-colors placeholder:text-placeholder focus:border-emerald focus:ring-2 focus:ring-emerald/25';
 
 export default function Login() {
   const { signIn } = useAuth();
@@ -35,59 +39,91 @@ export default function Login() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md min-h-screen bg-slate-50 p-4 sm:p-6">
-      <Link to="/" className="inline-flex h-11 items-center text-sm font-bold text-slate-700">
-        ← Marketplace
-      </Link>
-      <h1 className="mt-2 text-xl sm:text-2xl font-bold text-slate-900">Seller Log In</h1>
-      <p className="text-sm text-slate-600">
-        Only <span className="font-bold">@{IIUM_EMAIL_DOMAIN}</span> accounts.
-      </p>
-
-      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4 space-y-3">
-        <div>
-          <label className="mb-1 block text-sm font-bold text-slate-900">IIUM Email *</label>
-          <input
-            className={inputCls}
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder={`e.g. ali@${IIUM_EMAIL_DOMAIN}`}
-            autoComplete="email"
-          />
+    <div className="flex min-h-screen flex-col">
+      <header className="border-b border-line">
+        <div className="mx-auto flex h-16 w-full max-w-[1312px] items-center justify-between gap-4 px-5 sm:px-8">
+          <Logo />
+          <Link to="/marketplace" className="text-sm font-semibold text-emerald transition-colors hover:text-emerald/80">
+            Back to marketplace
+          </Link>
         </div>
-        <div>
-          <label className="mb-1 block text-sm font-bold text-slate-900">Password *</label>
-          <input
-            className={inputCls}
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="••••••••"
-            autoComplete="current-password"
-          />
-        </div>
-      </div>
+      </header>
 
-      {error && (
-        <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
-          {error}
-        </div>
-      )}
+      <main className="flex flex-1 items-start justify-center px-5 py-10 sm:items-center sm:px-8">
+        <div className="w-full max-w-md">
+          <Card className="p-6 sm:p-8">
+            <p className="text-overline font-semibold uppercase tracking-wider text-muted">
+              Your IIUM Hub account
+            </p>
+            <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink">Welcome back</h1>
+            <p className="mt-2 text-sm text-muted">
+              Log in to manage your account and campus orders.
+            </p>
 
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        className="mt-4 h-12 w-full rounded-xl bg-emerald-600 font-bold text-white disabled:opacity-60"
-      >
-        {loading ? 'Logging in...' : 'Log In'}
-      </button>
-      <p className="mt-3 text-center text-sm text-slate-600">
-        No account yet?{' '}
-        <Link to="/seller/signup" className="font-bold text-emerald-700">
-          Register shop
-        </Link>
-      </p>
+            <div className="mt-6 space-y-4">
+              <div>
+                <label htmlFor="login-email" className="mb-1 block text-sm font-semibold text-ink">
+                  Email address
+                </label>
+                <input
+                  id="login-email"
+                  className={inputCls}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={`e.g. ali@${IIUM_EMAIL_DOMAIN}`}
+                  autoComplete="email"
+                />
+              </div>
+              <div>
+                <label htmlFor="login-password" className="mb-1 block text-sm font-semibold text-ink">
+                  Password
+                </label>
+                <input
+                  id="login-password"
+                  className={inputCls}
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                />
+              </div>
+            </div>
+
+            {error && (
+              <div role="alert" className="mt-4 rounded-control border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+                {error}
+              </div>
+            )}
+
+            <Button onClick={handleSubmit} disabled={loading} className="mt-5 w-full">
+              {loading ? 'Logging in...' : 'Log in'}
+            </Button>
+
+            <div className="mt-5 rounded-control bg-mint/50 p-4">
+              <Link
+                to="/seller/signup"
+                className="inline-flex items-center gap-1 text-sm font-semibold text-emerald"
+              >
+                New to selling? Register as a seller
+                <ArrowUpRight size={15} aria-hidden="true" />
+              </Link>
+              <p className="mt-1 text-xs text-muted">
+                Use your @{IIUM_EMAIL_DOMAIN} email to register as a verified seller.
+              </p>
+            </div>
+          </Card>
+
+          <p className="mt-4 text-center text-sm text-muted">
+            Just looking around?{' '}
+            <Link to="/marketplace" className="font-semibold text-emerald">
+              You can browse without logging in
+            </Link>
+            .
+          </p>
+        </div>
+      </main>
     </div>
   );
 }

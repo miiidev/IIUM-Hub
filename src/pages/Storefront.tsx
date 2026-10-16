@@ -1,18 +1,23 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Minus, Plus } from 'lucide-react';
+import { ArrowLeft, ChevronRight, MapPin, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { CustomValue, Product, Shop } from '../types';
 import CheckoutModal from '../components/CheckoutModal';
 import ProductSheet from '../components/buyer/ProductSheet';
 import ProductImage from '../components/ProductImage';
+import SiteHeader from '../components/site/SiteHeader';
+import SiteFooter from '../components/site/SiteFooter';
+import Badge from '../components/ui/Badge';
+import Button from '../components/ui/Button';
+import Card from '../components/ui/Card';
 import { activeFields } from '../utils/formPresets';
 import { formatRange, priceRange } from '../utils/priceRange';
 import { buildCartSummary, removeLine, setLineQty, upsertLine, type Cart } from '../utils/cart';
+import { categoryLabel } from '../utils/categories';
 import type { ReviewLine } from '../components/CheckoutModal';
 
-const wrapCls =
-  'mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50';
+const wrapCls = 'mx-auto w-full max-w-[1312px] min-h-screen';
 
 interface Draft {
   productId: string;
@@ -21,6 +26,8 @@ interface Draft {
   editing: boolean;
   errors: Record<string, string>;
 }
+
+const STEPS = ['Pick items', 'Checkout', 'WhatsApp'];
 
 export default function Storefront() {
   const { slug } = useParams<{ slug: string }>();
@@ -138,19 +145,19 @@ export default function Storefront() {
 
   if (loading) {
     return (
-      <div className={`${wrapCls} p-4 sm:p-6`}>
-        <p className="text-sm text-slate-500">Loading shop...</p>
+      <div className={`${wrapCls} px-5 py-6 sm:px-8`}>
+        <p className="text-sm text-muted">Loading shop...</p>
       </div>
     );
   }
 
   if (error || !shop) {
     return (
-      <div className={`${wrapCls} p-4 sm:p-6`}>
-        <Link to="/" className="inline-flex h-11 items-center text-sm font-bold text-slate-700">
+      <div className={`${wrapCls} px-5 py-6 sm:px-8`}>
+        <Link to="/marketplace" className="inline-flex h-11 items-center text-sm font-semibold text-emerald">
           ← Back
         </Link>
-        <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
+        <div role="alert" className="mt-3 rounded-card border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
           {error ?? 'Shop not found (invalid slug).'}
         </div>
       </div>
@@ -158,45 +165,63 @@ export default function Storefront() {
   }
 
   return (
-    <div className={`${wrapCls} pb-28 lg:pb-10`}>
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white p-4 sm:p-6">
-        <Link to="/" className="inline-flex h-11 items-center gap-1 text-sm font-bold text-slate-700">
-          <ArrowLeft size={16} /> Marketplace
-        </Link>
-        {shop.banner_url && (
-          <img
-            src={shop.banner_url}
-            alt=""
-            onError={(e) => {
-              e.currentTarget.style.display = 'none';
-            }}
-            className="mt-3 h-40 w-full rounded-xl bg-slate-100 object-cover sm:h-56"
-          />
-        )}
-        <h1 className="mt-1 text-xl font-bold text-slate-900 sm:text-2xl">{shop.name}</h1>
-        <div className="mt-1 flex flex-wrap gap-2">
-          <span className="rounded-full border border-slate-200 bg-slate-100 px-2 py-1 text-xs font-medium text-slate-800">
-            {shop.mahalla}
-          </span>
-          <span className="rounded-full border border-slate-200 bg-slate-100 px-2 py-1 text-xs font-medium text-slate-800">
-            {shop.category}
-          </span>
-        </div>
-        {shop.description && (
-          <p className="mt-2 text-sm text-slate-600">{shop.description}</p>
-        )}
-      </header>
+    <div className="flex min-h-screen flex-col pb-28 sm:pb-0">
+      <SiteHeader />
 
-      <main className="p-4 sm:p-6 lg:grid lg:grid-cols-[1fr_320px] lg:items-start lg:gap-6">
+      <main className="mx-auto w-full max-w-[1312px] flex-1 px-5 pt-6 sm:px-8 lg:grid lg:grid-cols-[1fr_340px] lg:items-start lg:gap-8">
         <div>
+          <div className="flex items-center justify-between gap-3">
+            <Link
+              to="/marketplace"
+              className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald transition-colors hover:text-emerald/80"
+            >
+              <ArrowLeft size={16} aria-hidden="true" /> Marketplace
+            </Link>
+            <span className="inline-flex items-center gap-1.5 text-sm text-muted">
+              <MapPin size={14} aria-hidden="true" /> {shop.mahalla}
+            </span>
+          </div>
+
+          {shop.banner_url && (
+            <img
+              src={shop.banner_url}
+              alt=""
+              onError={(e) => {
+                e.currentTarget.style.display = 'none';
+              }}
+              className="mt-4 h-40 w-full rounded-card bg-mint/40 object-cover animate-fade-in sm:h-56"
+            />
+          )}
+
+          <p className="mt-4 text-overline font-semibold uppercase tracking-wider text-muted">
+            {categoryLabel(shop.category)} · {shop.mahalla}
+          </p>
+          <div className="mt-1 flex flex-wrap items-center gap-3">
+            <h1 className="text-3xl font-bold tracking-tight text-ink sm:text-4xl">{shop.name}</h1>
+            <Badge tone="mint" dot>
+              {shop.is_active ? 'Active' : 'Closed'}
+            </Badge>
+          </div>
+          <p className="mt-2 text-base text-muted">Choose items and quantities before checkout.</p>
+          {shop.description && <p className="mt-1 text-sm text-muted">{shop.description}</p>}
+
+          <div className="mt-8 flex items-end justify-between gap-3">
+            <h2 className="text-2xl font-semibold text-ink sm:text-3xl">Choose your items</h2>
+            {products.length > 0 && (
+              <p className="pb-1 text-sm text-muted">
+                {products.length} {products.length === 1 ? 'item' : 'items'} available
+              </p>
+            )}
+          </div>
+
           {products.length === 0 && (
-            <div className="rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-600">
+            <div className="mt-3 rounded-card border border-line bg-white p-6 text-center text-sm text-muted">
               No products available right now.
             </div>
           )}
 
-          <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0 xl:grid-cols-3">
-            {products.map((p) => {
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {products.map((p, i) => {
               const fields = p.custom_fields ?? [];
               const hasForm = activeFields(fields).length > 0;
               const line = cart[p.id];
@@ -205,131 +230,178 @@ export default function Storefront() {
               const lineUnit = summary.lines.find((l) => l.productId === p.id)?.item.unitPrice ?? base;
 
               return (
-                <div
+                <Card
                   key={p.id}
                   id={`product-${p.id}`}
-                  className={`rounded-xl border bg-white p-4 ${
-                    highlightId === p.id ? 'border-slate-900 ring-2 ring-slate-900' : 'border-slate-200'
+                  className={`group p-4 animate-fade-in-up ${
+                    highlightId === p.id ? 'ring-2 ring-emerald' : ''
                   }`}
+                  style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
                 >
-                  <ProductImage src={p.image_url} className="mb-3 aspect-video w-full rounded-xl" />
+                  <div className="mb-3 overflow-hidden rounded-control">
+                    <ProductImage
+                      src={p.image_url}
+                      className="aspect-video w-full rounded-control transition-transform duration-300 ease-out-soft group-hover:scale-105"
+                    />
+                  </div>
                   <div className="min-w-0">
-                    <h3 className="break-words font-bold text-slate-900">{p.title}</h3>
-                    <p className="text-sm font-bold text-slate-700">
+                    <h3 className="break-words font-semibold text-ink">{p.title}</h3>
+                    <p className="mt-0.5 text-sm font-semibold text-emerald">
                       {hasForm ? formatRange(priceRange(base, fields)) : `RM ${base.toFixed(2)}`}
                     </p>
+                    {hasForm && <p className="text-xs text-muted">Price varies by your answers</p>}
                   </div>
 
                   {hasForm ? (
                     inCart ? (
-                      <div className="mt-3 border-t border-slate-200 pt-3">
-                        <p className="text-sm text-slate-700">
+                      <div className="mt-3 border-t border-line pt-3 animate-fade-in">
+                        <p className="text-sm text-muted">
                           In order:{' '}
-                          <span className="font-bold text-slate-900">
+                          <span className="font-semibold text-ink">
                             {line.qty} × RM {lineUnit.toFixed(2)}
                           </span>
                         </p>
                         <div className="mt-2 flex gap-2">
-                          <button
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => openEdit(p)}
-                            className="h-11 flex-1 rounded-xl border border-slate-300 bg-white text-sm font-bold text-slate-800"
+                            className="flex-1"
                           >
                             Edit
-                          </button>
-                          <button
+                          </Button>
+                          <Button
                             type="button"
+                            variant="ghost"
+                            size="sm"
                             onClick={() => setCart((prev) => removeLine(prev, p.id))}
                             aria-label={`Remove ${p.title}`}
-                            className="h-11 rounded-xl border border-slate-300 px-4 text-sm font-bold text-red-600"
+                            className="border-red-200 text-red-600 hover:bg-red-50"
                           >
                             Remove
-                          </button>
+                          </Button>
                         </div>
                       </div>
                     ) : (
-                      <button
-                        type="button"
-                        onClick={() => openAdd(p)}
-                        className="mt-3 h-12 w-full rounded-xl bg-slate-900 font-bold text-white"
-                      >
+                      <Button type="button" onClick={() => openAdd(p)} className="mt-3 w-full">
                         Add
-                      </button>
+                      </Button>
                     )
                   ) : (
                     <div className="mt-3 flex items-center gap-2">
                       <button
-                        className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 bg-white"
+                        type="button"
+                        className="flex h-11 w-11 items-center justify-center rounded-control border border-line bg-white text-ink transition-colors hover:bg-mint/30"
                         onClick={() =>
                           setCart((prev) => setLineQty(prev, p.id, (prev[p.id]?.qty ?? 0) - 1))
                         }
                         aria-label={`Decrease ${p.title}`}
                       >
-                        <Minus size={18} />
+                        <Minus size={18} aria-hidden="true" />
                       </button>
-                      <span className="w-6 text-center font-bold">{inCart ? line.qty : 0}</span>
+                      <span
+                        key={inCart ? line.qty : 0}
+                        className="w-7 text-center font-semibold text-ink animate-scale-in"
+                      >
+                        {inCart ? line.qty : 0}
+                      </span>
                       <button
-                        className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white"
+                        type="button"
+                        className="flex h-11 w-11 items-center justify-center rounded-control bg-emerald text-white transition-colors hover:bg-emerald/90"
                         onClick={() =>
-                          setCart((prev) =>
-                            upsertLine(prev, p.id, (prev[p.id]?.qty ?? 0) + 1, {})
-                          )
+                          setCart((prev) => upsertLine(prev, p.id, (prev[p.id]?.qty ?? 0) + 1, {}))
                         }
                         aria-label={`Add ${p.title}`}
                       >
-                        <Plus size={18} />
+                        <Plus size={18} aria-hidden="true" />
                       </button>
                     </div>
                   )}
-                </div>
+                </Card>
               );
             })}
           </div>
-        </div>
 
-        <aside className="sticky top-24 hidden rounded-xl border border-slate-200 bg-white p-5 lg:block">
-          <h2 className="font-bold text-slate-900">Order Summary</h2>
-          {items.length === 0 ? (
-            <p className="mt-2 text-sm text-slate-500">No items yet. Pick from the menu.</p>
-          ) : (
-            <ul className="mt-3 space-y-2">
-              {items.map((it, i) => (
-                <li key={i} className="flex justify-between gap-2 text-sm">
-                  <span className="text-slate-700">
-                    {it.title} × {it.qty}
+          <div className="mt-6 flex flex-col gap-2 rounded-card bg-mint/50 p-4 sm:flex-row sm:items-center sm:gap-4">
+            <p className="text-sm font-semibold text-ink">How to order</p>
+            <ol className="flex flex-wrap items-center gap-2 text-sm font-semibold text-emerald">
+              {STEPS.map((label, i) => (
+                <li key={label} className="inline-flex items-center gap-2">
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-emerald text-[11px] font-bold text-white">
+                    {i + 1}
                   </span>
-                  <span className="font-bold text-slate-900">RM {it.lineTotal.toFixed(2)}</span>
+                  {label}
+                  {i < STEPS.length - 1 && <ChevronRight size={14} aria-hidden="true" />}
                 </li>
               ))}
-            </ul>
-          )}
-          <div className="mt-3 border-t border-slate-200 pt-3">
-            <p className="text-sm text-slate-600">
-              {count} items · RM {total.toFixed(2)}
+            </ol>
+            <p className="text-xs text-muted sm:ml-auto">
+              Send your order via WhatsApp after checkout, then track your order.
             </p>
-            <button
-              onClick={() => setShowCheckout(true)}
-              disabled={count === 0}
-              className="mt-3 h-12 w-full rounded-xl bg-emerald-600 font-bold text-white disabled:opacity-40"
-            >
-              Review order
-            </button>
           </div>
+        </div>
+
+        <aside className="sticky top-24 mt-8 hidden lg:mt-0 lg:block">
+          <Card className="p-5">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-ink">Order Summary</h2>
+              <ShoppingBag size={20} className="text-emerald" aria-hidden="true" />
+            </div>
+            {items.length === 0 ? (
+              <p className="mt-3 text-sm text-muted">No items yet. Pick from the menu and use + to add.</p>
+            ) : (
+              <ul className="mt-4 space-y-3">
+                {items.map((it, i) => (
+                  <li key={i} className="flex justify-between gap-3 text-sm">
+                    <span className="text-muted">
+                      {it.title} × {it.qty}
+                    </span>
+                    <span className="font-semibold text-ink">RM {it.lineTotal.toFixed(2)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <div className="mt-4 border-t border-line pt-4">
+              <div className="flex items-end justify-between">
+                <p className="text-sm text-muted">
+                  {count} {count === 1 ? 'item' : 'items'}
+                </p>
+                <p key={total} className="text-2xl font-bold text-ink animate-scale-in">RM {total.toFixed(2)}</p>
+              </div>
+              <Button
+                variant="secondary"
+                onClick={() => setShowCheckout(true)}
+                disabled={count === 0}
+                className="mt-4 w-full"
+              >
+                Review order
+              </Button>
+              <p className="mt-2 text-center text-xs text-muted">
+                {count === 0 ? 'Add items to enable checkout' : 'Review your selection before continuing.'}
+              </p>
+            </div>
+          </Card>
+          <p className="mt-3 flex items-center justify-center gap-1.5 text-xs text-muted">
+            Payment via DuitNow QR available at checkout.
+          </p>
         </aside>
       </main>
 
-      <div className="safe-bottom fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 border-t border-slate-200 bg-white p-4 sm:max-w-2xl lg:hidden">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-bold text-slate-900">
+      <SiteFooter />
+
+      <div className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white p-4 animate-fade-in-up sm:hidden">
+        <div className="mx-auto flex max-w-[1312px] items-center justify-between gap-3">
+          <p key={total} className="text-sm font-semibold text-ink animate-scale-in">
             {count} items · RM {total.toFixed(2)}
           </p>
-          <button
+          <Button
             onClick={() => setShowCheckout(true)}
             disabled={count === 0}
-            className="h-12 min-w-[180px] rounded-xl bg-emerald-600 px-6 font-bold text-white disabled:opacity-40"
+            className="min-w-[170px]"
           >
             Review order
-          </button>
+          </Button>
         </div>
       </div>
 

@@ -15,9 +15,11 @@ import {
 } from '../../utils/formPresets';
 import { formatRange, priceRange } from '../../utils/priceRange';
 import { randomUuid } from '../../utils/uuid';
+import Button from '../ui/Button';
+import Badge from '../ui/Badge';
 
 const inputCls =
-  'h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 outline-none focus:border-emerald-600';
+  'h-12 w-full rounded-control border border-line bg-white px-4 text-ink outline-none transition-colors placeholder:text-placeholder focus:border-emerald focus:ring-2 focus:ring-emerald/25';
 
 interface Props {
   editing: Product | null;
@@ -27,6 +29,12 @@ interface Props {
 }
 
 type Step = 1 | 2 | 3;
+
+const STEP_LABELS: Array<{ n: Step; label: string }> = [
+  { n: 1, label: 'Details' },
+  { n: 2, label: 'Questions' },
+  { n: 3, label: 'Review' },
+];
 
 export default function ProductWizard({ editing, products, onDone, onCancel }: Props) {
   const { shop } = useAuth();
@@ -163,42 +171,43 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
 
   return (
     <div>
-      <h2 className="font-bold text-slate-900">{editing ? 'Edit Product' : 'Add Product'}</h2>
-      <p className="mt-1 text-sm font-bold text-slate-600" aria-label={`Step ${step} of 3`}>
-        <span className={step === 1 ? 'text-slate-900' : ''}>1 Details</span>
-        {' · '}
-        <span className={step === 2 ? 'text-slate-900' : ''}>2 Questions</span>
-        {' · '}
-        <span className={step === 3 ? 'text-slate-900' : ''}>3 Review</span>
+      <h2 className="text-lg font-semibold text-ink">{editing ? 'Edit Product' : 'Add Product'}</h2>
+      <p className="mt-1 text-sm font-semibold text-muted" aria-label={`Step ${step} of 3`}>
+        {STEP_LABELS.map((s, i) => (
+          <span key={s.n} className={step === s.n ? 'text-ink' : ''}>
+            {s.n} {s.label}
+            {i < STEP_LABELS.length - 1 ? ' · ' : ''}
+          </span>
+        ))}
       </p>
 
       {step === 1 && (
         <div className="mt-3 space-y-3">
           <div>
-            <label className="mb-1 block text-sm font-bold text-slate-900">Name *</label>
+            <label className="mb-1 block text-sm font-semibold text-ink">Name *</label>
             <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Nasi Lemak Ayam" />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-bold text-slate-900">Price (RM) *</label>
+            <label className="mb-1 block text-sm font-semibold text-ink">Price (RM) *</label>
             <input className={inputCls} type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="e.g. 8.50" min="0" step="0.10" />
           </div>
-          <label className="flex h-12 items-center gap-2 text-sm font-bold text-slate-900">
-            <input type="checkbox" checked={available} onChange={(e) => setAvailable(e.target.checked)} className="h-5 w-5" />
+          <label className="flex h-12 items-center gap-2 text-sm font-semibold text-ink">
+            <input type="checkbox" checked={available} onChange={(e) => setAvailable(e.target.checked)} className="h-5 w-5 accent-emerald" />
             Available for sale
           </label>
-          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <p className="text-sm font-bold text-slate-900">Product image (optional)</p>
-            <p className="text-xs text-slate-500">JPG/PNG, max 2MB.</p>
+          <div className="rounded-control border border-line bg-cream p-3">
+            <p className="text-sm font-semibold text-ink">Product image (optional)</p>
+            <p className="text-xs text-muted">JPG/PNG, max 2MB.</p>
             <div className="mt-2">
               {imageUrl ? (
-                <img src={imageUrl} alt="Product" className="aspect-video w-full rounded-xl border border-slate-200 bg-white object-cover" />
+                <img src={imageUrl} alt="Product" className="aspect-video w-full rounded-control border border-line bg-white object-cover" />
               ) : (
-                <div className="flex aspect-video w-full items-center justify-center rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-400">
+                <div className="flex aspect-video w-full items-center justify-center rounded-control border border-line bg-white text-sm font-semibold text-muted">
                   No image
                 </div>
               )}
               <div className="mt-2 flex gap-2">
-                <label className="inline-flex h-12 flex-1 cursor-pointer items-center justify-center rounded-xl bg-slate-900 px-4 text-sm font-bold text-white">
+                <label className="inline-flex h-12 flex-1 cursor-pointer items-center justify-center rounded-control bg-emerald px-4 text-sm font-semibold text-white transition-colors hover:bg-emerald/90">
                   {uploadingImage ? 'Uploading...' : 'Upload image'}
                   <input
                     type="file"
@@ -213,28 +222,26 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
                   />
                 </label>
                 {imageUrl && (
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => setImageUrl('')}
                     disabled={uploadingImage}
-                    className="h-12 rounded-xl border border-red-200 px-4 text-sm font-bold text-red-600 disabled:opacity-40"
+                    className="border-red-200 text-danger hover:bg-red-50"
                   >
                     Remove
-                  </button>
+                  </Button>
                 )}
               </div>
             </div>
           </div>
-          <button
-            onClick={nextFromInfo}
-            className="h-12 w-full rounded-xl bg-slate-900 font-bold text-white"
-          >
+          <Button onClick={nextFromInfo} className="w-full">
             Continue
-          </button>
+          </Button>
           {editing && (
-            <button onClick={onCancel} className="h-11 w-full rounded-xl border border-slate-200 text-sm font-bold text-slate-700">
+            <Button variant="ghost" size="sm" onClick={onCancel} className="w-full">
               Cancel
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -242,7 +249,7 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
       {step === 2 && (
         <div className="mt-3 space-y-4">
           <div>
-            <p className="mb-2 text-sm font-bold text-slate-900">What do you need to ask customers?</p>
+            <p className="mb-2 text-sm font-semibold text-ink">What do you need to ask customers?</p>
             <div className="grid grid-cols-1 gap-2">
               {PRESETS.map((p) => {
                 const labels = p.fields.slice(0, 3).map((f) => f.label);
@@ -252,21 +259,17 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
                     key={p.key}
                     type="button"
                     onClick={() => applyPreset(p.key)}
-                    className={`min-h-[48px] rounded-xl border bg-white px-3 py-2 text-left ${
-                      recommended === p.key ? 'border-slate-900' : 'border-slate-300'
+                    className={`min-h-[48px] rounded-control border bg-white px-3 py-2 text-left transition-colors hover:bg-mint/20 ${
+                      recommended === p.key ? 'border-emerald' : 'border-line'
                     }`}
                   >
-                    <span className="flex items-center gap-1 text-sm font-bold text-slate-900">
+                    <span className="flex flex-wrap items-center gap-1 text-sm font-semibold text-ink">
                       {p.label}
-                      {recommended === p.key && (
-                        <span className="rounded-full bg-slate-900 px-2 py-0.5 text-xs font-bold text-white">
-                          Recommended
-                        </span>
-                      )}
+                      {recommended === p.key && <Badge tone="emerald">Recommended</Badge>}
                     </span>
-                    <span className="block text-xs text-slate-600">{p.description}</span>
+                    <span className="block text-xs text-muted">{p.description}</span>
                     {labels.length > 0 && (
-                      <span className="block text-xs text-slate-500">
+                      <span className="block text-xs text-muted">
                         {labels.join(' · ')}
                         {more > 0 ? ` · +${more} more` : ''}
                       </span>
@@ -278,8 +281,8 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
           </div>
 
           {copySources.length > 0 && (
-            <div className="rounded-xl border border-slate-200 bg-white p-3">
-              <p className="text-sm font-bold text-slate-900">Copy questions from another product</p>
+            <div className="rounded-control border border-line bg-white p-3">
+              <p className="text-sm font-semibold text-ink">Copy questions from another product</p>
               <div className="mt-2 flex gap-2">
                 <select
                   value={copyFrom}
@@ -293,14 +296,15 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
                     </option>
                   ))}
                 </select>
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
                   disabled={!copyFrom}
                   onClick={applyCopy}
-                  className="h-12 shrink-0 rounded-xl border border-slate-300 px-4 text-sm font-bold text-slate-800 disabled:opacity-40"
+                  className="shrink-0"
                 >
                   Copy
-                </button>
+                </Button>
               </div>
             </div>
           )}
@@ -316,29 +320,23 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
           />
 
           <div className="flex gap-2">
-            <button
-              onClick={() => setStep(1)}
-              className="h-12 rounded-xl border border-slate-300 px-6 font-bold text-slate-700"
-            >
+            <Button variant="ghost" onClick={() => setStep(1)}>
               ← Back
-            </button>
-            <button
-              onClick={() => setStep(3)}
-              className="h-12 flex-1 rounded-xl bg-slate-900 font-bold text-white"
-            >
+            </Button>
+            <Button onClick={() => setStep(3)} className="flex-1">
               Continue
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
       {step === 3 && (
         <div className="mt-3 space-y-3">
-          <div className="rounded-xl border border-slate-200 bg-white p-3">
-            <p className="font-bold text-slate-900">{title || '(No name yet)'}</p>
-            <p className="text-sm text-slate-700">
+          <div className="rounded-control border border-line bg-white p-3">
+            <p className="font-semibold text-ink">{title || '(No name yet)'}</p>
+            <p className="text-sm text-muted">
               Customers pay{' '}
-              <span className="font-bold">{formatRange(priceRange(numPrice, fields))}</span>
+              <span className="font-bold text-ink">{formatRange(priceRange(numPrice, fields))}</span>
             </p>
           </div>
           {fields.length > 0 ? (
@@ -348,42 +346,32 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
               ))}
             </div>
           ) : (
-            <p className="text-sm text-slate-600">No questions — plain product.</p>
+            <p className="text-sm text-muted">No questions — plain product.</p>
           )}
           {fields.length > 0 && (
             <FormPreview fields={fields} basePrice={numPrice} shopId={shop.id} />
           )}
           {error && (
-            <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+            <div role="alert" className="rounded-control border border-red-200 bg-red-50 p-3 text-sm font-medium text-danger">
               {error}
             </div>
           )}
           <div className="flex gap-2">
-            <button
-              onClick={() => setStep(2)}
-              className="h-12 rounded-xl border border-slate-300 px-6 font-bold text-slate-700"
-            >
+            <Button variant="ghost" onClick={() => setStep(2)}>
               ← Back
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="h-12 flex-1 rounded-xl bg-emerald-600 font-bold text-white disabled:opacity-60"
-            >
+            </Button>
+            <Button onClick={handleSave} disabled={saving} className="flex-1">
               {saving ? 'Saving...' : editing ? 'Save Changes' : 'Add Product'}
-            </button>
+            </Button>
           </div>
-          <button
-            onClick={onCancel}
-            className="h-11 w-full rounded-xl border border-slate-200 text-sm font-bold text-slate-700"
-          >
+          <Button variant="ghost" size="sm" onClick={onCancel} className="w-full">
             {editing ? 'Cancel Edit' : 'Cancel'}
-          </button>
+          </Button>
         </div>
       )}
 
       {error && step !== 3 && (
-        <div role="alert" className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+        <div role="alert" className="mt-3 rounded-control border border-red-200 bg-red-50 p-3 text-sm font-medium text-danger">
           {error}
         </div>
       )}

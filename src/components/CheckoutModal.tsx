@@ -7,6 +7,7 @@ import { generateWhatsAppLink } from '../utils/whatsapp';
 import { randomUuid } from '../utils/uuid';
 import { validateRequired } from '../utils/formPresets';
 import { snapshotValues } from '../utils/cart';
+import Button from './ui/Button';
 
 export interface ReviewLine {
   productId: string;
@@ -27,7 +28,7 @@ interface Props {
 }
 
 const inputCls =
-  'h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 outline-none focus:border-slate-900';
+  'h-12 w-full rounded-control border border-line bg-white px-4 text-ink outline-none transition-colors placeholder:text-placeholder focus:border-emerald focus:ring-2 focus:ring-emerald/25';
 
 const STEPS = ['Review', 'Details', 'Pay'];
 
@@ -167,59 +168,74 @@ export default function CheckoutModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
-      <div className="safe-bottom w-full max-w-md sm:max-w-lg rounded-t-2xl bg-white p-5 pb-8 sm:rounded-2xl sm:pb-5 max-h-[92dvh] overflow-y-auto">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 animate-fade-in sm:items-center sm:p-4">
+      <div className="safe-bottom max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-card bg-white p-5 pb-8 animate-fade-in-up sm:max-w-lg sm:rounded-card sm:pb-5">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900">Checkout</h2>
+          <h2 className="text-lg font-bold text-ink">Checkout</h2>
           <button
+            type="button"
             onClick={onClose}
-            className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200"
+            className="flex h-11 w-11 items-center justify-center rounded-control border border-line text-ink transition-colors hover:bg-mint/30"
             aria-label="Close"
           >
-            <X size={20} />
+            <X size={20} aria-hidden="true" />
           </button>
         </div>
 
-        <p className="mb-4 text-sm font-bold text-slate-600" aria-label={`Step ${step + 1} of 3: ${STEPS[step]}`}>
+        <ol
+          className="mb-4 flex items-center gap-2 text-sm font-semibold"
+          aria-label={`Step ${step + 1} of 3: ${STEPS[step]}`}
+        >
           {STEPS.map((s, i) => (
-            <span key={s} className={i === step ? 'text-slate-900' : ''}>
-              {i + 1} {s}
-              {i < STEPS.length - 1 ? ' · ' : ''}
-            </span>
+            <li key={s} className="flex items-center gap-2">
+              <span
+                aria-current={i === step ? 'step' : undefined}
+                className={[
+                  'flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold',
+                  i <= step ? 'bg-emerald text-white' : 'bg-cream text-muted',
+                ].join(' ')}
+              >
+                {i + 1}
+              </span>
+              <span className={i === step ? 'text-ink' : 'text-muted'}>{s}</span>
+              {i < STEPS.length - 1 && <span aria-hidden="true" className="text-muted">›</span>}
+            </li>
           ))}
-        </p>
+        </ol>
 
         {waLink && placedOrderId && (
-          <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
-            <p className="font-bold text-slate-900">Order saved!</p>
-            <p className="mt-1 text-sm text-slate-600">
+          <div className="mb-4 rounded-control border border-emerald/30 bg-mint/40 p-4 text-center">
+            <p className="font-bold text-ink">Order saved!</p>
+            <p className="mt-1 text-sm text-muted">
               Your browser blocked the automatic tab. Tap below to open WhatsApp:
             </p>
             <a
               href={waLink}
               target="_blank"
               rel="noreferrer"
-              className="mt-3 flex h-12 items-center justify-center rounded-xl bg-emerald-600 font-bold text-white"
+              className="mt-3 flex h-12 items-center justify-center rounded-control bg-emerald font-semibold text-white transition-colors hover:bg-emerald/90"
             >
               Open WhatsApp
             </a>
-            <button
+            <Button
               type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 onClose();
                 navigate(`/order/${placedOrderId}/track`);
               }}
-              className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white text-sm font-bold text-slate-700"
+              className="mt-2 w-full"
             >
               View order status
-            </button>
+            </Button>
           </div>
         )}
 
         {step === 0 && (
           <div>
             {invalidLines.length > 0 && (
-              <p role="alert" className="mb-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
+              <p role="alert" className="mb-3 rounded-control border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
                 Some lines need attention before you continue.
               </p>
             )}
@@ -228,88 +244,89 @@ export default function CheckoutModal({
                 const errs = lineErrors[line.productId] ?? {};
                 const bad = Object.keys(errs).length > 0;
                 return (
-                  <div key={line.productId} className="rounded-xl border border-slate-200 bg-white p-3">
+                  <div key={line.productId} className="rounded-control border border-line bg-white p-3">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="min-w-0 flex-1 truncate font-bold text-slate-900">{line.item.title}</p>
+                      <p className="min-w-0 flex-1 truncate font-semibold text-ink">{line.item.title}</p>
                       <div className="flex shrink-0 items-center gap-1">
                         <button
                           type="button"
                           aria-label="Decrease quantity"
                           onClick={() => onQty(line.productId, line.item.qty - 1)}
-                          className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 bg-white"
+                          className="flex h-11 w-11 items-center justify-center rounded-control border border-line bg-white text-ink transition-colors hover:bg-mint/30"
                         >
-                          <Minus size={16} />
+                          <Minus size={16} aria-hidden="true" />
                         </button>
-                        <span className="w-6 text-center text-sm font-bold">{line.item.qty}</span>
+                        <span key={line.item.qty} className="w-6 text-center text-sm font-semibold text-ink animate-scale-in">{line.item.qty}</span>
                         <button
                           type="button"
                           aria-label="Increase quantity"
                           onClick={() => onQty(line.productId, line.item.qty + 1)}
-                          className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white"
+                          className="flex h-11 w-11 items-center justify-center rounded-control bg-emerald text-white transition-colors hover:bg-emerald/90"
                         >
-                          <Plus size={16} />
+                          <Plus size={16} aria-hidden="true" />
                         </button>
                       </div>
                     </div>
                     {(line.item.fields ?? []).map((f) => (
-                      <p key={f.field_id} className="mt-1 text-sm text-slate-700">
+                      <p key={f.field_id} className="mt-1 text-sm text-muted">
                         {f.label}: {f.display}
                         {Number(f.price_applied) > 0 && (
-                          <span className="font-bold"> (+RM {Number(f.price_applied).toFixed(2)})</span>
+                          <span className="font-semibold text-emerald"> (+RM {Number(f.price_applied).toFixed(2)})</span>
                         )}
                       </p>
                     ))}
                     <div className="mt-2 flex items-center justify-between gap-2">
-                      <p className="text-sm font-bold text-slate-900">
+                      <p className="text-sm font-semibold text-ink">
                         RM {Number(line.item.lineTotal).toFixed(2)}
                       </p>
                       <div className="flex gap-2">
                         {bad && (
-                          <button
+                          <Button
                             type="button"
+                            size="sm"
                             onClick={() => onEdit(line.productId, errs)}
-                            className="h-11 rounded-xl bg-red-600 px-4 text-sm font-bold text-white"
+                            className="bg-danger hover:bg-danger/90"
                           >
                             Fix
-                          </button>
+                          </Button>
                         )}
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="sm"
                           onClick={() => onEdit(line.productId, {})}
-                          className="h-11 rounded-xl border border-slate-300 px-4 text-sm font-bold text-slate-800"
                         >
                           Edit
-                        </button>
-                        <button
+                        </Button>
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="sm"
                           onClick={() => onRemove(line.productId)}
-                          className="h-11 rounded-xl border border-slate-300 px-4 text-sm font-bold text-red-600"
+                          className="border-red-200 text-red-600 hover:bg-red-50"
                         >
                           Remove
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>
                 );
               })}
             </div>
-            <p className="mt-3 text-right text-lg font-bold text-slate-900">
+            <p className="mt-3 text-right text-lg font-bold text-ink">
               Total: RM {total.toFixed(2)}
             </p>
-            <button
-              onClick={handleToDetails}
-              className="mt-4 h-12 w-full rounded-xl bg-emerald-600 font-bold text-white"
-            >
+            <Button onClick={handleToDetails} className="mt-4 w-full">
               Continue
-            </button>
+            </Button>
           </div>
         )}
 
         {step === 1 && (
           <div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
               <div>
-                <label className="mb-1 block text-sm font-bold text-slate-900">
+                <label className="mb-1 block text-sm font-semibold text-ink">
                   Buyer Name *
                 </label>
                 <input
@@ -320,7 +337,7 @@ export default function CheckoutModal({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-bold text-slate-900">
+                <label className="mb-1 block text-sm font-semibold text-ink">
                   Mahalla / Room *
                 </label>
                 <input
@@ -333,55 +350,49 @@ export default function CheckoutModal({
             </div>
 
             {error && (
-              <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+              <div role="alert" className="mt-3 rounded-control border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
                 {error}
               </div>
             )}
 
             <div className="mt-4 flex gap-2">
-              <button
-                onClick={() => setStep(0)}
-                className="h-12 rounded-xl border border-slate-300 px-6 font-bold text-slate-700"
-              >
+              <Button variant="ghost" onClick={() => setStep(0)}>
                 ← Back
-              </button>
-              <button
-                onClick={handleToPay}
-                className="h-12 flex-1 rounded-xl bg-emerald-600 font-bold text-white"
-              >
+              </Button>
+              <Button onClick={handleToPay} className="flex-1">
                 Continue to Pay
-              </button>
+              </Button>
             </div>
           </div>
         )}
 
         {step === 2 && (
           <div>
-            <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
+            <div className="mb-4 rounded-control border border-line bg-cream p-4 text-center">
               {shop.duitnow_qr_url ? (
                 <img
                   src={shop.duitnow_qr_url}
                   alt="DuitNow QR seller"
-                  className="mx-auto h-40 w-40 rounded-xl border border-slate-200 bg-white object-contain"
+                  className="mx-auto h-40 w-40 rounded-control border border-line bg-white object-contain"
                 />
               ) : (
-                <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-xl bg-white text-sm font-bold text-slate-400 border border-slate-200">
+                <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-control border border-line bg-white text-sm font-semibold text-muted">
                   QR PLACEHOLDER
                 </div>
               )}
               {shop.duitnow_account && (
-                <p className="mt-2 font-mono text-sm font-bold text-slate-900">{shop.duitnow_account}</p>
+                <p className="mt-2 font-mono text-sm font-bold text-ink">{shop.duitnow_account}</p>
               )}
-              <p className="mt-2 text-sm font-bold text-slate-900">
+              <p className="mt-2 text-sm font-bold text-ink">
                 Total: RM {total.toFixed(2)}
               </p>
-              <p className="text-xs text-slate-600">
+              <p className="text-xs text-muted">
                 Scan the seller's DuitNow QR, then enter the Ref ID below.
               </p>
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-bold text-slate-900">
+              <label className="mb-1 block text-sm font-semibold text-ink">
                 DuitNow Ref ID (last 4-6 digits) *
               </label>
               <input
@@ -395,27 +406,20 @@ export default function CheckoutModal({
             </div>
 
             {error && (
-              <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+              <div role="alert" className="mt-3 rounded-control border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
                 {error}
               </div>
             )}
 
             <div className="mt-4 flex gap-2">
-              <button
-                onClick={() => setStep(1)}
-                className="h-12 rounded-xl border border-slate-300 px-6 font-bold text-slate-700"
-              >
+              <Button variant="ghost" onClick={() => setStep(1)}>
                 ← Back
-              </button>
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="h-12 flex-1 rounded-xl bg-emerald-600 font-bold text-white disabled:opacity-60"
-              >
+              </Button>
+              <Button onClick={handleSubmit} disabled={loading} className="flex-1">
                 {loading ? 'Sending...' : 'Send Order via WhatsApp'}
-              </button>
+              </Button>
             </div>
-            <p className="mt-2 text-center text-xs text-slate-500">
+            <p className="mt-2 text-center text-xs text-muted">
               Order is saved, then WhatsApp opens in a new tab.
             </p>
           </div>

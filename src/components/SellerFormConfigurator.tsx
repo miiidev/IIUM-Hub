@@ -12,6 +12,8 @@ import BottomSheet from './BottomSheet';
 import FormPreview from './seller/FormPreview';
 import QuestionRow from './seller/QuestionRow';
 import QuestionEditorSheet from './seller/QuestionEditorSheet';
+import Button from './ui/Button';
+import Badge from './ui/Badge';
 
 interface Props {
   fields: CustomField[];
@@ -54,53 +56,49 @@ export default function SellerFormConfigurator({
 
   return (
     <div className="space-y-4">
-      <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-        <p className="text-sm text-slate-800">
+      <div className="rounded-control bg-mint/50 p-3">
+        <p className="text-sm text-ink">
           Customers pay{' '}
-          <span className="font-bold text-slate-900">{formatRange(range)}</span>
+          <span className="font-bold">{formatRange(range)}</span>
         </p>
       </div>
 
       {!hidePresets && (
         <div>
-          <p className="mb-2 text-sm font-bold text-slate-900">1. Choose a preset</p>
-        <div className="grid grid-cols-2 gap-2">
-          {PRESETS.map((p) => (
-            <button
-              key={p.key}
-              type="button"
-              disabled={disabled}
-              onClick={() => applyPreset(p.key)}
-              className={`min-h-[44px] rounded-xl border bg-white px-3 py-2 text-left disabled:opacity-50 ${
-                recommendedKey === p.key ? 'border-slate-900' : 'border-slate-300'
-              }`}
-            >
-              <span className="flex items-center gap-1 text-sm font-bold text-slate-900">
-                {p.label}
-                {recommendedKey === p.key && (
-                  <span className="rounded-full bg-slate-900 px-2 py-0.5 text-xs font-bold text-white">
-                    Recommended
-                  </span>
-                )}
-              </span>
-              <span className="block text-xs text-slate-600">{p.description}</span>
-            </button>
-          ))}
-        </div>
+          <p className="mb-2 text-sm font-semibold text-ink">1. Choose a preset</p>
+          <div className="grid grid-cols-2 gap-2">
+            {PRESETS.map((p) => (
+              <button
+                key={p.key}
+                type="button"
+                disabled={disabled}
+                onClick={() => applyPreset(p.key)}
+                className={`min-h-[44px] rounded-control border bg-white px-3 py-2 text-left transition-colors hover:bg-mint/30 disabled:opacity-50 ${
+                  recommendedKey === p.key ? 'border-emerald' : 'border-line'
+                }`}
+              >
+                <span className="flex flex-wrap items-center gap-1 text-sm font-semibold text-ink">
+                  {p.label}
+                  {recommendedKey === p.key && <Badge tone="emerald">Recommended</Badge>}
+                </span>
+                <span className="block text-xs text-muted">{p.description}</span>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
       <div>
-        <p className="mb-2 text-sm font-bold text-slate-900">2. Questions ({fields.length})</p>
+        <p className="mb-2 text-sm font-semibold text-ink">2. Questions ({fields.length})</p>
         {fields.length === 0 ? (
-          <button
+          <Button
             type="button"
             disabled={disabled}
             onClick={() => onChange([createQuestionCard('select')])}
-            className="h-12 w-full rounded-xl bg-slate-900 font-bold text-white disabled:opacity-50"
+            className="w-full"
           >
             + Add question
-          </button>
+          </Button>
         ) : (
           <div className="space-y-2">
             {fields.map((f) => (
@@ -110,22 +108,23 @@ export default function SellerFormConfigurator({
         )}
       </div>
 
-      <button
+      <Button
         type="button"
+        variant="ghost"
         disabled={disabled || fields.length === 0}
         onClick={() => setShowPreview(true)}
-        className="h-12 w-full rounded-xl border border-slate-300 bg-white font-bold text-slate-800 disabled:opacity-50"
+        className="w-full"
       >
         Preview as buyer
-      </button>
+      </Button>
 
-      <details className="rounded-xl border border-slate-200 bg-white">
-        <summary className="flex min-h-[44px] cursor-pointer items-center px-3 text-sm font-bold text-slate-800">
+      <details className="rounded-control border border-line bg-white">
+        <summary className="flex min-h-[44px] cursor-pointer items-center px-3 text-sm font-semibold text-ink">
           Advanced
         </summary>
-        <div className="space-y-3 border-t border-slate-200 p-3">
+        <div className="space-y-3 border-t border-line p-3">
           <div>
-            <p className="mb-2 text-xs font-bold text-slate-700">Add question</p>
+            <p className="mb-2 text-xs font-semibold text-muted">Add question</p>
             <div className="grid grid-cols-2 gap-2">
               {QUESTION_CARD_TYPES.map((t) => (
                 <button
@@ -133,7 +132,7 @@ export default function SellerFormConfigurator({
                   type="button"
                   disabled={disabled}
                   onClick={() => onChange([...fields, createQuestionCard(t.type)])}
-                  className="min-h-[44px] rounded-xl border border-slate-300 bg-white px-2 text-sm font-bold text-slate-800 disabled:opacity-50"
+                  className="min-h-[44px] rounded-control border border-line bg-white px-2 text-sm font-semibold text-ink transition-colors hover:bg-mint/30 disabled:opacity-50"
                 >
                   + {FIELD_TYPE_LABEL[t.type]}
                 </button>
@@ -141,8 +140,8 @@ export default function SellerFormConfigurator({
             </div>
           </div>
           <div>
-            <p className="mb-1 text-xs font-bold text-slate-700">Data (JSON)</p>
-            <pre className="max-h-64 overflow-auto rounded-lg border border-slate-200 bg-slate-50 p-3 text-xs text-slate-800">
+            <p className="mb-1 text-xs font-semibold text-muted">Data (JSON)</p>
+            <pre className="max-h-64 overflow-auto rounded-control border border-line bg-cream p-3 text-xs text-ink">
               {JSON.stringify(fields, null, 2)}
             </pre>
           </div>

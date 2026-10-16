@@ -4,11 +4,20 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import type { Order, OrderStatus } from '../../types';
 import SellerNav from '../../components/seller/SellerNav';
+import Card from '../../components/ui/Card';
+import Chip from '../../components/ui/Chip';
+import Badge from '../../components/ui/Badge';
+import Skeleton from '../../components/ui/Skeleton';
+import EmptyState from '../../components/ui/EmptyState';
 
 const FILTERS: Array<'all' | OrderStatus> = ['all', 'pending_verification', 'confirmed', 'ready', 'completed', 'cancelled'];
 
 function refLast(ref: string): string {
   return ref.length <= 4 ? ref : ref.slice(-4);
+}
+
+function statusLabel(status: OrderStatus): string {
+  return status.replace(/_/g, ' ');
 }
 
 export default function Dashboard() {
@@ -69,7 +78,9 @@ export default function Dashboard() {
       if (o.status === 'pending_verification') pending++;
       if (o.status === 'completed') completed++;
       if (!o.created_at || new Date(o.created_at).toDateString() === today) {
-        if (o.status !== 'cancelled') todayRM += Number(o.total_amount) || 0;
+        if (o.status === 'confirmed' || o.status === 'ready' || o.status === 'completed') {
+          todayRM += Number(o.total_amount) || 0;
+        }
       }
     }
     return { pending, completed, todayRM, total: orders.length };
@@ -78,78 +89,76 @@ export default function Dashboard() {
   const visible = filter === 'all' ? orders : orders.filter((o) => o.status === filter);
 
   return (
-    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 pb-10">
+    <div className="flex min-h-screen flex-col pb-10">
       <SellerNav />
 
-      <main className="p-4 sm:p-6">
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          <div className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4 text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-amber-600">{stats.pending}</p>
-            <p className="text-xs font-bold text-slate-600">PENDING</p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4 text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-slate-900">RM {stats.todayRM.toFixed(0)}</p>
-            <p className="text-xs font-bold text-slate-600">TODAY</p>
-          </div>
-          <div className="rounded-xl border border-slate-200 bg-white p-3 sm:p-4 text-center">
-            <p className="text-2xl sm:text-3xl font-bold text-emerald-600">{stats.completed}</p>
-            <p className="text-xs font-bold text-slate-600">DONE</p>
-          </div>
+      <main className="mx-auto w-full max-w-[1312px] flex-1 px-5 py-6 sm:px-8">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          <Card className="p-3 text-center sm:p-5">
+            <p className="text-2xl font-bold text-amber-600 sm:text-3xl">{stats.pending}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Pending</p>
+          </Card>
+          <Card className="p-3 text-center sm:p-5">
+            <p className="text-2xl font-bold text-ink sm:text-3xl">RM {stats.todayRM.toFixed(2)}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Today</p>
+          </Card>
+          <Card className="p-3 text-center sm:p-5">
+            <p className="text-2xl font-bold text-emerald sm:text-3xl">{stats.completed}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">Done</p>
+          </Card>
         </div>
 
-        <div className="no-scrollbar mt-4 flex gap-2 overflow-x-auto">
+        <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-1">
           {FILTERS.map((f) => (
-            <button
-              key={f}
-              onClick={() => setFilter(f)}
-              className={`h-11 shrink-0 rounded-full border px-4 text-sm font-bold ${
-                filter === f
-                  ? 'bg-slate-900 text-white border-slate-900'
-                  : 'bg-white text-slate-700 border-slate-200'
-              }`}
-            >
-              {f === 'all' ? `All (${orders.length})` : f}
-            </button>
+            <Chip key={f} active={filter === f} onClick={() => setFilter(f)}>
+              {f === 'all' ? `All (${orders.length})` : statusLabel(f)}
+            </Chip>
           ))}
         </div>
 
         {loading && (
-          <div className="mt-3 space-y-3">
+          <div className="mt-4 grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
             {[1, 2].map((i) => (
-              <div key={i} className="h-20 animate-pulse rounded-xl bg-white border border-slate-200" />
+              <Skeleton key={i} className="h-24 rounded-card" />
             ))}
           </div>
         )}
         {error && (
-          <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
+          <div role="alert" className="mt-4 rounded-card border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
             {error}
           </div>
         )}
         {!loading && !error && visible.length === 0 && (
-          <div className="mt-3 rounded-xl border border-slate-200 bg-white p-6 text-center">
-            <p className="font-bold text-slate-900">No orders {filter !== 'all' ? `(${filter})` : ''}</p>
-            <p className="text-sm text-slate-600">New buyer orders appear here live.</p>
-          </div>
+          <EmptyState
+            title={`No orders${filter !== 'all' ? ` (${statusLabel(filter)})` : ''}`}
+            description="New buyer orders appear here live."
+            className="mt-4"
+          />
         )}
 
-        <div className="mt-3 grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
-          {visible.map((o) => (
+        <div className="mt-4 grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
+          {visible.map((o, i) => (
             <Link
               key={o.id}
               to={`/seller/orders/${o.id}`}
-              className="rounded-xl border border-slate-200 bg-white p-4"
+              className="rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
             >
-              <div className="flex items-center justify-between gap-2">
-                <p className="font-bold text-slate-900 truncate">{o.buyer_name}</p>
-                <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-xs font-bold">
-                  {o.status.toUpperCase()}
-                </span>
-              </div>
-              <p className="text-sm text-slate-600 truncate">{o.location}</p>
-              <div className="mt-1 flex items-center justify-between">
-                <p className="font-bold text-slate-900">RM {Number(o.total_amount).toFixed(2)}</p>
-                <p className="font-mono text-sm font-bold text-slate-500">...{refLast(o.payment_ref_id)}</p>
-              </div>
+              <Card
+                className="p-4 hover:shadow-button hover:-translate-y-0.5 animate-fade-in-up"
+                style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <p className="truncate font-semibold text-ink">{o.buyer_name}</p>
+                  <Badge tone={o.status === 'pending_verification' ? 'muted' : 'mint'}>
+                    {statusLabel(o.status)}
+                  </Badge>
+                </div>
+                <p className="truncate text-sm text-muted">{o.location}</p>
+                <div className="mt-1 flex items-center justify-between">
+                  <p className="font-bold text-ink">RM {Number(o.total_amount).toFixed(2)}</p>
+                  <p className="font-mono text-sm text-muted">…{refLast(o.payment_ref_id)}</p>
+                </div>
+              </Card>
             </Link>
           ))}
         </div>

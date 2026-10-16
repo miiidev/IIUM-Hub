@@ -21,7 +21,7 @@ interface Props {
 }
 
 const inputCls =
-  'h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 outline-none focus:border-slate-900';
+  'h-12 w-full rounded-control border border-line bg-white px-4 text-ink outline-none transition-colors placeholder:text-placeholder focus:border-emerald focus:ring-2 focus:ring-emerald/25';
 
 function FileField({
   inputId,
@@ -50,9 +50,9 @@ function FileField({
           id={inputId}
           type="file"
           disabled
-          className="block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none file:mr-3 file:rounded-lg file:border-0 file:bg-slate-200 file:px-3 file:py-2 file:text-sm file:font-bold file:text-slate-500 disabled:opacity-60"
+          className="block w-full rounded-control border border-line bg-white px-4 py-2.5 text-sm text-ink outline-none file:mr-3 file:rounded-control file:border-0 file:bg-cream file:px-3 file:py-2 file:text-sm file:font-semibold file:text-muted disabled:opacity-60"
         />
-        <p className="mt-1 text-xs text-slate-500">
+        <p className="mt-1 text-xs text-muted">
           Preview only — real upload happens in the storefront.
         </p>
       </div>
@@ -90,36 +90,36 @@ function FileField({
         accept={FILE_ACCEPT}
         disabled={uploading}
         onChange={(e) => handlePicked(e.target.files?.[0])}
-        className="block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none file:mr-3 file:rounded-lg file:border-0 file:bg-slate-900 file:px-3 file:py-2 file:text-sm file:font-bold file:text-white disabled:opacity-60"
+        className="block w-full rounded-control border border-line bg-white px-4 py-2.5 text-sm text-ink outline-none file:mr-3 file:rounded-control file:border-0 file:bg-emerald file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white disabled:opacity-60"
       />
-      {uploading && <p className="mt-1 text-sm text-slate-500">Uploading…</p>}
-      {uploadError && <p className="mt-1 text-sm font-medium text-red-600">{uploadError}</p>}
+      {uploading && <p className="mt-1 text-sm text-muted">Uploading…</p>}
+      {uploadError && <p className="mt-1 text-sm font-medium text-danger">{uploadError}</p>}
       {url && (
-        <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2">
+        <div className="mt-2 flex items-center gap-2 rounded-control border border-line bg-cream p-2">
           {isLegacyFileUrl(url) ? (
             <a
               href={url}
               target="_blank"
               rel="noreferrer"
-              className="min-w-0 flex-1 truncate text-sm font-bold text-emerald-700 underline"
+              className="min-w-0 flex-1 truncate text-sm font-semibold text-emerald underline"
             >
               {displayFileName(url)}
             </a>
           ) : (
-            <span className="min-w-0 flex-1 truncate text-sm font-bold text-slate-900">
+            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">
               {displayFileName(url)} ✓
             </span>
           )}
           <button
             type="button"
             onClick={() => onChange('')}
-            className="h-10 shrink-0 rounded-lg px-3 text-xs font-bold text-red-600"
+            className="h-10 shrink-0 rounded-control px-3 text-xs font-semibold text-danger"
           >
             Remove
           </button>
         </div>
       )}
-      <p className="mt-1 text-xs text-slate-500">JPG, PNG, WEBP or PDF — max 5MB.</p>
+      <p className="mt-1 text-xs text-muted">JPG, PNG, WEBP or PDF — max 5MB.</p>
     </div>
   );
 }
@@ -144,9 +144,9 @@ export default function DynamicFormEngine({
         const wide = f.type === 'textarea' || f.type === 'file' ? 'sm:col-span-2' : '';
         const fieldId = `field-${f.id}`;
         return (
-          <div key={f.id} id={fieldId} tabIndex={-1} className={`${wide} rounded-xl outline-none focus:ring-2 focus:ring-slate-900`}>
-            <label htmlFor={fieldId} className="mb-1 block text-sm font-bold text-slate-900">
-              {f.label} {f.required && <span className="text-red-600">*</span>}
+          <div key={f.id} id={fieldId} tabIndex={-1} className={`${wide} rounded-control outline-none focus:ring-2 focus:ring-emerald`}>
+            <label htmlFor={fieldId} className="mb-1 block text-sm font-semibold text-ink">
+              {f.label} {f.required && <span className="text-danger">*</span>}
             </label>
 
             {f.type === 'select' && shouldRenderAsChips(f) && (
@@ -157,8 +157,8 @@ export default function DynamicFormEngine({
                     return (
                       <label
                         key={o.name}
-                        className={`flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border px-4 ${
-                          checked ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'
+                        className={`flex min-h-[48px] cursor-pointer items-center gap-3 rounded-control border px-4 ${
+                          checked ? 'border-emerald bg-mint/40' : 'border-line bg-white'
                         }`}
                       >
                         <input
@@ -168,11 +168,11 @@ export default function DynamicFormEngine({
                           onChange={() =>
                             onChange(f.id, checked && !f.required ? '' : o.name)
                           }
-                          className="h-5 w-5 shrink-0 accent-slate-900"
+                          className="h-5 w-5 shrink-0 accent-emerald"
                         />
-                        <span className="flex-1 text-sm text-slate-900">{o.name}</span>
+                        <span className="flex-1 text-sm text-ink">{o.name}</span>
                         {Number(o.price_modifier) > 0 && (
-                          <span className="text-xs font-bold text-slate-700">
+                          <span className="text-xs font-semibold text-emerald">
                             +RM {Number(o.price_modifier).toFixed(2)}
                           </span>
                         )}
@@ -210,8 +210,8 @@ export default function DynamicFormEngine({
                   return (
                     <label
                       key={o.name}
-                      className={`flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border px-4 ${
-                        checked ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'
+                      className={`flex min-h-[48px] cursor-pointer items-center gap-3 rounded-control border px-4 ${
+                        checked ? 'border-emerald bg-mint/40' : 'border-line bg-white'
                       }`}
                     >
                       <input
@@ -223,11 +223,11 @@ export default function DynamicFormEngine({
                             : picked.filter((n) => n !== o.name);
                           onChange(f.id, next);
                         }}
-                        className="h-5 w-5 shrink-0 accent-slate-900"
+                        className="h-5 w-5 shrink-0 accent-emerald"
                       />
-                      <span className="flex-1 text-sm text-slate-900">{o.name}</span>
+                      <span className="flex-1 text-sm text-ink">{o.name}</span>
                       {Number(o.price_modifier) > 0 && (
-                        <span className="text-xs font-bold text-slate-700">
+                        <span className="text-xs font-semibold text-emerald">
                           +RM {Number(o.price_modifier).toFixed(2)}
                         </span>
                       )}
@@ -259,7 +259,7 @@ export default function DynamicFormEngine({
                         const cur = Number(val) || 0;
                         onChange(f.id, clampNumberValue(f, cur - 1));
                       }}
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-xl font-bold text-slate-900"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control border border-line bg-white text-xl font-bold text-ink transition-colors hover:bg-mint/30"
                     >
                       −
                     </button>
@@ -284,7 +284,7 @@ export default function DynamicFormEngine({
                         const cur = val === '' ? (Number(f.min) || 0) - 1 : Number(val) || 0;
                         onChange(f.id, clampNumberValue(f, cur + 1));
                       }}
-                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-xl font-bold text-white"
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-control bg-emerald text-xl font-bold text-white transition-colors hover:bg-emerald/90"
                     >
                       +
                     </button>
@@ -312,7 +312,7 @@ export default function DynamicFormEngine({
                         key={p}
                         type="button"
                         onClick={() => onChange(f.id, p)}
-                        className="h-11 min-w-[44px] rounded-full border border-slate-300 bg-white px-3 text-sm font-bold text-slate-800"
+                        className="h-11 min-w-[44px] rounded-full border border-line bg-white px-3 text-sm font-semibold text-ink transition-colors hover:bg-mint/30"
                       >
                         {p}
                       </button>
@@ -320,7 +320,7 @@ export default function DynamicFormEngine({
                   </div>
                 )}
                 {Number(f.price_per_unit) > 0 && (
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-muted">
                     RM {Number(f.price_per_unit).toFixed(2)}{' '}
                     {/page/i.test(f.label) ? 'per page' : 'per unit'}
                   </p>
@@ -331,7 +331,7 @@ export default function DynamicFormEngine({
             {f.type === 'textarea' && (
               <textarea
                 id={fieldId}
-                className="min-h-[96px] w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-slate-900"
+                className="min-h-[96px] w-full rounded-control border border-line bg-white px-4 py-3 text-ink outline-none transition-colors placeholder:text-placeholder focus:border-emerald focus:ring-2 focus:ring-emerald/25"
                 value={String(val)}
                 placeholder={f.placeholder || f.label}
                 onChange={(e) => onChange(f.id, e.target.value)}
@@ -378,7 +378,7 @@ export default function DynamicFormEngine({
             )}
 
             {err && (
-              <p role="alert" className="mt-1 text-sm font-medium text-red-600">
+              <p role="alert" className="mt-1 text-sm font-medium text-danger">
                 {err}
               </p>
             )}
