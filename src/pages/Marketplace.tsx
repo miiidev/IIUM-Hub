@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import {
   ArrowUpRight,
   Camera,
-  Footprints,
   LayoutGrid,
   MapPin,
   Printer,
@@ -33,7 +32,6 @@ const CATEGORY_ICONS: Record<string, LucideIcon> = {
   all: LayoutGrid,
   food: UtensilsCrossed,
   printing: Printer,
-  shoe_wash: Footprints,
   repairs: Wrench,
   rentals: Camera,
   custom: Sparkles,
