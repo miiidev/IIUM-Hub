@@ -1,6 +1,3 @@
--- IIUM Hub demo seed. Safe to re-run (conflict guards + not-exists checks).
--- Wipe first for a fully fresh dataset: delete from public.orders; delete from public.products; delete from public.shops;
-
 insert into public.shops (slug, name, whatsapp_number, category, mahalla, is_active, owner_id) values
 ('makcik-nasi-lemak', 'Makcik Nasi Lemak Faruq', '60123456789', 'food', 'Faruq', true, null),
 ('print-express-ali', 'Print Express Ali', '60198765432', 'printing', 'Ali', true, null),
@@ -29,18 +26,24 @@ where not exists (select 1 from public.products p where p.shop_id = s.id and p.t
 
 insert into public.products (shop_id, title, price, is_available, custom_fields)
 select s.id, 'Repair Phone Custom', 20.00, true,
-'[{"id":"device_model","label":"Model Telefon","type":"text","required":true},{"id":"damage_type","label":"Jenis Kerosakan","type":"select","required":true,"options":[{"name":"Screen Crack","price_modifier":30},{"name":"Battery","price_modifier":25},{"name":"Charging Port","price_modifier":15}]},{"id":"urgency","label":"Urgency (hari)","type":"number","required":false},{"id":"notes","label":"Nota Tambahan","type":"textarea","required":false}]'::jsonb
+'[{"id":"device_model","label":"Model Telefon","type":"text","required":true,"enabled":true},{"id":"damage_type","label":"Jenis Kerosakan","type":"select","required":true,"enabled":true,"options":[{"name":"Screen Crack","price_modifier":30},{"name":"Battery","price_modifier":25},{"name":"Charging Port","price_modifier":15}]},{"id":"urgency","label":"Urgency (hari)","type":"number","required":false,"enabled":true},{"id":"notes","label":"Nota Tambahan","type":"textarea","required":false,"enabled":true}]'::jsonb
 from public.shops s where s.slug = 'fixphone-bilal'
 and not exists (select 1 from public.products p where p.shop_id = s.id and p.title = 'Repair Phone Custom');
 
-insert into public.orders (shop_id, buyer_name, location, total_amount, payment_ref_id, custom_data, status)
-select s.id, v.buyer_name, v.location, v.total_amount, v.payment_ref_id, v.custom_data::jsonb, v.status
+insert into public.orders (shop_id, buyer_name, location, total_amount, payment_ref_id, custom_data, items, status)
+select s.id, v.buyer_name, v.location, v.total_amount, v.payment_ref_id, v.custom_data::jsonb, v.items::jsonb, v.status
 from public.shops s
 join (values
-  ('makcik-nasi-lemak', 'Ahmad Test', 'Mahalla Faruq, C2-3-12', 13.50, 'TEST9412', '{}', 'pending'),
-  ('print-express-ali', 'Siti Test', 'Mahalla Ali, B1-2-05', 3.40, 'TEST2210', '{}', 'confirmed'),
-  ('burger-aminah', 'Ali Test', 'Mahalla Aminah, A3-1-20', 16.00, 'TEST7788', '{}', 'completed'),
-  ('bike-rental-maryam', 'Maryam Test', 'Mahalla Maryam, D4-2-11', 10.00, 'TEST3344', '{}', 'rejected'),
-  ('fixphone-bilal', 'Custom Test', 'Mahalla Bilal, E1-1-01', 50.00, 'TEST5566', '{"device_model":"iPhone 11","damage_type":"Screen Crack","notes":"segera"}', 'pending')
-) as v(slug, buyer_name, location, total_amount, payment_ref_id, custom_data, status) on v.slug = s.slug
-where not exists (select 1 from public.orders o where o.payment_ref_id = v.payment_ref_id);
+  ('makcik-nasi-lemak', 'Ahmad Test', 'Mahalla Faruq, C2-3-12', 13.50, '9412', '{}',
+    '[{"title":"Nasi Lemak Ayam Goreng","qty":1,"unitPrice":8.5,"lineTotal":8.5},{"title":"Nasi Lemak Biasa","qty":1,"unitPrice":5,"lineTotal":5}]', 'pending'),
+  ('print-express-ali', 'Siti Test', 'Mahalla Ali, B1-2-05', 3.40, '2210', '{}',
+    '[{"title":"Print A4 Color (per page)","qty":2,"unitPrice":1,"lineTotal":2},{"title":"Print A4 Black & White (per page)","qty":7,"unitPrice":0.2,"lineTotal":1.4}]', 'confirmed'),
+  ('burger-aminah', 'Ali Test', 'Mahalla Aminah, A3-1-20', 16.00, '7788', '{}',
+    '[{"title":"Beef Cheese Burger","qty":1,"unitPrice":9,"lineTotal":9},{"title":"Chicken Crispy Burger","qty":1,"unitPrice":7,"lineTotal":7}]', 'completed'),
+  ('bike-rental-maryam', 'Maryam Test', 'Mahalla Maryam, D4-2-11', 10.00, '3344', '{}',
+    '[{"title":"Basikal Sewa Harian","qty":1,"unitPrice":10,"lineTotal":10}]', 'rejected'),
+  ('fixphone-bilal', 'Custom Test', 'Mahalla Bilal, E1-1-01', 50.00, '5566',
+    '{"Model Telefon":"iPhone 11","Jenis Kerosakan":"Screen Crack","Nota Tambahan":"segera"}',
+    '[{"title":"Repair Phone Custom","qty":1,"unitPrice":50,"lineTotal":50}]', 'pending')
+) as v(slug, buyer_name, location, total_amount, payment_ref_id, custom_data, items, status) on v.slug = s.slug
+where not exists (select 1 from public.orders o where o.payment_ref_id = v.payment_ref_id and o.shop_id = s.id);

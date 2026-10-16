@@ -1,11 +1,14 @@
-import type { OrderPayload, Shop } from '../types';
+import type { CustomValue, OrderPayload, Shop } from '../types';
 
 function formatRM(n: number): string {
   return `RM ${Number(n).toFixed(2)}`;
 }
 
+function formatValue(v: CustomValue): string {
+  return Array.isArray(v) ? v.join(', ') : String(v);
+}
+
 export function normalizeWhatsappNumber(raw: string): string {
-  // wa.me expects digits only, no +, spaces, dashes. e.g. 60123456789
   return (raw || '').replace(/\D/g, '');
 }
 
@@ -16,45 +19,38 @@ export function getAppOrigin(): string {
   return 'https://iium-hub.example.com';
 }
 
-export function generateWhatsAppLink(
-  shop: Shop,
-  order: OrderPayload,
-  orderId: string
-): string {
-  const dashboardLink = `${getAppOrigin()}/seller/orders/${orderId}`;
-
+export function buildOrderMessage(shop: Shop, order: OrderPayload, orderId: string): string {
   const lines: string[] = [];
   lines.push(`*New Order - ${shop.name}*`);
-  lines.push(`--------------------------`);
-  lines.push(`Buyer: ${order.buyer_name}`);
-  lines.push(`Location: ${order.location}`);
-  lines.push(``);
-  lines.push(`*Items:*`);
-  order.items.forEach((it, idx) => {
-    lines.push(
-      `${idx + 1}. ${it.title} x${it.qty} - ${formatRM(it.lineTotal)}`
-    );
+  lines.push('');
+  lines.push(`- *Buyer:* ${order.buyer_name}`);
+  lines.push(`- *Location:* ${order.location}`);
+  lines.push('');
+  lines.push('*Items:*');
+  order.items.forEach((it) => {
+    lines.push(`- ${it.title} x${it.qty} = ${formatRM(it.lineTotal)}`);
     if (it.selectedOptions) {
-      lines.push(`   Spec: ${it.selectedOptions}`);
+      lines.push(`  - ${it.selectedOptions}`);
     }
   });
-  // Custom form key-values (for custom category)
-  const customEntries = Object.entries(order.custom_data || {});
-  if (customEntries.length > 0) {
-    lines.push(``);
-    lines.push(`*Custom Spec:*`);
-    customEntries.forEach(([k, v]) => {
-      lines.push(`- ${k}: ${String(v)}`);
+  const custom = Object.entries(order.custom_data || {});
+  if (custom.length > 0) {
+    lines.push('');
+    lines.push('*Spec:*');
+    custom.forEach(([k, v]) => {
+      lines.push(`- ${k}: ${formatValue(v)}`);
     });
   }
-  lines.push(``);
+  lines.push('');
   lines.push(`*Total: ${formatRM(order.total_amount)}*`);
   lines.push(`DuitNow Ref ID: ${order.payment_ref_id}`);
-  lines.push(``);
-  lines.push(`Manage order:`);
-  lines.push(dashboardLink);
+  lines.push('');
+  lines.push('Manage order:');
+  lines.push(`${getAppOrigin()}/seller/orders/${orderId}`);
+  return lines.join('\n');
+}
 
-  const text = lines.join('\n');
+export function generateWhatsAppLink(shop: Shop, order: OrderPayload, orderId: string): string {
   const number = normalizeWhatsappNumber(shop.whatsapp_number);
-  return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
+  return `https://wa.me/${number}?text=${encodeURIComponent(buildOrderMessage(shop, order, orderId))}`;
 }

@@ -30,14 +30,14 @@ export default function CheckoutModal({
   const [error, setError] = useState<string | null>(null);
 
   const inputCls =
-    'h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 outline-none focus:border-emerald-600';
+    'h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 outline-none focus:border-slate-900';
 
   async function handleSubmit() {
     setError(null);
     if (!buyerName.trim()) return setError('Nama pembeli diperlukan.');
     if (!location.trim()) return setError('Mahalla / Room diperlukan.');
-    if (!refId.trim() || refId.trim().length < 4)
-      return setError('DuitNow Ref ID (min 4 digit terakhir) diperlukan.');
+    if (!/^\d{4,6}$/.test(refId.trim()))
+      return setError('DuitNow Ref ID mesti 4-6 digit.');
 
     if (!shop.whatsapp_number) {
       return setError('Nombor WhatsApp seller tiada. Tidak boleh teruskan.');
@@ -160,6 +160,7 @@ export default function CheckoutModal({
               onChange={(e) => setRefId(e.target.value)}
               placeholder="cth: 9412"
               inputMode="numeric"
+              maxLength={6}
             />
           </div>
         </div>

@@ -26,6 +26,7 @@ export default function OrderTracker() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [live, setLive] = useState(false);
 
   useEffect(() => {
     if (!orderId) {
@@ -60,7 +61,9 @@ export default function OrderTracker() {
           setOrder(payload.new as Order);
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        setLive(status === 'SUBSCRIBED');
+      });
 
     return () => {
       supabase.removeChannel(channel);
@@ -104,6 +107,15 @@ export default function OrderTracker() {
               <p key={i} className="flex justify-between gap-2 text-sm text-slate-700">
                 <span>{it.title} × {it.qty}</span>
                 <span className="font-bold">RM {Number(it.lineTotal).toFixed(2)}</span>
+              </p>
+            ))}
+          </div>
+        )}
+        {Object.keys(order.custom_data || {}).length > 0 && (
+          <div className="mt-2 border-t border-slate-200 pt-2">
+            {Object.entries(order.custom_data).map(([k, v]) => (
+              <p key={k} className="text-sm text-slate-700">
+                <span className="font-bold">{k}:</span> {Array.isArray(v) ? v.join(', ') : String(v)}
               </p>
             ))}
           </div>
@@ -154,7 +166,7 @@ export default function OrderTracker() {
       )}
 
       <p className="mt-4 text-xs text-slate-500 lg:col-span-2">
-        Status dikemaskini live via Supabase Realtime. Tiada perlu refresh.
+        {live ? 'LIVE - status dikemaskini automatik tanpa refresh.' : 'Menyambung ke status live... (refresh jika tiada kemaskini)'}
       </p>
       </div>
     </div>

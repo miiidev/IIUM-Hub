@@ -1,4 +1,6 @@
-export type ShopCategory = 'food' | 'printing' | 'repairs' | 'rentals' | 'custom';
+export type ShopCategory = 'food' | 'printing' | 'shoe_wash' | 'repairs' | 'rentals' | 'custom';
+
+export type PresetKey = 'printing' | 'shoe_wash' | 'food_addons' | 'custom';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'rejected' | 'completed';
 
@@ -25,7 +27,7 @@ export interface CustomOption {
   price_modifier: number;
 }
 
-export type CustomFieldType = 'select' | 'text' | 'number' | 'textarea' | 'radio' | 'checkbox' | 'file' | 'stepper';
+export type CustomFieldType = 'select' | 'text' | 'number' | 'textarea';
 
 export type CustomValue = string | number | string[];
 
@@ -34,11 +36,15 @@ export interface CustomField {
   label: string;
   type: CustomFieldType;
   required: boolean;
+  enabled?: boolean;
   options?: CustomOption[];
-  min?: number;
-  max?: number;
-  step?: number;
-  unit_price?: number;
+  placeholder?: string;
+}
+
+export interface CustomFormState {
+  values: Record<string, CustomValue>;
+  errors: Record<string, string>;
+  total: number;
 }
 
 export interface Product {
@@ -48,6 +54,14 @@ export interface Product {
   price: number;
   is_available: boolean;
   custom_fields: CustomField[] | null;
+}
+
+export interface OrderItemSummary {
+  title: string;
+  qty: number;
+  unitPrice: number;
+  lineTotal: number;
+  selectedOptions?: string;
 }
 
 export interface Order {
@@ -61,14 +75,6 @@ export interface Order {
   items: OrderItemSummary[];
   status: OrderStatus;
   created_at?: string;
-}
-
-export interface OrderItemSummary {
-  title: string;
-  qty: number;
-  unitPrice: number;
-  lineTotal: number;
-  selectedOptions?: string;
 }
 
 export interface OrderPayload {

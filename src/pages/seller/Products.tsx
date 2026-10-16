@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import type { CustomField, Product } from '../../types';
 import SellerNav from '../../components/seller/SellerNav';
-import SellerFormBuilder from '../../components/SellerFormBuilder';
+import SellerFormConfigurator from '../../components/SellerFormConfigurator';
 import FormPreview from '../../components/seller/FormPreview';
+import { activeFields, sanitizeFields } from '../../utils/formPresets';
 
 const inputCls =
   'h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 outline-none focus:border-emerald-600';
@@ -22,49 +23,6 @@ export default function Products() {
   const [available, setAvailable] = useState(true);
   const [fields, setFields] = useState<CustomField[]>([]);
   const [showPreview, setShowPreview] = useState(false);
-
-  const fieldsRef = useRef(fields);
-  useEffect(() => {
-    fieldsRef.current = fields;
-  }, [fields]);
-
-  const dirtyRef = useRef(false);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
-
-  const saveLabel =
-    saveStatus === 'saving'
-      ? 'Menyimpan…'
-      : saveStatus === 'saved'
-        ? 'Disimpan'
-        : saveStatus === 'error'
-          ? 'Gagal menyimpan'
-          : null;
-
-  useEffect(() => {
-    if (!editingId) {
-      dirtyRef.current = false;
-      setSaveStatus('idle');
-      return;
-    }
-    if (!dirtyRef.current) {
-      dirtyRef.current = true;
-      return;
-    }
-    setSaveStatus('saving');
-    const timer = setTimeout(async () => {
-      try {
-        const { error: err } = await supabase
-          .from('products')
-          .update({ custom_fields: fieldsRef.current })
-          .eq('id', editingId);
-        if (err) throw err;
-        setSaveStatus('saved');
-      } catch {
-        setSaveStatus('error');
-      }
-    }, 600);
-    return () => clearTimeout(timer);
-  }, [editingId, fields]);
 
   async function load() {
     if (!shop) return;
@@ -91,7 +49,6 @@ export default function Products() {
   }, [shop?.id]);
 
   function startAdd() {
-    dirtyRef.current = false;
     setEditingId(null);
     setTitle('');
     setPrice('');
@@ -102,7 +59,6 @@ export default function Products() {
   }
 
   function startEdit(p: Product) {
-    dirtyRef.current = false;
     setEditingId(p.id);
     setTitle(p.title);
     setPrice(String(p.price));
@@ -119,12 +75,17 @@ export default function Products() {
     const numPrice = Number(price);
     if (!price || isNaN(numPrice) || numPrice <= 0)
       return setError('Harga mesti nombor lebih dari 0.');
+    const cleaned = sanitizeFields(fields);
+    const missingLabel = cleaned.some((f) => f.enabled !== false && !f.label);
+    if (missingLabel) return setError('Setiap soalan aktif mesti ada label.');
+    const badSelect = cleaned.some((f) => f.enabled !== false && f.type === 'select' && (f.options ?? []).length === 0);
+    if (badSelect) return setError('Soalan pilihan mesti ada sekurang-kurangnya satu pilihan.');
     setSaving(true);
     try {
       if (editingId) {
         const { error: err } = await supabase
           .from('products')
-          .update({ title: title.trim(), price: numPrice, is_available: available, custom_fields: fields })
+          .update({ title: title.trim(), price: numPrice, is_available: available, custom_fields: cleaned })
           .eq('id', editingId);
         if (err) throw err;
       } else {
@@ -133,7 +94,7 @@ export default function Products() {
           title: title.trim(),
           price: numPrice,
           is_available: available,
-          custom_fields: fields,
+          custom_fields: cleaned,
         });
         if (err) throw err;
       }
@@ -185,9 +146,9 @@ export default function Products() {
                   </span>
                 </div>
                 <p className="text-sm font-bold text-slate-700">RM {Number(p.price).toFixed(2)}</p>
-                {(p.custom_fields?.length ?? 0) > 0 && (
-                  <p className="text-xs text-slate-500">{p.custom_fields!.length} custom fields</p>
-                )}
+                <p className="mt-1 text-xs text-slate-600">
+                  {activeFields(p.custom_fields).length} soalan aktif
+                </p>
                 <div className="mt-2 flex gap-2">
                   <button
                     onClick={() => toggleAvailable(p)}
@@ -234,37 +195,20 @@ export default function Products() {
               Tersedia untuk jualan
             </label>
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-bold text-slate-900">Custom fields ({fields.length})</p>
-                {editingId && saveLabel && (
-                  <span
-                    className={`text-xs font-medium ${
-                      saveStatus === 'saved'
-                        ? 'text-emerald-600'
-                        : saveStatus === 'error'
-                          ? 'text-red-600'
-                          : 'text-slate-400'
-                    }`}
-                  >
-                    {saveLabel}
-                  </span>
-                )}
-              </div>
-              <p className="text-xs text-slate-500">Untuk kedai custom — dibayar buyer di Storefront.</p>
-              <div className="mt-2">
-                <SellerFormBuilder value={fields} onChange={setFields} disabled={saving} />
-              </div>
-              {fields.length > 0 && (
+              <SellerFormConfigurator fields={fields} onChange={setFields} basePrice={Number(price) || 0} disabled={saving} />
+              {activeFields(fields).length > 0 && (
                 <button
                   type="button"
                   onClick={() => setShowPreview((s) => !s)}
-                  className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700"
+                  className="mt-3 h-11 w-full rounded-xl border border-slate-300 bg-white text-sm font-bold text-slate-800"
                 >
                   {showPreview ? 'Sembunyi preview' : 'Lihat preview'}
                 </button>
               )}
-              {showPreview && fields.length > 0 && (
-                <FormPreview fields={fields} basePrice={Number(price) || 0} shopId={shop?.id ?? ''} />
+              {showPreview && activeFields(fields).length > 0 && (
+                <div className="mt-3">
+                  <FormPreview fields={fields} basePrice={Number(price) || 0} />
+                </div>
               )}
             </div>
           </div>

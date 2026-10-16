@@ -3,9 +3,9 @@ import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { validateWhatsappMY } from '../../utils/validation';
 import { MAHALLA_FORM_OPTIONS } from '../../utils/mahallas';
+import { SHOP_CATEGORIES } from '../../utils/categories';
 import SellerNav from '../../components/seller/SellerNav';
 
-const CATEGORIES = ['food', 'printing', 'repairs', 'rentals', 'custom'];
 
 const inputCls =
   'h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 outline-none focus:border-emerald-600';
@@ -109,7 +109,7 @@ export default function Settings() {
           <div>
             <label className="mb-1 block text-sm font-bold text-slate-900">Kategori</label>
             <select className={inputCls} value={category} onChange={(e) => setCategory(e.target.value)}>
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              {SHOP_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
             </select>
           </div>
           <div className="sm:col-span-2">

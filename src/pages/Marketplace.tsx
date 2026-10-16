@@ -5,22 +5,16 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { Shop } from '../types';
 import { MAHALLAS } from '../utils/mahallas';
+import { SHOP_CATEGORIES, categoryLabel } from '../utils/categories';
 
-const CATEGORIES = ['All', 'Food', 'Printing', 'Repairs', 'Rentals', 'Others / Custom'];
 const MAHALLA_FILTERS = ['All', ...MAHALLAS];
-
-function categoryToDb(cat: string): string | null {
-  if (cat === 'All') return null;
-  if (cat === 'Others / Custom') return 'custom';
-  return cat.toLowerCase();
-}
 
 export default function Marketplace() {
   const { user } = useAuth();
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [cat, setCat] = useState('All');
+  const [cat, setCat] = useState('all');
   const [mahalla, setMahalla] = useState('All');
   const [q, setQ] = useState('');
 
@@ -46,9 +40,8 @@ export default function Marketplace() {
   }, []);
 
   const filtered = useMemo(() => {
-    const dbCat = categoryToDb(cat);
     return shops.filter((s) => {
-      if (dbCat && s.category !== dbCat) return false;
+      if (cat !== 'all' && s.category !== cat) return false;
       if (mahalla !== 'All' && s.mahalla !== mahalla) return false;
       if (q && !s.name.toLowerCase().includes(q.toLowerCase())) return false;
       return true;
@@ -95,17 +88,17 @@ export default function Marketplace() {
       </header>
 
       <div className="no-scrollbar flex gap-2 overflow-x-auto p-4 sm:px-6">
-        {CATEGORIES.map((c) => (
+        {[{ value: 'all', label: 'All' }, ...SHOP_CATEGORIES].map((c) => (
           <button
-            key={c}
-            onClick={() => setCat(c)}
+            key={c.value}
+            onClick={() => setCat(c.value)}
             className={`h-11 shrink-0 rounded-full border px-4 font-bold text-sm ${
-              cat === c
+              cat === c.value
                 ? 'bg-slate-900 text-white border-slate-900'
                 : 'bg-white text-slate-700 border-slate-200'
             }`}
           >
-            {c}
+            {c.label}
           </button>
         ))}
       </div>
@@ -114,7 +107,7 @@ export default function Marketplace() {
         {loading && (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 animate-pulse rounded-xl bg-white border border-slate-200" />
+              <div key={i} className="h-24 rounded-xl bg-white border border-slate-200" />
             ))}
             <p className="text-sm text-slate-500">Memuatkan kedai...</p>
           </div>
@@ -158,7 +151,7 @@ export default function Marketplace() {
                   {s.mahalla}
                 </span>
                 <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                  {s.category}
+                  {categoryLabel(s.category)}
                 </span>
               </div>
             </Link>
