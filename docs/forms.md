@@ -1,7 +1,33 @@
 # State of forms
 
-Mental model (locked): Product (base price) + per-product form = buyer fills form →
-live total → checkout → Order. No standalone forms, no drag-and-drop, no blank builder.
+Mental model (locked): Product (base price) + per-product form = buyer taps Add and
+the form is shown immediately → live total → Review → Details → Pay → Order.
+Nothing is hidden; Add is explicit. No standalone forms, no drag-and-drop, no blank
+builder.
+
+## Buyer flow (`Storefront` → `ProductSheet` → `CheckoutModal`)
+
+Menu cards show title + price range (`formatRange(priceRange(...))`: "RM 5.00",
+"RM 5.00 to RM 12.00", "From RM 5.00") + 48px Add. Plain products keep inline
+steppers. Tapping Add (or Edit) opens `ProductSheet` (BottomSheet): live line total,
+`<details>` price breakdown from the snapshot, qty stepper (min 1), primary
+"Add to order · RM X" (Uploading… while busy, close blocked). Validation banner +
+scroll-to-first-error on submit; closing discards the draft.
+Checkout is Review (editable lines, re-validated on entry, Fix buttons) → Details →
+Pay. Cart state: `Record<productId, {qty, values}>` (`src/utils/cart.ts`); one line
+per product, no duplicate-option lines.
+
+## Seller flow (`Products` → `ProductWizard` → `SellerFormConfigurator`)
+
+New product = 3 steps (Details → Questions → Review) with progress indicator; editing
+opens at Review. Questions step: preset cards (name, description, first 3 labels +
+"+N more", Recommended badge) + copy-from-another-product (deep clone, confirm on
+overwrite). Configurator shows the price-range header, `QuestionRow`s (label, plain
+type name, Required/Optional, OFF, compact options/prices) opening
+`QuestionEditorSheet` (label, toggles, options, number pricing, remove; type locked),
+"Preview as buyer" in a sheet, and an Advanced details (JSON + add-question menu).
+Shared bits: `BottomSheet.tsx`, `fieldLabels.ts` (plain type names), `formUi.ts`
+(chips/quick-picks/error helpers).
 
 ## Presets (`src/utils/formPresets.ts` — single source of truth)
 
