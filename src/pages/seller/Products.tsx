@@ -138,12 +138,7 @@ export default function Products() {
       <SellerNav />
       <main className="mx-auto w-full max-w-[1312px] flex-1 px-5 py-6 sm:px-8 lg:grid lg:grid-cols-[1fr_360px] lg:items-start lg:gap-8">
         <div>
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-xl font-semibold text-ink">Products ({products.length})</h2>
-            <Button size="sm" onClick={startAdd}>
-              + Add product
-            </Button>
-          </div>
+          <h2 className="text-xl font-semibold text-ink">Products ({products.length})</h2>
 
           {presetKey && (
             <Card className="mt-3 bg-mint/40 p-4">
