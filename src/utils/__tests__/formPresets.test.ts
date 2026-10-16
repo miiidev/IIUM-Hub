@@ -10,6 +10,7 @@ import {
   clampNumberValue,
   clonePresetFields,
   computeUnitTotal,
+  copyFields,
   createQuestionCard,
   describeValues,
   getPresetForCategory,
@@ -73,6 +74,19 @@ describe('presets', () => {
   it('custom preset starts empty and cards get unique ids', () => {
     expect(clonePresetFields('custom')).toEqual([]);
     expect(createQuestionCard('text').id).not.toBe(createQuestionCard('text').id);
+  });
+
+  it('copyFields deep-clones with ids preserved', () => {
+    const src = clonePresetFields('printing');
+    const copy = copyFields(src);
+    expect(copy).toEqual(src);
+    copy[0].options![0].price_modifier = 99;
+    expect(src[0].options![0].price_modifier).toBe(0);
+    const withPicks = copyFields([
+      { id: 'n', label: 'N', type: 'number', required: false, quickPicks: [1, 5] },
+    ]);
+    withPicks[0].quickPicks!.push(9);
+    expect(src).toHaveLength(5);
   });
 
   it('printing preset uses a required file field', () => {

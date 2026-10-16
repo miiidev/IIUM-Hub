@@ -81,6 +81,7 @@ export const PRESETS: FormPreset[] = [
         min: 1,
         max: 500,
         integer: true,
+        quickPicks: [1, 5, 10, 20, 50],
       },
       { id: 'print_file', label: 'Upload File', type: 'file', required: true, enabled: true },
     ],
@@ -161,6 +162,14 @@ export function clonePresetFields(key: PresetKey): CustomField[] {
   return getPreset(key).fields.map((f) => ({
     ...f,
     options: f.options?.map((o) => ({ ...o })),
+  }));
+}
+
+export function copyFields(fields: CustomField[]): CustomField[] {
+  return fields.map((f) => ({
+    ...f,
+    options: f.options?.map((o) => ({ ...o })),
+    quickPicks: f.quickPicks ? [...f.quickPicks] : undefined,
   }));
 }
 
@@ -368,6 +377,10 @@ export function sanitizeFields(fields: CustomField[]): CustomField[] {
       const ppu = Number(f.price_per_unit);
       if (Number.isFinite(ppu)) next.price_per_unit = Math.max(0, ppu);
       if (f.integer) next.integer = true;
+      if (Array.isArray(f.quickPicks)) {
+        const picks = f.quickPicks.filter((p) => Number.isFinite(p));
+        if (picks.length > 0) next.quickPicks = picks;
+      }
       const min = Number(f.min);
       const max = Number(f.max);
       const validMin = Number.isFinite(min);

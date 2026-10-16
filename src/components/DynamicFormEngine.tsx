@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import type { CustomField, CustomValue } from '../types';
-import { activeFields, normalizeMyPhone, todayLocal } from '../utils/formPresets';
+import { activeFields, clampNumberValue, normalizeMyPhone, todayLocal } from '../utils/formPresets';
+import { quickPicksFor, shouldRenderAsChips } from '../utils/formUi';
 import {
   FILE_ACCEPT,
   displayFileName,
@@ -143,12 +144,46 @@ export default function DynamicFormEngine({
         const wide = f.type === 'textarea' || f.type === 'file' ? 'sm:col-span-2' : '';
         const fieldId = `field-${f.id}`;
         return (
-          <div key={f.id} className={wide}>
+          <div key={f.id} id={fieldId} tabIndex={-1} className={`${wide} rounded-xl outline-none focus:ring-2 focus:ring-slate-900`}>
             <label htmlFor={fieldId} className="mb-1 block text-sm font-bold text-slate-900">
               {f.label} {f.required && <span className="text-red-600">*</span>}
             </label>
 
-            {f.type === 'select' && (
+            {f.type === 'select' && shouldRenderAsChips(f) && (
+              <div role="radiogroup" aria-label={f.label}>
+                <div className="space-y-2">
+                  {(f.options ?? []).map((o) => {
+                    const checked = String(val) === o.name;
+                    return (
+                      <label
+                        key={o.name}
+                        className={`flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border px-4 ${
+                          checked ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={`radio-${f.id}`}
+                          checked={checked}
+                          onChange={() =>
+                            onChange(f.id, checked && !f.required ? '' : o.name)
+                          }
+                          className="h-5 w-5 shrink-0 accent-slate-900"
+                        />
+                        <span className="flex-1 text-sm text-slate-900">{o.name}</span>
+                        {Number(o.price_modifier) > 0 && (
+                          <span className="text-xs font-bold text-slate-700">
+                            +RM {Number(o.price_modifier).toFixed(2)}
+                          </span>
+                        )}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {f.type === 'select' && !shouldRenderAsChips(f) && (
               <select
                 id={fieldId}
                 className={inputCls}
@@ -175,7 +210,9 @@ export default function DynamicFormEngine({
                   return (
                     <label
                       key={o.name}
-                      className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-4"
+                      className={`flex min-h-[48px] cursor-pointer items-center gap-3 rounded-xl border px-4 ${
+                        checked ? 'border-slate-900 bg-slate-50' : 'border-slate-200 bg-white'
+                      }`}
                     >
                       <input
                         type="checkbox"
@@ -213,23 +250,79 @@ export default function DynamicFormEngine({
 
             {f.type === 'number' && (
               <div>
-                <input
-                  id={fieldId}
-                  className={inputCls}
-                  type="number"
-                  inputMode={f.integer ? 'numeric' : 'decimal'}
-                  min={f.min}
-                  max={f.max}
-                  step={f.integer ? 1 : 'any'}
-                  value={val === '' ? '' : Number(val)}
-                  placeholder="0"
-                  onChange={(e) =>
-                    onChange(f.id, e.target.value === '' ? '' : Number(e.target.value))
-                  }
-                />
+                {f.integer ? (
+                  <div className="flex h-12 items-center gap-2">
+                    <button
+                      type="button"
+                      aria-label="Decrease"
+                      onClick={() => {
+                        const cur = Number(val) || 0;
+                        onChange(f.id, clampNumberValue(f, cur - 1));
+                      }}
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-slate-300 bg-white text-xl font-bold text-slate-900"
+                    >
+                      −
+                    </button>
+                    <input
+                      id={fieldId}
+                      className={`${inputCls} text-center`}
+                      type="number"
+                      inputMode="numeric"
+                      min={f.min}
+                      max={f.max}
+                      step={1}
+                      value={val === '' ? '' : Number(val)}
+                      placeholder="0"
+                      onChange={(e) =>
+                        onChange(f.id, e.target.value === '' ? '' : Number(e.target.value))
+                      }
+                    />
+                    <button
+                      type="button"
+                      aria-label="Increase"
+                      onClick={() => {
+                        const cur = val === '' ? (Number(f.min) || 0) - 1 : Number(val) || 0;
+                        onChange(f.id, clampNumberValue(f, cur + 1));
+                      }}
+                      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-900 text-xl font-bold text-white"
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <input
+                    id={fieldId}
+                    className={inputCls}
+                    type="number"
+                    inputMode="decimal"
+                    min={f.min}
+                    max={f.max}
+                    step="any"
+                    value={val === '' ? '' : Number(val)}
+                    placeholder="0"
+                    onChange={(e) =>
+                      onChange(f.id, e.target.value === '' ? '' : Number(e.target.value))
+                    }
+                  />
+                )}
+                {quickPicksFor(f).length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {quickPicksFor(f).map((p) => (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => onChange(f.id, p)}
+                        className="h-11 min-w-[44px] rounded-full border border-slate-300 bg-white px-3 text-sm font-bold text-slate-800"
+                      >
+                        {p}
+                      </button>
+                    ))}
+                  </div>
+                )}
                 {Number(f.price_per_unit) > 0 && (
                   <p className="mt-1 text-xs text-slate-500">
-                    RM {Number(f.price_per_unit).toFixed(2)} per unit
+                    RM {Number(f.price_per_unit).toFixed(2)}{' '}
+                    {/page/i.test(f.label) ? 'per page' : 'per unit'}
                   </p>
                 )}
               </div>
@@ -284,7 +377,11 @@ export default function DynamicFormEngine({
               />
             )}
 
-            {err && <p className="mt-1 text-sm font-medium text-red-600">{err}</p>}
+            {err && (
+              <p role="alert" className="mt-1 text-sm font-medium text-red-600">
+                {err}
+              </p>
+            )}
           </div>
         );
       })}
