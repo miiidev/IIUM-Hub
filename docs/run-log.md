@@ -277,6 +277,32 @@ the time of writing):
     `CATEGORY_PRESET_MAP` entry, the type unions and the Marketplace chip/icon; tests updated.
     Existing shops with `category = 'shoe_wash'` still render (label falls back to the raw
     value) but can no longer be chosen. (Deliberate `src/types` + `src/utils` edits.)
+13. **Database reseeded** — demo catalog reset: `truncate public.shops cascade` (products +
+    orders) then 16 demo shops across 16 Mahallas (5 food, 3 printing, 3 repairs, 3 rentals,
+    2 custom) with 21 products (1–2 each, English) and category preset questions applied.
+    `shops.banner_url` and `products.image_url` left empty for in-app uploads. `supabase/seed.sql`
+    rewritten to this dataset. Pre-wipe rows snapshotted to schema `zz_backup_pre_seed`
+    (`drop schema zz_backup_pre_seed cascade;` when no longer needed). Run manually against the
+    live project — no migration applied.
+14. **Seed images** — 37 photos in `public/seed/` (banners + product photos), wired into
+    `shops.banner_url` / `products.image_url` via `supabase/seed.sql` and applied to the demo
+    DB. fal.ai was unavailable (403 Forbidden on every endpoint), so images were **downloaded**
+    (Wikimedia Commons, freely licensed, Picsum fallback) rather than AI-generated; re-encoded
+    to JPEG ≤1024px/q65 (~3.6 MB total). Provenance in `public/seed/README.md` + `ATTRIBUTION.json`.
+15. **Seed images uploaded to Supabase Storage** — all 37 uploaded to the public buckets
+    `shop-banners` / `product-images` under `seed/`, and `shops.banner_url` /
+    `products.image_url` repointed to the Supabase public URLs. Done with a **temporary anon
+    INSERT policy** on `storage.objects` that was **dropped immediately after** (verified gone).
+    `supabase/seed.sql` reproduces the mapping.
+16. **Demo seller accounts** — confirmed auth users created directly in `auth.users`
+    (+ `auth.identities`, `public.profiles`), with a shared demo password (shared with the
+    owner in chat, **not stored in the repo**). **Constraint:** the app is one-shop-per-account
+    (`AuthContext` loads the shop with `.maybeSingle()`), so each account owns exactly one shop.
+17. **20 shops + 20 accounts** — added 4 shops (Sumayyah Nasi Kerabu, Zubair Binding &
+    Laminating, Ali MacBook Clinic, Bilal Scooter Rental) with Commons images uploaded to
+    Storage, and grew to 20 accounts (seller1..seller20) so **every** shop has exactly one
+    owner. Ownership is deterministic: `sellerN` ↔ Nth shop by slug order. `supabase/seed.sql`
+    reproduces the 20 shops + the account block + the assignment.
 
 Verification: build clean, 78 tests pass, 0 lint errors, locked-area diff empty; new screens
 screenshotted below `sm` (500px) and at 800/1440 → `design/shots/`.
