@@ -2,7 +2,26 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import type { Order, Shop } from '../types';
+import type { CustomValue, Order, Shop } from '../types';
+import { fileNameFromUrl } from '../utils/files';
+
+function renderCustomValue(v: CustomValue) {
+  if (Array.isArray(v)) return v.join(', ');
+  const s = String(v);
+  if (/^https?:\/\//.test(s)) {
+    return (
+      <a
+        href={s}
+        target="_blank"
+        rel="noreferrer"
+        className="font-bold text-emerald-700 underline"
+      >
+        Lihat fail ({fileNameFromUrl(s) || 'pautan'})
+      </a>
+    );
+  }
+  return s;
+}
 
 export default function SellerDashboard() {
   const { orderId } = useParams<{ orderId: string }>();
@@ -139,7 +158,7 @@ export default function SellerDashboard() {
           <div className="mt-2 border-t border-slate-200 pt-2">
             {Object.entries(order.custom_data).map(([k, v]) => (
               <p key={k} className="text-sm text-slate-700">
-                <span className="font-bold">{k}:</span> {String(v)}
+                <span className="font-bold">{k}:</span> {renderCustomValue(v)}
               </p>
             ))}
           </div>

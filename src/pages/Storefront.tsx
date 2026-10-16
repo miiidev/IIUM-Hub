@@ -2,12 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, Minus, Plus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import type { OrderItemSummary, Product, Shop } from '../types';
+import type { CustomValue, OrderItemSummary, Product, Shop } from '../types';
 import DynamicFormEngine, {
   computeModifierTotal,
   validateDynamicFields,
 } from '../components/DynamicFormEngine';
 import CheckoutModal from '../components/CheckoutModal';
+import { fileNameFromUrl } from '../utils/files';
 
 export default function Storefront() {
   const { slug } = useParams<{ slug: string }>();
@@ -17,7 +18,7 @@ export default function Storefront() {
   const [error, setError] = useState<string | null>(null);
 
   const [qty, setQty] = useState<Record<string, number>>({});
-  const [customValues, setCustomValues] = useState<Record<string, string | number>>({});
+  const [customValues, setCustomValues] = useState<Record<string, CustomValue>>({});
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [showCheckout, setShowCheckout] = useState(false);
 
@@ -61,12 +62,26 @@ export default function Storefront() {
   const customProduct = isCustom ? products[0] : undefined;
   const customFields = customProduct?.custom_fields ?? [];
 
-  const { count, total, itemsSummary } = useMemo(() => {
+  const { count, total, itemsSummary, orderCustomData } = useMemo(() => {
     if (isCustom && customProduct) {
       const mod = computeModifierTotal(customFields, customValues);
       const base = Number(customProduct.price) || 0;
       const t = base + mod;
-      const entries = Object.entries(customValues).filter(([, v]) => String(v) !== '');
+      const entries = Object.entries(customValues).filter(([, v]) =>
+        Array.isArray(v) ? v.length > 0 : String(v) !== ''
+      );
+      const labelOf = (id: string) =>
+        customFields.find((f) => f.id === id)?.label?.trim() || id;
+      const shortOf = (v: CustomValue) => {
+        if (Array.isArray(v)) return v.join(', ');
+        const s = String(v);
+        if (/^https?:\/\//.test(s)) return fileNameFromUrl(s) || 'fail dimuat naik';
+        return s;
+      };
+      const orderCustomData: Record<string, CustomValue> = {};
+      for (const [id, v] of entries) {
+        orderCustomData[labelOf(id)] = v;
+      }
       return {
         count: entries.length > 0 ? 1 : 0,
         total: t,
@@ -76,9 +91,10 @@ export default function Storefront() {
             qty: 1,
             unitPrice: base,
             lineTotal: t,
-            selectedOptions: entries.map(([k, v]) => `${k}:${v}`).join(', '),
+            selectedOptions: entries.map(([k, v]) => `${labelOf(k)}: ${shortOf(v)}`).join(', '),
           } as OrderItemSummary,
         ],
+        orderCustomData,
       };
     }
     let c = 0;
@@ -93,7 +109,7 @@ export default function Storefront() {
         items.push({ title: p.title, qty: q, unitPrice: Number(p.price), lineTotal: line });
       }
     }
-    return { count: c, total: t, itemsSummary: items };
+    return { count: c, total: t, itemsSummary: items, orderCustomData: {} };
   }, [isCustom, customProduct, customFields, customValues, products, qty]);
 
   function handleCheckoutOpen() {
@@ -158,6 +174,7 @@ export default function Storefront() {
                 values={customValues}
                 onChange={(id, v) => setCustomValues((p) => ({ ...p, [id]: v }))}
                 errors={formErrors}
+                shopId={shop?.id ?? ''}
               />
             </div>
           </div>
@@ -252,7 +269,7 @@ export default function Storefront() {
         <CheckoutModal
           shop={shop}
           total={total}
-          custom_data={isCustom ? customValues : {}}
+          custom_data={isCustom ? orderCustomData : {}}
           itemsSummary={itemsSummary}
           shop_id={shop.id}
           onClose={() => setShowCheckout(false)}

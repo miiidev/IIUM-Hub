@@ -28,17 +28,27 @@ interface SellerFormBuilderProps {
 
 const FIELD_TYPES: Array<{ type: CustomFieldType; label: string }> = [
   { type: 'select', label: 'Dropdown Select' },
+  { type: 'radio', label: 'Radio Buttons' },
+  { type: 'checkbox', label: 'Checkboxes' },
   { type: 'text', label: 'Text Input' },
   { type: 'number', label: 'Number Field' },
   { type: 'textarea', label: 'Textarea' },
+  { type: 'file', label: 'File Upload' },
 ];
 
 const TYPE_BADGES: Record<CustomFieldType, string> = {
   select: 'Pilihan',
+  radio: 'Radio',
+  checkbox: 'Kotak',
   text: 'Teks',
   number: 'Nombor',
   textarea: 'Catatan',
+  file: 'Fail',
 };
+
+function hasOptions(type: CustomFieldType): boolean {
+  return type === 'select' || type === 'radio' || type === 'checkbox';
+}
 
 interface ChoiceDraft {
   name: string;
@@ -71,7 +81,7 @@ function sanitize(fields: CustomField[]): CustomField[] {
       type: field.type,
       required: Boolean(field.required),
     };
-    if (field.type === 'select') {
+    if (hasOptions(field.type)) {
       const options: CustomOption[] = [];
       for (const option of field.options ?? []) {
         const name = option.name.trim();
@@ -91,7 +101,7 @@ function toDraft(field: CustomField): FieldDraft {
     label: field.label,
     required: field.required,
     choices:
-      field.type === 'select'
+      hasOptions(field.type)
         ? (field.options ?? []).map((option) => ({
             name: option.name,
             price: String(option.price_modifier),
@@ -207,7 +217,7 @@ function SortableFieldCard({ field, disabled, onChangeField, onDelete }: Sortabl
               Buang
             </button>
           </div>
-          {field.type === 'select' && (
+          {hasOptions(field.type) && (
             <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-2">
               <p className="text-xs font-bold text-slate-700">Pilihan & harga tambahan</p>
               <div className="mt-1 space-y-1.5">
@@ -261,6 +271,11 @@ function SortableFieldCard({ field, disabled, onChangeField, onDelete }: Sortabl
               </button>
             </div>
           )}
+          {field.type === 'file' && (
+            <p className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-2 text-xs text-slate-500">
+              Pembeli boleh muat naik JPG, PNG, WEBP atau PDF (maks 5MB setiap fail).
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -294,7 +309,7 @@ export default function SellerFormBuilder({ value, onChange, disabled = false }:
       label: '',
       type,
       required: false,
-      options: type === 'select' ? [{ name: '', price_modifier: 0 }] : undefined,
+      options: hasOptions(type) ? [{ name: '', price_modifier: 0 }] : undefined,
     };
     emit([...value, field]);
   }

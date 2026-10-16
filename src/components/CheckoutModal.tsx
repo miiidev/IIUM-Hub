@@ -2,13 +2,13 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import type { OrderItemSummary, Shop } from '../types';
+import type { CustomValue, OrderItemSummary, Shop } from '../types';
 import { generateWhatsAppLink } from '../utils/whatsapp';
 
 interface Props {
   shop: Shop;
   total: number;
-  custom_data: Record<string, string | number>;
+  custom_data: Record<string, CustomValue>;
   itemsSummary: OrderItemSummary[];
   shop_id: string;
   onClose: () => void;

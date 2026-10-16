@@ -4,11 +4,13 @@ Source of truth for the database. The live project is configured via these files
 if the DB is ever wiped or a new environment is needed, re-apply in order:
 
 1. `migrations/0001_init.sql` — tables, indexes, RLS policies, Realtime (paste into Dashboard → SQL Editor)
-2. `seed.sql` — demo shops, products, test orders (one per status)
+2. `migrations/0002_public_read_for_authenticated.sql` — extend public policies to `anon, authenticated`
+3. `migrations/0003_buyer_uploads_bucket.sql` — `buyer-uploads` bucket + policies
+4. `seed.sql` — demo shops, products, test orders (one per status)
 
 ## Dashboard checklist (per environment)
 
-- [ ] SQL: run `0001_init.sql`, then `seed.sql`
+- [ ] SQL: run `0001_init.sql`, the `0002`/`0003` migrations, then `seed.sql`
 - [ ] Realtime: `orders` table must be in the `supabase_realtime` publication
   (the migration does `alter publication ... add table`; verify under Database → Replication)
 - [ ] Auth → Providers → Email: turn OFF **Confirm email** for frictionless demo logins
@@ -16,6 +18,10 @@ if the DB is ever wiped or a new environment is needed, re-apply in order:
 - [ ] Storage: create public bucket `duitnow-qr` (checkout QR uploads) with policies:
   - `INSERT` for `authenticated` (sellers upload their own QR)
   - `SELECT` for `anon, authenticated` (buyers see QR at checkout)
+- [ ] Storage: `buyer-uploads` is created by `migrations/0003_buyer_uploads_bucket.sql`
+  (custom-field file uploads, 5MB + jpg/png/webp/pdf cap) with policies:
+  - `INSERT` for `anon, authenticated` (buyers check out without login)
+  - `SELECT` for `anon, authenticated` (anyone with the link; sellers via dashboard)
 
 ## RLS summary (honor-system for hackathon)
 

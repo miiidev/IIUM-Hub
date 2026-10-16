@@ -25,7 +25,9 @@ export interface CustomOption {
   price_modifier: number;
 }
 
-export type CustomFieldType = 'select' | 'text' | 'number' | 'textarea';
+export type CustomFieldType = 'select' | 'text' | 'number' | 'textarea' | 'radio' | 'checkbox' | 'file';
+
+export type CustomValue = string | number | string[];
 
 export interface CustomField {
   id: string;
@@ -51,7 +53,7 @@ export interface Order {
   location: string;
   total_amount: number;
   payment_ref_id: string;
-  custom_data: Record<string, string | number>;
+  custom_data: Record<string, CustomValue>;
   items: OrderItemSummary[];
   status: OrderStatus;
   created_at?: string;
@@ -70,7 +72,7 @@ export interface OrderPayload {
   location: string;
   total_amount: number;
   payment_ref_id: string;
-  custom_data: Record<string, string | number>;
+  custom_data: Record<string, CustomValue>;
   items: OrderItemSummary[];
   shop_id: string;
 }
