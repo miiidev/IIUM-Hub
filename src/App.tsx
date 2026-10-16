@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import RequireShop from './components/seller/RequireShop';
 import Marketplace from './pages/Marketplace';
+import HowToOrder from './pages/HowToOrder';
 import Storefront from './pages/Storefront';
 import OrderTracker from './pages/OrderTracker';
 import SellerDashboard from './pages/SellerDashboard';
@@ -19,6 +20,7 @@ export default function App() {
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<Marketplace />} />
+            <Route path="/how-to-order" element={<HowToOrder />} />
             <Route path="/s/:slug" element={<Storefront />} />
             <Route path="/order/:orderId/track" element={<OrderTracker />} />
             <Route path="/seller/login" element={<Login />} />

@@ -1,22 +1,52 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, Store } from 'lucide-react';
+import {
+  ArrowUpRight,
+  Camera,
+  Footprints,
+  LayoutGrid,
+  MapPin,
+  Printer,
+  Search,
+  Sparkles,
+  Store,
+  UtensilsCrossed,
+  Wrench,
+  type LucideIcon,
+} from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { useAuth } from '../context/AuthContext';
 import type { Shop } from '../types';
 import { MAHALLAS } from '../utils/mahallas';
 import { SHOP_CATEGORIES, categoryLabel } from '../utils/categories';
+import SiteHeader from '../components/site/SiteHeader';
+import SiteFooter from '../components/site/SiteFooter';
+import MobileTabBar from '../components/site/MobileTabBar';
+import Card from '../components/ui/Card';
+import Badge from '../components/ui/Badge';
+import Chip from '../components/ui/Chip';
+import Skeleton from '../components/ui/Skeleton';
+import EmptyState from '../components/ui/EmptyState';
 
 const MAHALLA_FILTERS = ['All', ...MAHALLAS];
 
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  all: LayoutGrid,
+  food: UtensilsCrossed,
+  printing: Printer,
+  shoe_wash: Footprints,
+  repairs: Wrench,
+  rentals: Camera,
+  custom: Sparkles,
+};
+
 export default function Marketplace() {
-  const { user } = useAuth();
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cat, setCat] = useState('all');
   const [mahalla, setMahalla] = useState('All');
   const [q, setQ] = useState('');
+  const searchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     async function fetchShops() {
@@ -50,134 +80,177 @@ export default function Marketplace() {
   }, [shops, cat, mahalla, q]);
 
   return (
-    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 pb-10">
-      <header className="bg-white border-b border-slate-200 p-4 sm:p-6 sticky top-0 z-10">
-        <div className="flex flex-wrap items-end justify-between gap-2">
+    <div className="flex min-h-screen flex-col pb-16 sm:pb-0">
+      <SiteHeader />
+
+      <main className="mx-auto w-full max-w-[1312px] flex-1 px-5 pt-8 sm:px-8">
+        <p className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald">
+          <MapPin size={15} aria-hidden="true" /> IIUM Gombak
+        </p>
+        <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">
+          IIUM Campus Marketplace
+        </h1>
+        <p className="mt-2 max-w-xl text-base text-muted">
+          Great food, assignment printing, local services. All nearby.
+        </p>
+
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          <div className="flex flex-1 gap-2">
+            <input
+              ref={searchRef}
+              type="search"
+              aria-label="Search shops"
+              placeholder="Find shops..."
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              className="h-12 w-full rounded-control border border-line bg-white px-3.5 text-base text-ink placeholder:text-placeholder outline-none transition-colors focus:border-emerald focus:ring-2 focus:ring-emerald/25"
+            />
+            <button
+              type="button"
+              aria-label="Focus search"
+              onClick={() => searchRef.current?.focus()}
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-control bg-emerald text-white transition-colors hover:bg-emerald/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+            >
+              <Search size={18} aria-hidden="true" />
+            </button>
+          </div>
+          <label className="sm:w-64">
+            <span className="sr-only">Filter by Mahallah</span>
+            <select
+              className="h-12 w-full rounded-control border border-line bg-white px-3.5 text-base text-ink outline-none focus:border-emerald focus:ring-2 focus:ring-emerald/25"
+              value={mahalla}
+              onChange={(e) => setMahalla(e.target.value)}
+            >
+              {MAHALLA_FILTERS.map((m) => (
+                <option key={m} value={m}>
+                  {m === 'All' ? 'All Mahallahs' : m}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="no-scrollbar mt-5 flex gap-2 overflow-x-auto pb-1">
+          {[{ value: 'all', label: 'All' }, ...SHOP_CATEGORIES].map((c) => {
+            const Icon = CATEGORY_ICONS[c.value] ?? LayoutGrid;
+            return (
+              <Chip key={c.value} active={cat === c.value} onClick={() => setCat(c.value)}>
+                <Icon size={16} aria-hidden="true" />
+                {c.label}
+              </Chip>
+            );
+          })}
+        </div>
+
+        <div className="mt-8 flex items-end justify-between gap-3">
+          <h2 className="text-2xl font-semibold text-ink sm:text-3xl">Explore shops</h2>
+          {!loading && !error && (
+            <p className="pb-1 text-sm text-muted">
+              {filtered.length} {filtered.length === 1 ? 'shop' : 'shops'}
+            </p>
+          )}
+        </div>
+
+        <div className="mt-4">
+          {loading && (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} className="h-56 rounded-card" />
+              ))}
+            </div>
+          )}
+
+          {error && (
+            <div role="alert" className="rounded-card border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
+              {error}
+            </div>
+          )}
+
+          {!loading && !error && filtered.length === 0 && (
+            <EmptyState
+              title="No shops found"
+              description="Try a different search or filter."
+              action={
+                <span className="inline-flex items-center gap-2 text-sm font-semibold text-muted">
+                  <Store size={18} aria-hidden="true" /> No results
+                </span>
+              }
+            />
+          )}
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {filtered.map((s) => (
+              <Link
+                key={s.id}
+                to={`/s/${s.slug}`}
+                className="group block rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+              >
+                <Card className="overflow-hidden transition-shadow group-hover:shadow-button">
+                  <div className="relative aspect-[16/10] w-full bg-mint/40">
+                    {s.banner_url ? (
+                      <img
+                        src={s.banner_url}
+                        alt=""
+                        loading="lazy"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="flex h-full w-full items-center justify-center text-4xl font-bold text-emerald/40"
+                      >
+                        {s.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                    <Badge tone="mint" dot className="absolute left-3 top-3">
+                      {s.is_active ? 'Open' : 'Closed'}
+                    </Badge>
+                    <span
+                      aria-hidden="true"
+                      className="absolute bottom-3 right-3 flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-emerald"
+                    >
+                      <ArrowUpRight size={16} />
+                    </span>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="truncate font-semibold text-ink">{s.name}</h3>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      <span className="rounded-full bg-cream px-2.5 py-1 text-xs font-medium text-muted">
+                        {s.mahalla}
+                      </span>
+                      <span className="rounded-full bg-cream px-2.5 py-1 text-xs font-medium text-muted">
+                        {categoryLabel(s.category)}
+                      </span>
+                    </div>
+                  </div>
+                </Card>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-12 flex flex-col items-start justify-between gap-4 rounded-card bg-mint p-6 sm:flex-row sm:items-center sm:p-8">
           <div>
-            <h1 className="text-xl sm:text-2xl font-bold text-slate-900">IIUM Hub</h1>
-            <p className="text-sm text-slate-600">Campus marketplace — zero cost</p>
+            <h2 className="text-xl font-bold text-ink sm:text-2xl">
+              Want to start a business in IIUM?
+            </h2>
+            <p className="mt-1 text-sm text-emerald/80">Open your shop on IIUM Hub.</p>
           </div>
           <Link
             to="/seller"
-            className="inline-flex h-11 items-center rounded-xl bg-slate-900 px-4 text-sm font-bold text-white"
+            className="inline-flex h-12 shrink-0 items-center gap-1.5 rounded-control bg-emerald px-5 font-semibold text-white transition-colors hover:bg-emerald/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald focus-visible:ring-offset-2 focus-visible:ring-offset-mint"
           >
-            {user ? 'Seller Dashboard' : 'Sell here'}
+            Sell here
+            <ArrowUpRight size={16} aria-hidden="true" />
           </Link>
         </div>
-        <div className="mt-3 flex flex-col sm:flex-row gap-2">
-          <div className="flex h-12 flex-1 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3">
-            <Search size={18} className="shrink-0 text-slate-500" />
-            <input
-              className="w-full bg-transparent outline-none text-slate-900"
-              placeholder="Search shops..."
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-            />
-          </div>
-          <select
-            className="h-12 w-full sm:w-48 rounded-xl border border-slate-200 bg-white px-3 text-slate-900"
-            value={mahalla}
-            onChange={(e) => setMahalla(e.target.value)}
-          >
-            {MAHALLA_FILTERS.map((m) => (
-              <option key={m} value={m}>
-                {m === 'All' ? 'All Mahallas' : m}
-              </option>
-            ))}
-          </select>
-        </div>
-      </header>
-
-      <div className="no-scrollbar flex gap-2 overflow-x-auto p-4 sm:px-6">
-        {[{ value: 'all', label: 'All' }, ...SHOP_CATEGORIES].map((c) => (
-          <button
-            key={c.value}
-            onClick={() => setCat(c.value)}
-            className={`h-11 shrink-0 rounded-full border px-4 font-bold text-sm ${
-              cat === c.value
-                ? 'bg-slate-900 text-white border-slate-900'
-                : 'bg-white text-slate-700 border-slate-200'
-            }`}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
-
-      <main className="px-4 sm:px-6">
-        {loading && (
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-24 rounded-xl bg-white border border-slate-200" />
-            ))}
-            <p className="text-sm text-slate-500">Loading...</p>
-          </div>
-        )}
-
-        {error && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
-            {error}
-          </div>
-        )}
-
-        {!loading && !error && filtered.length === 0 && (
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
-            <Store className="mx-auto text-slate-400" />
-            <p className="mt-2 font-bold text-slate-900">No shops found</p>
-            <p className="text-sm text-slate-600">Try a different search or filter.</p>
-          </div>
-        )}
-
-        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((s) => (
-            <Link
-              key={s.id}
-              to={`/s/${s.slug}`}
-              className="rounded-xl border border-slate-200 bg-white p-4 min-h-[88px]"
-            >
-              {s.banner_url ? (
-                <img
-                  src={s.banner_url}
-                  alt=""
-                  loading="lazy"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                  className="mb-3 aspect-video w-full rounded-xl bg-slate-100 object-cover"
-                />
-              ) : (
-                <div
-                  aria-hidden
-                  className="mb-3 flex aspect-video w-full items-center justify-center rounded-xl bg-slate-100 text-2xl font-bold text-slate-400"
-                >
-                  {s.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-              <div className="flex items-center justify-between gap-2">
-                <h2 className="font-bold text-slate-900">{s.name}</h2>
-                <span
-                  className={`shrink-0 rounded-full px-2 py-1 text-xs font-bold ${
-                    s.is_active
-                      ? 'bg-emerald-100 text-emerald-700'
-                      : 'bg-slate-100 text-slate-500'
-                  }`}
-                >
-                  {s.is_active ? 'Open' : 'Closed'}
-                </span>
-              </div>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                  {s.mahalla}
-                </span>
-                <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                  {categoryLabel(s.category)}
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
-
       </main>
+
+      <SiteFooter />
+      <MobileTabBar />
     </div>
   );
 }
