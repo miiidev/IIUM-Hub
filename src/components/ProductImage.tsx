@@ -17,7 +17,7 @@ export default function ProductImage({
     return (
       <div
         aria-hidden
-        className={`flex items-center justify-center border border-line bg-mint/30 ${className}`}
+        className={`flex items-center justify-center border border-line bg-mint/30 animate-fade-in ${className}`}
       >
         <ImageIcon className="h-8 w-8 text-emerald/50" />
       </div>
@@ -29,7 +29,7 @@ export default function ProductImage({
       alt={alt}
       loading="lazy"
       onError={() => setFailed(true)}
-      className={`bg-mint/30 object-cover ${className}`}
+      className={`bg-mint/30 object-cover animate-fade-in ${className}`}
     />
   );
 }

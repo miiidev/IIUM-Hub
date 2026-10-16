@@ -11,7 +11,7 @@ export default function EmptyState({ title, description, action, className = '' 
   return (
     <div
       className={[
-        'rounded-card border border-dashed border-line bg-white/60 px-6 py-10 text-center',
+        'rounded-card border border-dashed border-line bg-white/60 px-6 py-10 text-center animate-fade-in-up',
         className,
       ].join(' ')}
     >

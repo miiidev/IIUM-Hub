@@ -10,7 +10,7 @@ export default function SiteHeader() {
       <div className="mx-auto flex h-16 w-full max-w-[1312px] items-center justify-between gap-4 px-5 sm:px-8">
         <Logo />
         <nav aria-label="Primary" className="hidden items-center gap-7 text-sm font-semibold text-ink sm:flex">
-          <Link to="/" className="transition-colors hover:text-emerald">
+          <Link to="/marketplace" className="transition-colors hover:text-emerald">
             Marketplace
           </Link>
           <Link to="/how-to-order" className="transition-colors hover:text-emerald">

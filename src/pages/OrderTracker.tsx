@@ -123,7 +123,7 @@ export default function OrderTracker() {
       <div className="flex min-h-screen flex-col">
         <SiteHeader />
         <div className={wrapCls}>
-          <Link to="/" className="inline-flex h-11 items-center text-sm font-semibold text-emerald">
+          <Link to="/marketplace" className="inline-flex h-11 items-center text-sm font-semibold text-emerald">
             ← Marketplace
           </Link>
           <div role="alert" className="mt-3 rounded-card border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
@@ -150,7 +150,7 @@ export default function OrderTracker() {
           ID: {order.id.slice(0, 8)}... · Ref: {order.payment_ref_id}
         </p>
 
-        <div className="mt-6 grid gap-4 lg:grid-cols-2 lg:items-start">
+        <div className="mt-6 grid gap-4 lg:grid-cols-2 lg:items-start animate-fade-in-up">
           <Card className="p-5">
             <p className="text-xl font-bold text-ink">RM {Number(order.total_amount).toFixed(2)}</p>
             <p className="text-sm text-muted">

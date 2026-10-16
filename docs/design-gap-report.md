@@ -242,3 +242,16 @@ Built this phase:
   screenshotted the public routes at 390px/1440px with headless Edge —
   `design/shots/01..06`. Confirmed the nav, hero, search, chips, cards, CTA, footer, tab bar,
   login card and How-to-order page match the frames.
+
+### Follow-up (post-run) — Welcome + role pages built, routing changed
+
+The owner asked for the two entry screens after the run, overriding the earlier E/D skip:
+
+- **WB-1 Welcome** (`src/pages/Welcome.tsx`) and **WB-2 Seller-or-Buyer**
+  (`src/pages/SellerOrBuyer.tsx`) are now built (frames `48:31`/`45:45` and `53:83`).
+- **Routing changed to match the Figma entry flow:** `/` → Welcome, `/start` → role choice
+  (Buyer → `/marketplace`, Seller → `/seller/login`), and **Marketplace moved to
+  `/marketplace`**. All "Marketplace" links (header, tab bar, storefront/tracker back links,
+  login/signup, 404) were repointed.
+- Both screens use the cream→mint gradient and a staggered enter animation (see
+  `docs/design-system.md` → Motion).

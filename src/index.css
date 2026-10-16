@@ -43,10 +43,61 @@
 
   --text-overline: 0.75rem;
   --text-overline--line-height: 1rem;
+
+  /* Motion: custom easing (never bare ease) + fast, subtle defaults. */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-soft: cubic-bezier(0.55, 0, 1, 0.45);
+  --default-transition-duration: 180ms;
+  --default-transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-fade-in: fade-in 0.24s var(--ease-out-soft) both;
+  --animate-fade-in-up: fade-in-up 0.3s var(--ease-out-soft) both;
+  --animate-scale-in: scale-in 0.22s var(--ease-out-soft) both;
+}
+
+/* Enter recipe (Jakub): opacity + translateY + blur → materializing, not just fading. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+/* Pickup feedback for contextual swaps (icon/state changes). Starts at 0.9, never 0. */
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
 }
 
 html {
   -webkit-text-size-adjust: 100%;
+}
+
+/* Conditionally-rendered error banners materialize on mount, consistently everywhere. */
+[role="alert"] {
+  animation: var(--animate-fade-in-up);
 }
 
 body {
@@ -64,6 +115,7 @@ input, select, textarea {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;

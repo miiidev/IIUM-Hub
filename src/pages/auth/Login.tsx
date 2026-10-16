@@ -43,7 +43,7 @@ export default function Login() {
       <header className="border-b border-line">
         <div className="mx-auto flex h-16 w-full max-w-[1312px] items-center justify-between gap-4 px-5 sm:px-8">
           <Logo />
-          <Link to="/" className="text-sm font-semibold text-emerald transition-colors hover:text-emerald/80">
+          <Link to="/marketplace" className="text-sm font-semibold text-emerald transition-colors hover:text-emerald/80">
             Back to marketplace
           </Link>
         </div>
@@ -117,7 +117,7 @@ export default function Login() {
 
           <p className="mt-4 text-center text-sm text-muted">
             Just looking around?{' '}
-            <Link to="/" className="font-semibold text-emerald">
+            <Link to="/marketplace" className="font-semibold text-emerald">
               You can browse without logging in
             </Link>
             .

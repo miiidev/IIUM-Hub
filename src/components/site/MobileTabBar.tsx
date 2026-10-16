@@ -2,7 +2,7 @@ import { ClipboardList, ShoppingBag, Store } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 
 const TABS = [
-  { to: '/', label: 'Marketplace', Icon: Store },
+  { to: '/marketplace', label: 'Marketplace', Icon: Store },
   { to: '/how-to-order', label: 'How to order', Icon: ClipboardList },
   { to: '/seller', label: 'Sell', Icon: ShoppingBag },
 ];
@@ -28,7 +28,7 @@ export default function MobileTabBar() {
                 to={to}
                 aria-current={active ? 'page' : undefined}
                 className={[
-                  'flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-semibold',
+                  'flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-semibold transition-colors ease-out-soft duration-150',
                   active ? 'text-emerald' : 'text-muted',
                 ].join(' ')}
               >

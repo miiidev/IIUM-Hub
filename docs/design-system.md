@@ -47,6 +47,32 @@ Fonts: **Sofia Sans** (SIL OFL 1.1), self-hosted at `public/fonts/*.woff2` (vari
 `MobileTabBar` (Marketplace / How to order / Sell; `sm:hidden`). The seller panel uses
 `components/seller/SellerNav` instead.
 
+## Motion
+
+Motion tokens live in `index.css` (`@theme`). Principles: **Jakub** (production polish) with
+**Emil**'s frequency gate — high-frequency controls get fast, subtle transitions, never
+elaborate or looping motion.
+
+| Token | Value | Use |
+|---|---|---|
+| `--ease-out-soft` | `cubic-bezier(0.22, 1, 0.36, 1)` | Enters, hover/press (`ease-out-soft`) |
+| `--ease-in-soft` | `cubic-bezier(0.55, 0, 1, 0.45)` | Exits |
+| `--default-transition-duration` / `--default-transition-timing-function` | `180ms` / soft ease | All `transition-*` utilities inherit this — no bare `ease` anywhere |
+| `animate-fade-in` | `fade-in 0.24s` | Images, small appearing blocks |
+| `animate-fade-in-up` | `fade-in-up 0.3s` (opacity + translateY 8px + blur 4px) | Sheets, modals, banners, empty states |
+| `animate-scale-in` | `scale-in 0.22s` (from 0.9, never 0) | Contextual swaps |
+
+Where it's applied:
+
+- **Buttons / Chips / tab bar**: `transition-[color,background-color,border-color,box-shadow,transform] duration-150 ease-out-soft active:scale-[0.97]` (press feedback).
+- **Cards** (interactive): `transition-[box-shadow,transform] duration-200`; shop cards lift `group-hover:-translate-y-0.5`.
+- **Bottom sheet + checkout modal**: backdrop `animate-fade-in`, panel `animate-fade-in-up` (enter only — exits unmount instantly; a designed exit is deferred, no animation lib).
+- **Every `role="alert"`** (error banners): animated on mount via one global rule in `index.css`.
+- **Product/shop images** (`ProductImage`, banners): `animate-fade-in`.
+- Only `transform` / `opacity` / `filter` are animated — never `width`/`height`/`top`/`left`.
+- `prefers-reduced-motion: reduce` (global rule in `index.css`) zeroes all durations while
+  preserving final states, so nothing breaks.
+
 ## Rules
 
 - Mobile-first: base = 390px, `sm` breakpoint (640px) for desktop. Min tap target 44px

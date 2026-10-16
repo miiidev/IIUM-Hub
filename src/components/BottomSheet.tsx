@@ -68,13 +68,13 @@ export default function BottomSheet({ open, onClose, title, children, footer, bu
         onClick={() => {
           if (!busy) onClose();
         }}
-        className="absolute inset-0 h-full w-full cursor-default bg-black/40"
+        className="absolute inset-0 h-full w-full cursor-default bg-black/40 animate-fade-in"
       />
       <div className="pointer-events-none absolute inset-0 flex items-end justify-center p-0 sm:items-center sm:p-4">
         <div
           ref={panelRef}
           tabIndex={-1}
-          className="pointer-events-auto flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-card bg-white outline-none sm:max-w-lg sm:rounded-card"
+          className="pointer-events-auto flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-card bg-white outline-none animate-fade-in-up sm:max-w-lg sm:rounded-card"
         >
           <div className="flex items-center justify-between gap-2 border-b border-line p-4">
             <h2 id={titleId} className="text-lg font-bold text-ink">

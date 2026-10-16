@@ -168,8 +168,8 @@ export default function CheckoutModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
-      <div className="safe-bottom max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-card bg-white p-5 pb-8 sm:max-w-lg sm:rounded-card sm:pb-5">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 animate-fade-in sm:items-center sm:p-4">
+      <div className="safe-bottom max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-card bg-white p-5 pb-8 animate-fade-in-up sm:max-w-lg sm:rounded-card sm:pb-5">
         <div className="mb-3 flex items-center justify-between">
           <h2 className="text-lg font-bold text-ink">Checkout</h2>
           <button

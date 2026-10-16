@@ -3,6 +3,8 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import RequireShop from './components/seller/RequireShop';
 import Marketplace from './pages/Marketplace';
+import Welcome from './pages/Welcome';
+import SellerOrBuyer from './pages/SellerOrBuyer';
 import HowToOrder from './pages/HowToOrder';
 import Storefront from './pages/Storefront';
 import OrderTracker from './pages/OrderTracker';
@@ -19,7 +21,9 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Marketplace />} />
+            <Route path="/" element={<Welcome />} />
+            <Route path="/start" element={<SellerOrBuyer />} />
+            <Route path="/marketplace" element={<Marketplace />} />
             <Route path="/how-to-order" element={<HowToOrder />} />
             <Route path="/s/:slug" element={<Storefront />} />
             <Route path="/order/:orderId/track" element={<OrderTracker />} />
@@ -37,7 +41,7 @@ export default function App() {
               element={
                 <div className="mx-auto flex min-h-screen w-full max-w-md flex-col items-center justify-center p-6 text-center sm:max-w-lg">
                   <h1 className="text-xl font-bold text-ink">404 — Page not found</h1>
-                  <a href="/" className="mt-3 inline-flex h-12 items-center px-6 font-bold text-emerald">
+                  <a href="/marketplace" className="mt-3 inline-flex h-12 items-center px-6 font-bold text-emerald">
                     ← Back to Marketplace
                   </a>
                 </div>

@@ -64,7 +64,7 @@ export default function HowToOrder() {
         </Card>
 
         <div className="mt-8">
-          <Button onClick={() => navigate('/')}>Browse the marketplace</Button>
+          <Button onClick={() => navigate('/marketplace')}>Browse the marketplace</Button>
         </div>
       </main>
       <SiteFooter />

@@ -235,6 +235,25 @@ counts rejected · tamper badge · tracker polling · seller editing a question 
 with preset and copy · preview as buyer · long names/text · empty and error states · full order
 flow ending in WhatsApp · seller order page.
 
+## Post-run follow-ups (after the overhaul)
+
+Owner-requested changes made on top of the finished run (all on `overhaul`, uncommitted at
+the time of writing):
+
+1. **Seller Dashboard sales** — "Today" now shows 2 dp and counts verified orders only
+   (`confirmed`/`ready`/`completed`; excludes `pending_verification` and `cancelled`).
+2. **Rename** — "Settings" → "Profile Settings" (nav tab, page heading, button, toasts);
+   route stays `/seller/settings`.
+3. **Motion system** — custom easing + fast, purposeful transitions across the app
+   (buttons/chips/cards/sheets/modals/alerts/images/tabs). See `docs/design-system.md` →
+   Motion. Reduced-motion honoured (durations + delays zeroed).
+4. **Welcome + Seller-or-Buyer pages added; routing changed** — `/` is now Welcome, `/start`
+   is the role choice, **Marketplace moved to `/marketplace`** (all Marketplace links
+   repointed). See `docs/design-gap-report.md` §11 follow-up.
+
+Verification: build clean, 78 tests pass, 0 lint errors, locked-area diff empty; new screens
+screenshotted below `sm` (500px) and at 800/1440 → `design/shots/`.
+
 ## Final summary
 
 - **What changed:** Phases 1–5 audited (already implemented) with two small fixes

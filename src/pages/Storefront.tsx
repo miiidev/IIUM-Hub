@@ -154,7 +154,7 @@ export default function Storefront() {
   if (error || !shop) {
     return (
       <div className={`${wrapCls} px-5 py-6 sm:px-8`}>
-        <Link to="/" className="inline-flex h-11 items-center text-sm font-semibold text-emerald">
+        <Link to="/marketplace" className="inline-flex h-11 items-center text-sm font-semibold text-emerald">
           ← Back
         </Link>
         <div role="alert" className="mt-3 rounded-card border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
@@ -172,7 +172,7 @@ export default function Storefront() {
         <div>
           <div className="flex items-center justify-between gap-3">
             <Link
-              to="/"
+              to="/marketplace"
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-emerald transition-colors hover:text-emerald/80"
             >
               <ArrowLeft size={16} aria-hidden="true" /> Marketplace
@@ -189,7 +189,7 @@ export default function Storefront() {
               onError={(e) => {
                 e.currentTarget.style.display = 'none';
               }}
-              className="mt-4 h-40 w-full rounded-card bg-mint/40 object-cover sm:h-56"
+              className="mt-4 h-40 w-full rounded-card bg-mint/40 object-cover animate-fade-in sm:h-56"
             />
           )}
 
@@ -248,7 +248,7 @@ export default function Storefront() {
 
                   {hasForm ? (
                     inCart ? (
-                      <div className="mt-3 border-t border-line pt-3">
+                      <div className="mt-3 border-t border-line pt-3 animate-fade-in">
                         <p className="text-sm text-muted">
                           In order:{' '}
                           <span className="font-semibold text-ink">

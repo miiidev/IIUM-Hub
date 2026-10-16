@@ -185,7 +185,7 @@ export default function Marketplace() {
                 to={`/s/${s.slug}`}
                 className="group block rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
               >
-                <Card className="overflow-hidden transition-shadow group-hover:shadow-button">
+                <Card className="overflow-hidden group-hover:shadow-button group-hover:-translate-y-0.5">
                   <div className="relative aspect-[16/10] w-full bg-mint/40">
                     {s.banner_url ? (
                       <img
@@ -195,12 +195,12 @@ export default function Marketplace() {
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
                         }}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-cover animate-fade-in"
                       />
                     ) : (
                       <span
                         aria-hidden="true"
-                        className="flex h-full w-full items-center justify-center text-4xl font-bold text-emerald/40"
+                        className="flex h-full w-full items-center justify-center text-4xl font-bold text-emerald/40 animate-fade-in"
                       >
                         {s.name.charAt(0).toUpperCase()}
                       </span>
