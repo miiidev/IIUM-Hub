@@ -16,9 +16,9 @@ export const CATEGORY_PRESET_MAP: Record<string, PresetKey | null> = {
   food: 'food_addons',
   printing: 'printing',
   shoe_wash: 'shoe_wash',
-  repairs: 'services',
-  rentals: 'services',
-  custom: 'services',
+  repairs: 'repairs',
+  rentals: 'rentals',
+  custom: 'custom',
 };
 
 export function getPresetForCategory(category: string): PresetKey | null {
@@ -84,6 +84,7 @@ export const PRESETS: FormPreset[] = [
         quickPicks: [1, 5, 10, 20, 50],
       },
       { id: 'print_file', label: 'Upload File', type: 'file', required: true, enabled: true },
+      textarea('print_notes', 'Notes', false, 'e.g. single page colour, instructions'),
     ],
   },
   {
@@ -100,6 +101,7 @@ export const PRESETS: FormPreset[] = [
         ['Yes, pick up from my room', 1],
         ['No, I will send it myself', 0],
       ]),
+      textarea('shoe_notes', 'Notes', false, 'e.g. stains, special instructions'),
     ],
   },
   {
@@ -123,27 +125,54 @@ export const PRESETS: FormPreset[] = [
           { name: 'Extra Rice', price_modifier: 2 },
         ],
       },
+      select(
+        'food_spice',
+        'Spice Level',
+        [
+          ['Not spicy', 0],
+          ['Medium', 0],
+          ['Spicy', 0],
+        ],
+        false
+      ),
       textarea('food_notes', 'Notes', false, 'e.g. less spicy'),
     ],
   },
   {
-    key: 'services',
-    label: 'Services & Booking',
-    description: 'Item, date, phone and notes. Fits repairs, rentals and custom jobs.',
+    key: 'repairs',
+    label: 'Repairs',
+    description: 'Item, issue, urgency, photo and phone.',
     fields: [
-      select(
-        'service_item',
-        'Service / Item',
-        [
-          ['General Service', 0],
-          ['Repair', 0],
-          ['Rental', 0],
-        ],
-        true
-      ),
-      { id: 'service_date', label: 'Date', type: 'date', required: true, enabled: true },
-      { id: 'service_phone', label: 'Phone Number', type: 'phone', required: true, enabled: true },
-      textarea('service_notes', 'Notes', false, 'e.g. describe the issue or rental period'),
+      text('repair_item', 'Item / Device', true, 'e.g. iPhone 11, laptop'),
+      textarea('repair_issue', 'Issue', true, 'describe what is wrong'),
+      select('repair_urgency', 'Urgency', [
+        ['Normal', 0],
+        ['Express (+24h)', 5],
+      ]),
+      { id: 'repair_photo', label: 'Photo', type: 'file', required: false, enabled: true },
+      { id: 'repair_phone', label: 'Phone Number', type: 'phone', required: true, enabled: true },
+    ],
+  },
+  {
+    key: 'rentals',
+    label: 'Rentals',
+    description: 'Item, dates, quantity and phone.',
+    fields: [
+      select('rental_item', 'Item', [['Item A', 0]], true),
+      { id: 'rental_start', label: 'Start Date', type: 'date', required: true, enabled: true },
+      { id: 'rental_end', label: 'Return Date', type: 'date', required: true, enabled: true },
+      {
+        id: 'rental_qty',
+        label: 'Quantity',
+        type: 'number',
+        required: true,
+        enabled: true,
+        min: 1,
+        max: 10,
+        integer: true,
+      },
+      { id: 'rental_phone', label: 'Phone Number', type: 'phone', required: true, enabled: true },
+      textarea('rental_notes', 'Notes', false, 'e.g. pickup time'),
     ],
   },
   {

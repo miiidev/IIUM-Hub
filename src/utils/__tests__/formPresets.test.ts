@@ -24,12 +24,13 @@ import {
 } from '../formPresets';
 
 describe('presets', () => {
-  it('defines the five presets with only standard field types', () => {
+  it('defines the six presets with only standard field types', () => {
     expect(PRESETS.map((p) => p.key)).toEqual([
       'printing',
       'shoe_wash',
       'food_addons',
-      'services',
+      'repairs',
+      'rentals',
       'custom',
     ]);
     const allowed = new Set(['select', 'text', 'number', 'textarea', 'date', 'phone', 'file', 'multiselect']);
@@ -42,9 +43,9 @@ describe('presets', () => {
     expect(getPresetForCategory('food')).toBe('food_addons');
     expect(getPresetForCategory('printing')).toBe('printing');
     expect(getPresetForCategory('shoe_wash')).toBe('shoe_wash');
-    expect(getPresetForCategory('repairs')).toBe('services');
-    expect(getPresetForCategory('rentals')).toBe('services');
-    expect(getPresetForCategory('custom')).toBe('services');
+    expect(getPresetForCategory('repairs')).toBe('repairs');
+    expect(getPresetForCategory('rentals')).toBe('rentals');
+    expect(getPresetForCategory('custom')).toBe('custom');
     expect(getPresetForCategory('unknown')).toBeNull();
     expect(isFormApplicable('rentals')).toBe(true);
     expect(isFormApplicable('unknown')).toBe(false);
@@ -82,11 +83,12 @@ describe('presets', () => {
     expect(copy).toEqual(src);
     copy[0].options![0].price_modifier = 99;
     expect(src[0].options![0].price_modifier).toBe(0);
-    const withPicks = copyFields([
+    const srcPicks: CustomField[] = [
       { id: 'n', label: 'N', type: 'number', required: false, quickPicks: [1, 5] },
-    ]);
-    withPicks[0].quickPicks!.push(9);
-    expect(src).toHaveLength(5);
+    ];
+    const cloned = copyFields(srcPicks);
+    cloned[0].quickPicks!.push(9);
+    expect(srcPicks[0].quickPicks).toEqual([1, 5]);
   });
 
   it('printing preset uses a required file field', () => {

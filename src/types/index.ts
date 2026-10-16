@@ -1,6 +1,6 @@
 export type ShopCategory = 'food' | 'printing' | 'shoe_wash' | 'repairs' | 'rentals' | 'custom';
 
-export type PresetKey = 'printing' | 'shoe_wash' | 'food_addons' | 'services' | 'custom';
+export type PresetKey = 'printing' | 'shoe_wash' | 'food_addons' | 'repairs' | 'rentals' | 'custom';
 
 export type OrderStatus =
   | 'pending_verification'
