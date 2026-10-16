@@ -12,6 +12,35 @@ function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
 
+export interface OrderTotalCheck {
+  ok: boolean;
+  expected: number;
+  actual: number;
+  unknown: boolean;
+}
+
+export function orderTotalCheck(order: Order): OrderTotalCheck {
+  const actual = Number(order.total_amount) || 0;
+  const items = order.items ?? [];
+  if (items.length === 0) return { ok: true, expected: actual, actual, unknown: false };
+  let expected = 0;
+  let ok = true;
+  for (const it of items) {
+    const line = Number(it.lineTotal);
+    const unit = Number(it.unitPrice);
+    const qty = Number(it.qty);
+    if (!Number.isFinite(line) || !Number.isFinite(unit) || !Number.isFinite(qty)) {
+      return { ok: true, expected: actual, actual, unknown: true };
+    }
+    const recomputed = round2(unit * qty);
+    if (Math.abs(recomputed - line) > 0.01) ok = false;
+    expected += recomputed;
+  }
+  expected = round2(expected);
+  if (Math.abs(expected - actual) > 0.01) ok = false;
+  return { ok, expected, actual, unknown: false };
+}
+
 export function displayForField(f: CustomField, v: CustomValue): string {
   if (Array.isArray(v)) return v.join(', ');
   if (f.type === 'file') return fileNameFromValue(v);

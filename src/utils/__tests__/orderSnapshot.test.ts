@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { CustomField, Order } from '../../types';
-import { buildItemSnapshot, normalizeOrderFields } from '../orderSnapshot';
+import { buildItemSnapshot, normalizeOrderFields, orderTotalCheck } from '../orderSnapshot';
 import { clonePresetFields } from '../formPresets';
 
 const printing = clonePresetFields('printing');
@@ -96,8 +96,7 @@ describe('normalizeOrderFields', () => {
     expect(groups[1].entries[0].display).toBe('extra salt');
   });
 
-  it('reads legacy label-keyed orders as an Additional details group', () => {
-    const legacy: Order = {
+  it('reads legacy label-keyed orders as an Additional details group', () => {    const legacy: Order = {
       id: 'o2',
       shop_id: 's1',
       buyer_name: 'Siti',
@@ -118,5 +117,51 @@ describe('normalizeOrderFields', () => {
     const file = groups[0].entries.find((e) => e.label === 'Rekaan')!;
     expect(file.isFile).toBe(true);
     expect(file.display).toBe('plan.pdf');
+  });
+});
+
+describe('orderTotalCheck', () => {
+  const good: Order = {
+    id: 'o',
+    shop_id: 's',
+    buyer_name: 'A',
+    location: 'F',
+    total_amount: 11.8,
+    payment_ref_id: '1',
+    custom_data: {},
+    items: [
+      { title: 'Print', qty: 2, unitPrice: 3.4, lineTotal: 6.8 },
+      { title: 'Biasa', qty: 1, unitPrice: 5, lineTotal: 5 },
+    ],
+    status: 'pending_verification',
+  };
+
+  it('passes matching orders including plain items', () => {
+    expect(orderTotalCheck(good)).toEqual({ ok: true, expected: 11.8, actual: 11.8, unknown: false });
+  });
+
+  it('flags a tampered total', () => {
+    expect(orderTotalCheck({ ...good, total_amount: 1 }).ok).toBe(false);
+  });
+
+  it('flags a tampered plain item line', () => {
+    const bad = { ...good, items: [{ title: 'Biasa', qty: 1, unitPrice: 5, lineTotal: 50 }] };
+    const res = orderTotalCheck(bad);
+    expect(res.ok).toBe(false);
+    expect(res.expected).toBe(5);
+  });
+
+  it('returns unknown for legacy items without lineTotal', () => {
+    const legacy = { ...good, items: [{ title: 'Old', qty: 1, unitPrice: 5 } as never] };
+    expect(orderTotalCheck(legacy)).toEqual({ ok: true, expected: 11.8, actual: 11.8, unknown: true });
+  });
+
+  it('tolerates float dust like 0.1 x 3', () => {
+    const order = {
+      ...good,
+      total_amount: 0.3,
+      items: [{ title: 'Page', qty: 3, unitPrice: 0.1, lineTotal: 0.3 }],
+    };
+    expect(orderTotalCheck(order).ok).toBe(true);
   });
 });

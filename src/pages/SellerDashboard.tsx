@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { Order, Shop } from '../types';
-import { normalizeOrderFields, type NormalizedEntry } from '../utils/orderSnapshot';
+import { normalizeOrderFields, orderTotalCheck, type NormalizedEntry } from '../utils/orderSnapshot';
 import { isFilePath, isLegacyFileUrl, signBuyerFile } from '../utils/uploadFile';
 
 function SellerFileLink({ path, name }: { path: string; name: string }) {
@@ -195,6 +195,7 @@ export default function SellerDashboard() {
   if (!order) return null;
 
   const groups = normalizeOrderFields(order);
+  const totalCheck = orderTotalCheck(order);
 
   // Ownership check: sellers can only manage their own shop's orders.
   if (myShop && order.shop_id !== myShop.id) {
@@ -230,6 +231,12 @@ export default function SellerDashboard() {
         <p className="mt-2 text-lg font-bold text-slate-900">
           RM {Number(order.total_amount).toFixed(2)}
         </p>
+        {!totalCheck.ok && !totalCheck.unknown && (
+          <p className="mt-2 inline-block rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">
+            Items add up to RM {totalCheck.expected.toFixed(2)} but the order total is RM{' '}
+            {totalCheck.actual.toFixed(2)}
+          </p>
+        )}
       </div>
 
       <div className="mt-4 lg:mt-0 rounded-xl border border-slate-200 bg-white p-4">
