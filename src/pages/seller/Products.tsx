@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import type { CustomField, CustomFieldType, Product } from '../../types';
+import type { CustomField, Product } from '../../types';
 import SellerNav from '../../components/seller/SellerNav';
+import SellerFormBuilder from '../../components/SellerFormBuilder';
 
 const inputCls =
   'h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 outline-none focus:border-emerald-600';
@@ -19,10 +20,49 @@ export default function Products() {
   const [price, setPrice] = useState('');
   const [available, setAvailable] = useState(true);
   const [fields, setFields] = useState<CustomField[]>([]);
-  const [newLabel, setNewLabel] = useState('');
-  const [newType, setNewType] = useState<CustomFieldType>('text');
-  const [newRequired, setNewRequired] = useState(false);
-  const [newOptions, setNewOptions] = useState('');
+
+  const fieldsRef = useRef(fields);
+  useEffect(() => {
+    fieldsRef.current = fields;
+  }, [fields]);
+
+  const dirtyRef = useRef(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+  const saveLabel =
+    saveStatus === 'saving'
+      ? 'Menyimpan…'
+      : saveStatus === 'saved'
+        ? 'Disimpan'
+        : saveStatus === 'error'
+          ? 'Gagal menyimpan'
+          : null;
+
+  useEffect(() => {
+    if (!editingId) {
+      dirtyRef.current = false;
+      setSaveStatus('idle');
+      return;
+    }
+    if (!dirtyRef.current) {
+      dirtyRef.current = true;
+      return;
+    }
+    setSaveStatus('saving');
+    const timer = setTimeout(async () => {
+      try {
+        const { error: err } = await supabase
+          .from('products')
+          .update({ custom_fields: fieldsRef.current })
+          .eq('id', editingId);
+        if (err) throw err;
+        setSaveStatus('saved');
+      } catch {
+        setSaveStatus('error');
+      }
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [editingId, fields]);
 
   async function load() {
     if (!shop) return;
@@ -49,52 +89,23 @@ export default function Products() {
   }, [shop?.id]);
 
   function startAdd() {
+    dirtyRef.current = false;
     setEditingId(null);
     setTitle('');
     setPrice('');
     setAvailable(true);
     setFields([]);
-    setNewLabel('');
-    setNewOptions('');
     setError(null);
   }
 
   function startEdit(p: Product) {
+    dirtyRef.current = false;
     setEditingId(p.id);
     setTitle(p.title);
     setPrice(String(p.price));
     setAvailable(p.is_available);
     setFields(p.custom_fields ?? []);
-    setNewLabel('');
-    setNewOptions('');
     setError(null);
-  }
-
-  function addField() {
-    if (!newLabel.trim()) return;
-    const id = newLabel.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '') || `field_${fields.length + 1}`;
-    const field: CustomField = {
-      id,
-      label: newLabel.trim(),
-      type: newType,
-      required: newRequired,
-      options:
-        newType === 'select'
-          ? newOptions
-              .split('\n')
-              .map((l) => l.trim())
-              .filter(Boolean)
-              .map((l) => {
-                const [name, mod] = l.split('|').map((s) => s.trim());
-                return { name, price_modifier: Number(mod) || 0 };
-              })
-              .filter((o) => o.name)
-          : undefined,
-    };
-    setFields((prev) => [...prev, field]);
-    setNewLabel('');
-    setNewOptions('');
-    setNewRequired(false);
   }
 
   async function handleSave() {
@@ -150,7 +161,7 @@ export default function Products() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl min-h-screen bg-slate-50 pb-10">
+    <div className="mx-auto w-full max-w-md sm:max-w-2xl min-h-screen bg-slate-50 pb-10">
       <SellerNav />
       <main className="p-4 sm:p-6 lg:grid lg:grid-cols-[1fr_320px] lg:gap-6 lg:items-start">
         <div>
@@ -219,57 +230,26 @@ export default function Products() {
               Tersedia untuk jualan
             </label>
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <p className="text-sm font-bold text-slate-900">Custom fields ({fields.length})</p>
-              <p className="text-xs text-slate-500">Untuk kedai custom — dibayar buyer di Storefront.</p>
-              {fields.map((f) => (
-                <div key={f.id} className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-white border border-slate-200 px-3 py-2">
-                  <span className="text-sm text-slate-700 truncate">
-                    {f.label} <span className="text-slate-400">({f.type}{f.required ? ', *' : ''})</span>
-                  </span>
-                  <button
-                    onClick={() => setFields((prev) => prev.filter((x) => x.id !== f.id))}
-                    className="h-9 shrink-0 rounded-lg px-3 text-xs font-bold text-red-600"
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-bold text-slate-900">Custom fields ({fields.length})</p>
+                {editingId && saveLabel && (
+                  <span
+                    className={`text-xs font-medium ${
+                      saveStatus === 'saved'
+                        ? 'text-emerald-600'
+                        : saveStatus === 'error'
+                          ? 'text-red-600'
+                          : 'text-slate-400'
+                    }`}
                   >
-                    Buang
-                  </button>
-                </div>
-              ))}
-              <input
-                className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-slate-900 outline-none"
-                value={newLabel}
-                onChange={(e) => setNewLabel(e.target.value)}
-                placeholder="Label field baru"
-              />
-              <div className="mt-2 flex gap-2">
-                <select
-                  className="h-11 flex-1 rounded-xl border border-slate-200 bg-white px-2 text-slate-900"
-                  value={newType}
-                  onChange={(e) => setNewType(e.target.value as CustomFieldType)}
-                >
-                  <option value="text">text</option>
-                  <option value="number">number</option>
-                  <option value="textarea">textarea</option>
-                  <option value="select">select</option>
-                </select>
-                <label className="flex h-11 flex-1 items-center gap-2 text-sm font-bold text-slate-700">
-                  <input type="checkbox" checked={newRequired} onChange={(e) => setNewRequired(e.target.checked)} className="h-5 w-5" />
-                  Wajib *
-                </label>
+                    {saveLabel}
+                  </span>
+                )}
               </div>
-              {newType === 'select' && (
-                <textarea
-                  className="mt-2 min-h-[64px] w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-900 outline-none"
-                  value={newOptions}
-                  onChange={(e) => setNewOptions(e.target.value)}
-                  placeholder={'Satu pilihan sebaris: Nama | caj tambahan\ncth:\nScreen Crack | 30\nBattery | 25'}
-                />
-              )}
-              <button
-                onClick={addField}
-                className="mt-2 h-11 w-full rounded-xl border border-slate-200 text-sm font-bold text-slate-700"
-              >
-                + Tambah field
-              </button>
+              <p className="text-xs text-slate-500">Untuk kedai custom — dibayar buyer di Storefront.</p>
+              <div className="mt-2">
+                <SellerFormBuilder value={fields} onChange={setFields} disabled={saving} />
+              </div>
             </div>
           </div>
           {error && (
