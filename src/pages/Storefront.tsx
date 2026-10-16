@@ -108,7 +108,7 @@ export default function Storefront() {
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl min-h-screen bg-slate-50 p-4 sm:p-6">
+      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6">
         <div className="h-12 animate-pulse rounded-xl bg-white border border-slate-200" />
         <p className="mt-3 text-sm text-slate-500">Memuatkan kedai...</p>
       </div>
@@ -117,7 +117,7 @@ export default function Storefront() {
 
   if (error || !shop) {
     return (
-      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl min-h-screen bg-slate-50 p-4 sm:p-6">
+      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6">
         <Link to="/" className="inline-flex h-11 items-center text-sm font-bold text-slate-700">← Kembali</Link>
         <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
           {error ?? 'Kedai tidak dijumpai (invalid slug).'}
@@ -127,7 +127,7 @@ export default function Storefront() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl min-h-screen bg-slate-50 pb-28 lg:pb-10">
+    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 pb-28 lg:pb-10">
       <header className="bg-white border-b border-slate-200 p-4 sm:p-6 sticky top-0 z-10">
         <Link to="/" className="inline-flex h-11 items-center gap-1 text-sm font-bold text-slate-700">
           <ArrowLeft size={16} /> Marketplace
@@ -162,7 +162,7 @@ export default function Storefront() {
             </div>
           </div>
         ) : (
-          <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0 lg:grid-cols-2">
+          <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0 lg:grid-cols-2 xl:grid-cols-3">
             {products.map((p) => {
               const q = qty[p.id] ?? 0;
               return (

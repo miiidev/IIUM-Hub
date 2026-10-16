@@ -69,7 +69,7 @@ export default function OrderTracker() {
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-4xl min-h-screen bg-slate-50 p-4 sm:p-6">
+      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6">
         <p className="text-sm text-slate-500">Memuatkan status order...</p>
       </div>
     );
@@ -77,7 +77,7 @@ export default function OrderTracker() {
 
   if (error || !order) {
     return (
-      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-4xl min-h-screen bg-slate-50 p-4 sm:p-6">
+      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6">
         <Link to="/" className="inline-flex h-11 items-center text-sm font-bold text-slate-700">← Marketplace</Link>
         <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
           {error ?? 'Order tidak dijumpai.'}
@@ -89,7 +89,7 @@ export default function OrderTracker() {
   const step = statusToStep(order.status);
 
   return (
-    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-4xl min-h-screen bg-slate-50 p-4 sm:p-6 pb-10">
+    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6 pb-10">
       <Link to="/" className="inline-flex h-11 items-center text-sm font-bold text-slate-700">← Marketplace</Link>
       <h1 className="mt-2 text-xl sm:text-2xl font-bold text-slate-900">Track Order</h1>
       <p className="text-sm text-slate-600 break-all">ID: {order.id.slice(0, 8)}... | Ref: {order.payment_ref_id}</p>

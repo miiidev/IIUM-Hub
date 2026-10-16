@@ -88,7 +88,7 @@ export default function Settings() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md sm:max-w-2xl min-h-screen bg-slate-50 pb-10">
+    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-4xl min-h-screen bg-slate-50 pb-10">
       <SellerNav />
       <main className="p-4 sm:p-6">
         <div className="rounded-xl border border-slate-200 bg-white p-4 grid grid-cols-1 sm:grid-cols-2 gap-3">

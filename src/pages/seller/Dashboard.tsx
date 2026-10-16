@@ -78,7 +78,7 @@ export default function Dashboard() {
   const visible = filter === 'all' ? orders : orders.filter((o) => o.status === filter);
 
   return (
-    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl min-h-screen bg-slate-50 pb-10">
+    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 pb-10">
       <SellerNav />
 
       <main className="p-4 sm:p-6">
@@ -132,7 +132,7 @@ export default function Dashboard() {
           </div>
         )}
 
-        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+        <div className="mt-3 grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
           {visible.map((o) => (
             <Link
               key={o.id}

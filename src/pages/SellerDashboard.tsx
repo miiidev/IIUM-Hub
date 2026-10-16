@@ -68,7 +68,7 @@ export default function SellerDashboard() {
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-4xl min-h-screen bg-slate-50 p-4 sm:p-6">
+      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6">
         <p className="text-sm text-slate-500">Memuatkan order seller...</p>
       </div>
     );
@@ -76,7 +76,7 @@ export default function SellerDashboard() {
 
   if (error && !order) {
     return (
-      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-4xl min-h-screen bg-slate-50 p-4 sm:p-6">
+      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6">
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
           {error}
         </div>
@@ -89,7 +89,7 @@ export default function SellerDashboard() {
   // Ownership check: sellers can only manage their own shop's orders.
   if (myShop && order.shop_id !== myShop.id) {
     return (
-      <div className="mx-auto w-full max-w-md sm:max-w-2xl min-h-screen bg-slate-50 p-4 sm:p-6">
+      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6">
         <Link to="/seller" className="inline-flex h-11 items-center text-sm font-bold text-slate-700">
           ← Dashboard
         </Link>
@@ -103,7 +103,7 @@ export default function SellerDashboard() {
   const refLast = order.payment_ref_id.slice(-4);
 
   return (
-    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-4xl min-h-screen bg-slate-50 p-4 sm:p-6 pb-10">
+    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6 pb-10">
       <Link to="/seller" className="inline-flex h-11 items-center text-sm font-bold text-slate-700">
         ← Dashboard
       </Link>

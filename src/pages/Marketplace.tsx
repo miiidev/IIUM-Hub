@@ -56,7 +56,7 @@ export default function Marketplace() {
   }, [shops, cat, mahalla, q]);
 
   return (
-    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl min-h-screen bg-slate-50 pb-10">
+    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 pb-10">
       <header className="bg-white border-b border-slate-200 p-4 sm:p-6 sticky top-0 z-10">
         <div className="flex flex-wrap items-end justify-between gap-2">
           <div>
@@ -134,7 +134,7 @@ export default function Marketplace() {
           </div>
         )}
 
-        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
           {filtered.map((s) => (
             <Link
               key={s.id}
