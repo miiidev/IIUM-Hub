@@ -49,6 +49,7 @@ export interface CustomField {
   min?: number;
   max?: number;
   integer?: boolean;
+  quickPicks?: number[];
 }
 
 export interface CustomFormState {
