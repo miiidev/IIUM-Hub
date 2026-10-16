@@ -28,7 +28,7 @@ describe('presets', () => {
       'services',
       'custom',
     ]);
-    const allowed = new Set(['select', 'text', 'number', 'textarea', 'date', 'phone', 'file']);
+    const allowed = new Set(['select', 'text', 'number', 'textarea', 'date', 'phone', 'file', 'multiselect']);
     for (const p of PRESETS) {
       for (const f of p.fields) expect(allowed.has(f.type)).toBe(true);
     }
@@ -202,6 +202,45 @@ describe('number per-unit pricing', () => {
         print_file: 'https://x/f.pdf',
       })
     ).toBe(2);
+  });
+});
+
+describe('multiselect', () => {
+  const fields = clonePresetFields('food_addons');
+  const addons = () => fields.find((f) => f.id === 'food_addons')!;
+
+  it('sums every selected option and ignores unknown names', () => {
+    expect(calculateModifierTotal(fields, { food_addons: ['Egg', 'Cheese'] })).toBe(2.5);
+    expect(calculateModifierTotal(fields, { food_addons: ['Egg', 'Ghost'] })).toBe(1);
+    expect(calculateModifierTotal(fields, { food_addons: [] })).toBe(0);
+    expect(calculateModifierTotal(fields, {})).toBe(0);
+  });
+
+  it('deselecting back to empty totals zero', () => {
+    expect(calculateModifierTotal(fields, { food_addons: ['Extra Rice'] })).toBe(2);
+  });
+
+  it('required means at least one selected', () => {
+    const req = [{ ...addons(), required: true, id: 'req' }];
+    expect(validateRequired(req, { req: [] })).toHaveProperty('req');
+    expect(validateRequired(req, { req: ['Egg'] })).toEqual({});
+  });
+
+  it('describeValues joins with comma', () => {
+    expect(describeValues(fields, { food_addons: ['Egg', 'Cheese'] })).toEqual([
+      { label: 'Add-ons', value: 'Egg, Cheese' },
+    ]);
+  });
+
+  it('maxExtra sums all positive modifiers', () => {
+    expect(maxExtraForField(addons())).toBe(4.5);
+  });
+
+  it('sanitize treats multiselect like select', () => {
+    const [clean] = sanitizeFields([
+      { id: 'm', label: 'M', type: 'multiselect', required: false, options: [{ name: ' A ', price_modifier: -1 }, { name: '', price_modifier: 2 }] },
+    ]);
+    expect(clean.options).toEqual([{ name: 'A', price_modifier: 0 }]);
   });
 });
 

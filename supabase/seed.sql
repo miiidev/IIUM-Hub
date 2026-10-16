@@ -53,7 +53,7 @@ update public.products set custom_fields = '[{"id":"print_size","label":"Paper S
 where (custom_fields is null or custom_fields = '[]'::jsonb)
 and shop_id in (select id from public.shops where category = 'printing');
 
-update public.products set custom_fields = '[{"id":"food_size","label":"Size","type":"select","required":true,"enabled":true,"options":[{"name":"Regular","price_modifier":0},{"name":"Large","price_modifier":2}]},{"id":"food_addons","label":"Add-ons","type":"select","required":false,"enabled":true,"options":[{"name":"None","price_modifier":0},{"name":"Egg","price_modifier":1},{"name":"Cheese","price_modifier":1.5},{"name":"Egg + Cheese","price_modifier":2.5}]},{"id":"food_notes","label":"Notes","type":"textarea","required":false,"enabled":true,"placeholder":"e.g. less spicy"}]'::jsonb
+update public.products set custom_fields = '[{"id":"food_size","label":"Size","type":"select","required":true,"enabled":true,"options":[{"name":"Regular","price_modifier":0},{"name":"Large","price_modifier":2}]},{"id":"food_addons","label":"Add-ons","type":"multiselect","required":false,"enabled":true,"options":[{"name":"Egg","price_modifier":1},{"name":"Cheese","price_modifier":1.5},{"name":"Extra Rice","price_modifier":2}]},{"id":"food_notes","label":"Notes","type":"textarea","required":false,"enabled":true,"placeholder":"e.g. less spicy"}]'::jsonb
 where (custom_fields is null or custom_fields = '[]'::jsonb)
 and shop_id in (select id from public.shops where category = 'food');
 

@@ -160,6 +160,39 @@ export default function DynamicFormEngine({
               </select>
             )}
 
+            {f.type === 'multiselect' && (
+              <div className="space-y-2">
+                {(f.options ?? []).map((o) => {
+                  const picked = Array.isArray(val) ? val.map(String) : [];
+                  const checked = picked.includes(o.name);
+                  return (
+                    <label
+                      key={o.name}
+                      className="flex min-h-[44px] cursor-pointer items-center gap-3 rounded-xl border border-slate-200 bg-white px-4"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={(e) => {
+                          const next = e.target.checked
+                            ? [...picked, o.name]
+                            : picked.filter((n) => n !== o.name);
+                          onChange(f.id, next);
+                        }}
+                        className="h-5 w-5 shrink-0 accent-slate-900"
+                      />
+                      <span className="flex-1 text-sm text-slate-900">{o.name}</span>
+                      {Number(o.price_modifier) > 0 && (
+                        <span className="text-xs font-bold text-slate-700">
+                          +RM {Number(o.price_modifier).toFixed(2)}
+                        </span>
+                      )}
+                    </label>
+                  );
+                })}
+              </div>
+            )}
+
             {f.type === 'text' && (
               <input
                 id={fieldId}

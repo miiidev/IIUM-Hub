@@ -33,7 +33,7 @@ export interface CustomOption {
   price_modifier: number;
 }
 
-export type CustomFieldType = 'select' | 'text' | 'number' | 'textarea' | 'date' | 'phone' | 'file';
+export type CustomFieldType = 'select' | 'text' | 'number' | 'textarea' | 'date' | 'phone' | 'file' | 'multiselect';
 
 export type CustomValue = string | number | string[];
 

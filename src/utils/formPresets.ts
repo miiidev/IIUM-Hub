@@ -109,17 +109,18 @@ export const PRESETS: FormPreset[] = [
         ['Regular', 0],
         ['Large', 2],
       ]),
-      select(
-        'food_addons',
-        'Add-ons',
-        [
-          ['None', 0],
-          ['Egg', 1],
-          ['Cheese', 1.5],
-          ['Egg + Cheese', 2.5],
+      {
+        id: 'food_addons',
+        label: 'Add-ons',
+        type: 'multiselect',
+        required: false,
+        enabled: true,
+        options: [
+          { name: 'Egg', price_modifier: 1 },
+          { name: 'Cheese', price_modifier: 1.5 },
+          { name: 'Extra Rice', price_modifier: 2 },
         ],
-        false
-      ),
+      },
       textarea('food_notes', 'Notes', false, 'e.g. less spicy'),
     ],
   },
@@ -171,6 +172,7 @@ function randomId(): string {
 
 export const QUESTION_CARD_TYPES: Array<{ type: CustomFieldType; label: string }> = [
   { type: 'select', label: 'Choice' },
+  { type: 'multiselect', label: 'Multiple choice' },
   { type: 'text', label: 'Text' },
   { type: 'number', label: 'Number' },
   { type: 'textarea', label: 'Notes' },
@@ -178,13 +180,14 @@ export const QUESTION_CARD_TYPES: Array<{ type: CustomFieldType; label: string }
 ];
 
 export function createQuestionCard(type: CustomFieldType): CustomField {
+  const withOptions = type === 'select' || type === 'multiselect';
   return {
     id: randomId(),
     label: '',
     type,
     required: false,
     enabled: true,
-    options: type === 'select' ? [{ name: '', price_modifier: 0 }] : undefined,
+    options: withOptions ? [{ name: '', price_modifier: 0 }] : undefined,
   };
 }
 
@@ -206,7 +209,7 @@ export function calculateModifierTotal(
 ): number {
   let total = 0;
   for (const f of activeFields(fields)) {
-    if (f.type === 'select') {
+    if (f.type === 'select' || f.type === 'multiselect') {
       const chosen = values[f.id];
       if (!chosen) continue;
       const names = Array.isArray(chosen) ? chosen : [String(chosen)];
@@ -235,8 +238,12 @@ export function clampNumberValue(f: CustomField, raw: CustomValue | undefined): 
 
 export function maxExtraForField(f: CustomField): number | null {
   if (f.enabled === false) return 0;
-  if (f.type === 'select') {
-    return Math.max(0, ...(f.options ?? []).map((o) => Number(o.price_modifier) || 0));
+  if (f.type === 'select' || f.type === 'multiselect') {
+    const positives = (f.options ?? [])
+      .map((o) => Number(o.price_modifier) || 0)
+      .filter((n) => n > 0);
+    if (f.type === 'multiselect') return positives.reduce((a, b) => a + b, 0);
+    return positives.length > 0 ? Math.max(...positives) : 0;
   }
   if (f.type === 'number') {
     const ppu = Number(f.price_per_unit) || 0;
@@ -299,7 +306,7 @@ export function sanitizeFields(fields: CustomField[]): CustomField[] {
       enabled: f.enabled !== false,
       placeholder: f.placeholder,
     };
-    if (f.type === 'select') {
+    if (f.type === 'select' || f.type === 'multiselect') {
       next.options = (f.options ?? [])
         .map((o) => ({
           name: o.name.trim(),

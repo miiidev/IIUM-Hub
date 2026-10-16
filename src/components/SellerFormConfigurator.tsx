@@ -20,6 +20,7 @@ const TYPE_LABEL: Record<CustomFieldType, string> = {
   date: 'Date',
   phone: 'Phone',
   file: 'File Upload',
+  multiselect: 'Multiple choice',
 };
 
 export default function SellerFormConfigurator({ fields, onChange, basePrice, disabled = false, recommendedKey = null }: Props) {
@@ -143,7 +144,7 @@ export default function SellerFormConfigurator({ fields, onChange, basePrice, di
                 Required
               </label>
 
-              {f.type === 'select' && (
+              {(f.type === 'select' || f.type === 'multiselect') && (
                 <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
                   <p className="text-xs font-bold text-slate-700">Options and price add-ons (RM)</p>
                   <div className="mt-2 space-y-2">
