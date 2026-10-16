@@ -5,6 +5,7 @@ import { supabase } from '../lib/supabase';
 import type { CustomValue, Product, Shop } from '../types';
 import CheckoutModal from '../components/CheckoutModal';
 import ProductSheet from '../components/buyer/ProductSheet';
+import ProductImage from '../components/ProductImage';
 import { activeFields } from '../utils/formPresets';
 import { formatRange, priceRange } from '../utils/priceRange';
 import { buildCartSummary, removeLine, setLineQty, upsertLine, type Cart } from '../utils/cart';
@@ -211,16 +212,7 @@ export default function Storefront() {
                     highlightId === p.id ? 'border-slate-900 ring-2 ring-slate-900' : 'border-slate-200'
                   }`}
                 >
-                  {p.image_url && (
-                    <img
-                      src={p.image_url}
-                      alt=""
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
-                      }}
-                      className="mb-3 aspect-video w-full rounded-xl bg-slate-100 object-cover"
-                    />
-                  )}
+                  <ProductImage src={p.image_url} className="mb-3 aspect-video w-full rounded-xl" />
                   <div className="min-w-0">
                     <h3 className="break-words font-bold text-slate-900">{p.title}</h3>
                     <p className="text-sm font-bold text-slate-700">
