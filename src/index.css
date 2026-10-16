@@ -1,0 +1,31 @@
+@import "tailwindcss";
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  font-family: system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Thumb-friendly tap targets (mobile-first) + no iOS zoom on focus */
+input, select, textarea, button {
+  font-size: 16px;
+}
+
+/* Hide horizontal scrollbar on pill bars while keeping scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Safe-area padding for sticky bottom bars (notched phones) */
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
