@@ -12,7 +12,7 @@ function refLast(ref: string): string {
 }
 
 export default function Dashboard() {
-  const { shop, refreshShop } = useAuth();
+  const { shop } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -76,26 +76,6 @@ export default function Dashboard() {
   }, [orders]);
 
   const visible = filter === 'all' ? orders : orders.filter((o) => o.status === filter);
-
-  if (!shop) {
-    return (
-      <div className="mx-auto w-full max-w-md sm:max-w-2xl min-h-screen bg-slate-50">
-        <SellerNav />
-        <div className="p-4 sm:p-6">
-          <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
-            <p className="font-bold text-slate-900">Kedai belum siap</p>
-            <p className="text-sm text-slate-600">Profil anda tiada kedai. Cuba log keluar dan daftar semula.</p>
-            <button
-              onClick={() => refreshShop()}
-              className="mt-3 h-12 rounded-xl bg-slate-900 px-6 font-bold text-white"
-            >
-              Muat semula
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl min-h-screen bg-slate-50 pb-10">

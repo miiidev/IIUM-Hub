@@ -1,6 +1,7 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import RequireShop from './components/seller/RequireShop';
 import Marketplace from './pages/Marketplace';
 import Storefront from './pages/Storefront';
 import OrderTracker from './pages/OrderTracker';
@@ -22,12 +23,12 @@ export default function App() {
             <Route path="/order/:orderId/track" element={<OrderTracker />} />
             <Route path="/seller/login" element={<Login />} />
             <Route path="/seller/signup" element={<Signup />} />
-            <Route path="/seller" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-            <Route path="/seller/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
-            <Route path="/seller/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/seller" element={<ProtectedRoute><RequireShop><Dashboard /></RequireShop></ProtectedRoute>} />
+            <Route path="/seller/products" element={<ProtectedRoute><RequireShop><Products /></RequireShop></ProtectedRoute>} />
+            <Route path="/seller/settings" element={<ProtectedRoute><RequireShop><Settings /></RequireShop></ProtectedRoute>} />
             <Route
               path="/seller/orders/:orderId"
-              element={<ProtectedRoute><SellerDashboard /></ProtectedRoute>}
+              element={<ProtectedRoute><RequireShop><SellerDashboard /></RequireShop></ProtectedRoute>}
             />
             <Route
               path="*"

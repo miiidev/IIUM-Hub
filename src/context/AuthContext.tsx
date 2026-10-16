@@ -21,6 +21,12 @@ interface AuthState {
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshShop: () => Promise<void>;
+  setupShop: (args: {
+    whatsappNumber: string;
+    shopName: string;
+    mahalla: string;
+    category: string;
+  }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
@@ -199,9 +205,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (user) await loadForUser(user.id);
   }
 
+  async function setupShop(args: {
+    whatsappNumber: string;
+    shopName: string;
+    mahalla: string;
+    category: string;
+  }): Promise<void> {
+    if (!user) throw new Error('Sesi tamat. Sila log masuk semula.');
+    let slug = slugifyShopName(args.shopName);
+    let attempt = 0;
+    while (true) {
+      try {
+        await ensureProfileAndShop(
+          user.id,
+          args.whatsappNumber,
+          args.shopName,
+          args.mahalla,
+          args.category,
+          attempt === 0 ? slug : `${slug}-${attempt + 1}`
+        );
+        return;
+      } catch (e: unknown) {
+        if (typeof e === 'object' && e && (e as Record<string, string>).code === '23505') {
+          attempt++;
+          continue;
+        }
+        throw e;
+      }
+    }
+  }
+
   return (
     <AuthContext.Provider
-      value={{ user, session, profile, shop, loading, signUp, signIn, signOut, refreshShop }}
+      value={{ user, session, profile, shop, loading, signUp, signIn, signOut, refreshShop, setupShop }}
     >
       {children}
     </AuthContext.Provider>

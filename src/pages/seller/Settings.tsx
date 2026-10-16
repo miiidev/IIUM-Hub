@@ -87,15 +87,6 @@ export default function Settings() {
     }
   }
 
-  if (!shop) {
-    return (
-      <div className="mx-auto w-full max-w-md min-h-screen bg-slate-50">
-        <SellerNav />
-        <p className="p-4 text-sm text-slate-500">Tiada kedai dijumpai.</p>
-      </div>
-    );
-  }
-
   return (
     <div className="mx-auto w-full max-w-md sm:max-w-2xl min-h-screen bg-slate-50 pb-10">
       <SellerNav />
@@ -156,7 +147,7 @@ export default function Settings() {
             <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} className="h-6 w-6" />
           </label>
           <p className="sm:col-span-2 text-xs text-slate-500 break-all">
-            Link kedai: /s/{shop.slug}
+            Link kedai: /s/{shop!.slug}
           </p>
         </div>
 
