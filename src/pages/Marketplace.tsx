@@ -109,7 +109,7 @@ export default function Marketplace() {
               type="button"
               aria-label="Focus search"
               onClick={() => searchRef.current?.focus()}
-              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-control bg-emerald text-white transition-colors hover:bg-emerald/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-control bg-emerald text-white transition-[color,background-color,transform] duration-150 ease-out-soft hover:bg-emerald/90 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
             >
               <Search size={18} aria-hidden="true" />
             </button>

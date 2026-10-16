@@ -20,7 +20,7 @@ export default function SellerNav() {
             <Link
               to="/"
               aria-label="IIUM Hub home"
-              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald text-white"
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald text-white transition-transform duration-150 ease-out-soft hover:scale-105"
             >
               <ShoppingBag size={16} strokeWidth={2.5} aria-hidden="true" />
             </Link>

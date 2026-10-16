@@ -51,7 +51,7 @@ export default function Login() {
 
       <main className="flex flex-1 items-start justify-center px-5 py-10 sm:items-center sm:px-8">
         <div className="w-full max-w-md">
-          <Card className="p-6 sm:p-8">
+          <Card className="p-6 sm:p-8 animate-fade-in-up">
             <p className="text-overline font-semibold uppercase tracking-wider text-muted">
               Your IIUM Hub account
             </p>

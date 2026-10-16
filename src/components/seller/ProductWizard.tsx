@@ -200,7 +200,7 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
             <p className="text-xs text-muted">JPG/PNG, max 2MB.</p>
             <div className="mt-2">
               {imageUrl ? (
-                <img src={imageUrl} alt="Product" className="aspect-video w-full rounded-control border border-line bg-white object-cover" />
+                <img src={imageUrl} alt="Product" className="aspect-video w-full rounded-control border border-line bg-white object-cover animate-fade-in" />
               ) : (
                 <div className="flex aspect-video w-full items-center justify-center rounded-control border border-line bg-white text-sm font-semibold text-muted">
                   No image

@@ -157,7 +157,7 @@ export default function DynamicFormEngine({
                     return (
                       <label
                         key={o.name}
-                        className={`flex min-h-[48px] cursor-pointer items-center gap-3 rounded-control border px-4 ${
+                        className={`flex min-h-[48px] cursor-pointer items-center gap-3 rounded-control border px-4 transition-colors duration-150 ease-out-soft ${
                           checked ? 'border-emerald bg-mint/40' : 'border-line bg-white'
                         }`}
                       >

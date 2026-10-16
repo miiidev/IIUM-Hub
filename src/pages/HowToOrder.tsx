@@ -39,8 +39,8 @@ export default function HowToOrder() {
         </p>
 
         <ol className="mt-8 space-y-4">
-          {STEPS.map((s) => (
-            <li key={s.n}>
+          {STEPS.map((s, i) => (
+            <li key={s.n} className="animate-fade-in-up" style={{ animationDelay: `${i * 60}ms` }}>
               <Card className="flex gap-4 p-5">
                 <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-mint text-sm font-bold text-emerald">
                   {s.n}

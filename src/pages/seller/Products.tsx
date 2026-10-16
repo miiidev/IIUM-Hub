@@ -8,6 +8,7 @@ import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
 import EmptyState from '../../components/ui/EmptyState';
+import ConfirmDialog from '../../components/ui/ConfirmDialog';
 import { activeFields, clonePresetFields, getPreset, getPresetForCategory, sanitizeFields } from '../../utils/formPresets';
 
 export default function Products() {
@@ -19,6 +20,8 @@ export default function Products() {
 
   const [showWizard, setShowWizard] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<Product | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function load() {
     if (!shop) return;
@@ -109,10 +112,13 @@ export default function Products() {
     }
   }
 
-  async function handleDelete(p: Product) {
-    if (!window.confirm(`Delete "${p.title}"?`)) return;
-    const { error: err } = await supabase.from('products').delete().eq('id', p.id);
-    if (!err) setProducts((prev) => prev.filter((x) => x.id !== p.id));
+  async function confirmDelete() {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    const { error: err } = await supabase.from('products').delete().eq('id', pendingDelete.id);
+    if (!err) setProducts((prev) => prev.filter((x) => x.id !== pendingDelete.id));
+    setDeleting(false);
+    setPendingDelete(null);
   }
 
   return (
@@ -186,7 +192,7 @@ export default function Products() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={() => handleDelete(p)}
+                    onClick={() => setPendingDelete(p)}
                     className="border-red-200 text-red-600 hover:bg-red-50"
                   >
                     Delete
@@ -233,6 +239,19 @@ export default function Products() {
           )}
         </div>
       </main>
+
+      <ConfirmDialog
+        open={pendingDelete !== null}
+        title="Delete product?"
+        message={
+          <>
+            “{pendingDelete?.title}” will be permanently removed. This can’t be undone.
+          </>
+        }
+        busy={deleting}
+        onConfirm={confirmDelete}
+        onClose={() => setPendingDelete(null)}
+      />
     </div>
   );
 }

@@ -3,6 +3,7 @@ import type { CustomField } from '../../types';
 import BottomSheet from '../BottomSheet';
 import { FIELD_TYPE_LABEL } from '../../utils/fieldLabels';
 import Button from '../ui/Button';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 interface Props {
   open: boolean;
@@ -25,6 +26,7 @@ export default function QuestionEditorSheet({ open, field, onClose, onSave, onRe
   const [max, setMax] = useState('');
   const [integer, setInteger] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [confirmRemove, setConfirmRemove] = useState(false);
 
   useEffect(() => {
     if (open && field) {
@@ -91,7 +93,8 @@ export default function QuestionEditorSheet({ open, field, onClose, onSave, onRe
   }
 
   return (
-    <BottomSheet
+    <>
+      <BottomSheet
       open={open}
       onClose={onClose}
       title={field.label || 'Edit question'}
@@ -100,12 +103,7 @@ export default function QuestionEditorSheet({ open, field, onClose, onSave, onRe
           <Button
             type="button"
             variant="ghost"
-            onClick={() => {
-              if (window.confirm('Remove this question?')) {
-                onRemove();
-                onClose();
-              }
-            }}
+            onClick={() => setConfirmRemove(true)}
             className="border-red-200 text-danger hover:bg-red-50"
           >
             Remove
@@ -251,5 +249,18 @@ export default function QuestionEditorSheet({ open, field, onClose, onSave, onRe
         )}
       </div>
     </BottomSheet>
+      <ConfirmDialog
+        open={confirmRemove}
+        title="Remove question?"
+        message={<>“{label || 'This question'}” will be removed from the product. This can’t be undone.</>}
+        confirmLabel="Remove"
+        onConfirm={() => {
+          setConfirmRemove(false);
+          onRemove();
+          onClose();
+        }}
+        onClose={() => setConfirmRemove(false)}
+      />
+    </>
   );
 }

@@ -9,7 +9,7 @@ interface Props {
 
 export default function SectionHeader({ title, overline, action, className = '' }: Props) {
   return (
-    <div className={['flex items-end justify-between gap-3', className].join(' ')}>
+    <div className={['flex items-end justify-between gap-3 animate-fade-in', className].join(' ')}>
       <div className="min-w-0">
         {overline && (
           <p className="text-overline font-semibold uppercase tracking-wider text-muted">{overline}</p>
