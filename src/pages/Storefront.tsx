@@ -2,19 +2,22 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Minus, Plus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import type { CustomValue, OrderItemSummary, Product, Shop } from '../types';
-import DynamicFormEngine from '../components/DynamicFormEngine';
+import type { CustomValue, Product, Shop } from '../types';
 import CheckoutModal from '../components/CheckoutModal';
-import {
-  activeFields,
-  clampQty,
-  computeUnitTotal,
-  validateRequired,
-} from '../utils/formPresets';
-import { buildItemSnapshot } from '../utils/orderSnapshot';
+import ProductSheet from '../components/buyer/ProductSheet';
+import { activeFields } from '../utils/formPresets';
+import { formatRange, priceRange } from '../utils/priceRange';
+import { buildCartSummary, removeLine, setLineQty, upsertLine, type Cart } from '../utils/cart';
 
 const wrapCls =
   'mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50';
+
+interface Draft {
+  productId: string;
+  values: Record<string, CustomValue>;
+  qty: number;
+  editing: boolean;
+}
 
 export default function Storefront() {
   const { slug } = useParams<{ slug: string }>();
@@ -25,13 +28,9 @@ export default function Storefront() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [qty, setQty] = useState<Record<string, number>>({});
-  const [values, setValues] = useState<Record<string, Record<string, CustomValue>>>({});
-  const [errors, setErrors] = useState<Record<string, Record<string, string>>>({});
+  const [cart, setCart] = useState<Cart>({});
+  const [draft, setDraft] = useState<Draft | null>(null);
   const [showCheckout, setShowCheckout] = useState(false);
-  const [checkoutError, setCheckoutError] = useState<string | null>(null);
-  const [uploadingCount, setUploadingCount] = useState(0);
-  const uploading = uploadingCount > 0;
 
   useEffect(() => {
     async function load() {
@@ -85,67 +84,26 @@ export default function Storefront() {
     };
   }, [products, searchParams]);
 
-  function setValue(productId: string, fieldId: string, value: CustomValue) {
-    setValues((prev) => ({
-      ...prev,
-      [productId]: { ...(prev[productId] ?? {}), [fieldId]: value },
-    }));
-    setErrors((prev) => ({
-      ...prev,
-      [productId]: { ...(prev[productId] ?? {}), [fieldId]: '' },
-    }));
-    setQty((prev) => (prev[productId] ?? 0) > 0 ? prev : { ...prev, [productId]: 1 });
+  const summary = useMemo(() => buildCartSummary(products, cart), [products, cart]);
+  const { count, total, items } = summary;
+
+  function openAdd(p: Product) {
+    setDraft({ productId: p.id, values: {}, qty: 1, editing: false });
   }
 
-  function changeQty(productId: string, delta: number) {
-    setQty((prev) => ({ ...prev, [productId]: clampQty((prev[productId] ?? 0) + delta) }));
+  function openEdit(p: Product) {
+    const line = cart[p.id];
+    if (!line) return;
+    setDraft({ productId: p.id, values: line.values, qty: line.qty, editing: true });
   }
 
-  const { count, total, itemsSummary } = useMemo(() => {
-    let c = 0;
-    let t = 0;
-    const items: OrderItemSummary[] = [];
-
-    for (const p of products) {
-      const q = qty[p.id] ?? 0;
-      if (q <= 0) continue;
-      const snap = buildItemSnapshot(
-        { title: p.title, price: Number(p.price) },
-        p.custom_fields ?? [],
-        values[p.id] ?? {},
-        q
-      );
-      c += q;
-      t += snap.lineTotal;
-      items.push(snap);
-    }
-    return { count: c, total: Math.round(t * 100) / 100, itemsSummary: items };
-  }, [products, qty, values]);
-
-  function handleCheckoutOpen() {
-    setCheckoutError(null);
-    if (uploading) {
-      setCheckoutError('Wait for the upload to finish.');
-      return;
-    }
-    if (count === 0 || total <= 0) {
-      setCheckoutError('Add something to your order first.');
-      return;
-    }
-    const nextErrors: Record<string, Record<string, string>> = {};
-    let invalid = false;
-    for (const p of products) {
-      if ((qty[p.id] ?? 0) <= 0) continue;
-      const errs = validateRequired(p.custom_fields ?? [], values[p.id] ?? {});
-      if (Object.keys(errs).length > 0) {
-        nextErrors[p.id] = errs;
-        invalid = true;
-      }
-    }
-    setErrors(nextErrors);
-    if (invalid) return;
-    setShowCheckout(true);
+  function commitDraft(values: Record<string, CustomValue>, qty: number) {
+    if (!draft) return;
+    setCart((prev) => upsertLine(prev, draft.productId, qty, values));
+    setDraft(null);
   }
+
+  const draftProduct = draft ? products.find((p) => p.id === draft.productId) ?? null : null;
 
   if (loading) {
     return (
@@ -195,12 +153,12 @@ export default function Storefront() {
 
           <div className="space-y-3 sm:grid sm:grid-cols-2 sm:gap-3 sm:space-y-0 xl:grid-cols-3">
             {products.map((p) => {
-              const q = qty[p.id] ?? 0;
               const fields = p.custom_fields ?? [];
               const hasForm = activeFields(fields).length > 0;
-              const vals = values[p.id] ?? {};
-              const unit = computeUnitTotal(Number(p.price), fields, vals);
-              const extra = unit - (Number(p.price) || 0);
+              const line = cart[p.id];
+              const inCart = !!line && line.qty > 0;
+              const base = Number(p.price) || 0;
+              const lineUnit = summary.lines.find((l) => l.productId === p.id)?.item.unitPrice ?? base;
 
               return (
                 <div
@@ -210,86 +168,72 @@ export default function Storefront() {
                     highlightId === p.id ? 'border-slate-900 ring-2 ring-slate-900' : 'border-slate-200'
                   }`}
                 >
-                  <div className="flex justify-between gap-2">
-                    <div className="min-w-0">
-                      <h3 className="break-words font-bold text-slate-900">{p.title}</h3>
-                      <p className="text-sm font-bold text-slate-700">
-                        RM {Number(p.price).toFixed(2)}
-                      </p>
-                    </div>
-                    {hasForm ? (
-                      q > 0 && (
-                        <div className="flex shrink-0 items-center gap-2">
+                  <div className="min-w-0">
+                    <h3 className="break-words font-bold text-slate-900">{p.title}</h3>
+                    <p className="text-sm font-bold text-slate-700">
+                      {hasForm ? formatRange(priceRange(base, fields)) : `RM ${base.toFixed(2)}`}
+                    </p>
+                  </div>
+
+                  {hasForm ? (
+                    inCart ? (
+                      <div className="mt-3 border-t border-slate-200 pt-3">
+                        <p className="text-sm text-slate-700">
+                          In order:{' '}
+                          <span className="font-bold text-slate-900">
+                            {line.qty} × RM {lineUnit.toFixed(2)}
+                          </span>
+                        </p>
+                        <div className="mt-2 flex gap-2">
                           <button
-                            className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 bg-white"
-                            onClick={() => changeQty(p.id, -1)}
-                            aria-label={`Decrease ${p.title}`}
+                            type="button"
+                            onClick={() => openEdit(p)}
+                            className="h-11 flex-1 rounded-xl border border-slate-300 bg-white text-sm font-bold text-slate-800"
                           >
-                            <Minus size={18} />
-                          </button>
-                          <span className="w-6 text-center font-bold">{q}</span>
-                          <button
-                            className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white"
-                            onClick={() => changeQty(p.id, 1)}
-                            aria-label={`Add ${p.title}`}
-                          >
-                            <Plus size={18} />
+                            Edit
                           </button>
                           <button
-                            onClick={() => changeQty(p.id, -q)}
+                            type="button"
+                            onClick={() => setCart((prev) => removeLine(prev, p.id))}
                             aria-label={`Remove ${p.title}`}
-                            className="h-11 px-2 text-xs font-bold text-red-600"
+                            className="h-11 rounded-xl border border-slate-300 px-4 text-sm font-bold text-red-600"
                           >
                             Remove
                           </button>
                         </div>
-                      )
-                    ) : (
-                      <div className="flex shrink-0 items-center gap-2">
-                        <button
-                          className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 bg-white"
-                          onClick={() => changeQty(p.id, -1)}
-                          aria-label={`Decrease ${p.title}`}
-                        >
-                          <Minus size={18} />
-                        </button>
-                        <span className="w-6 text-center font-bold">{q}</span>
-                        <button
-                          className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white"
-                          onClick={() => changeQty(p.id, 1)}
-                          aria-label={`Add ${p.title}`}
-                        >
-                          <Plus size={18} />
-                        </button>
                       </div>
-                    )}
-                  </div>
-
-                  {hasForm && (
-                    <div className="mt-3 border-t border-slate-200 pt-3">
-                      <p className="mb-2 text-xs text-slate-500">
-                        Fill in the form to add this to your order.
-                      </p>
-                      <DynamicFormEngine
-                        fields={fields}
-                        values={vals}
-                        onChange={(fid, v) => setValue(p.id, fid, v)}
-                        errors={errors[p.id]}
-                        shopId={shop.id}
-                        onBusyChange={(busy) =>
-                          setUploadingCount((c) => Math.max(0, c + (busy ? 1 : -1)))
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => openAdd(p)}
+                        className="mt-3 h-12 w-full rounded-xl bg-slate-900 font-bold text-white"
+                      >
+                        Add
+                      </button>
+                    )
+                  ) : (
+                    <div className="mt-3 flex items-center gap-2">
+                      <button
+                        className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 bg-white"
+                        onClick={() =>
+                          setCart((prev) => setLineQty(prev, p.id, (prev[p.id]?.qty ?? 0) - 1))
                         }
-                      />
-                      <p className="mt-3 text-sm text-slate-700">
-                        RM {Number(p.price).toFixed(2)}
-                        {extra > 0 && ` + RM ${extra.toFixed(2)}`} ={' '}
-                        <span className="font-bold text-slate-900">RM {unit.toFixed(2)} / unit</span>
-                        {q > 0 && (
-                          <span className="block font-bold text-slate-900">
-                            {q} × RM {unit.toFixed(2)} = RM {(unit * q).toFixed(2)}
-                          </span>
-                        )}
-                      </p>
+                        aria-label={`Decrease ${p.title}`}
+                      >
+                        <Minus size={18} />
+                      </button>
+                      <span className="w-6 text-center font-bold">{inCart ? line.qty : 0}</span>
+                      <button
+                        className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white"
+                        onClick={() =>
+                          setCart((prev) =>
+                            upsertLine(prev, p.id, (prev[p.id]?.qty ?? 0) + 1, {})
+                          )
+                        }
+                        aria-label={`Add ${p.title}`}
+                      >
+                        <Plus size={18} />
+                      </button>
                     </div>
                   )}
                 </div>
@@ -300,11 +244,11 @@ export default function Storefront() {
 
         <aside className="sticky top-24 hidden rounded-xl border border-slate-200 bg-white p-5 lg:block">
           <h2 className="font-bold text-slate-900">Order Summary</h2>
-          {itemsSummary.length === 0 ? (
+          {items.length === 0 ? (
             <p className="mt-2 text-sm text-slate-500">No items yet. Pick from the menu.</p>
           ) : (
             <ul className="mt-3 space-y-2">
-              {itemsSummary.map((it, i) => (
+              {items.map((it, i) => (
                 <li key={i} className="flex justify-between gap-2 text-sm">
                   <span className="text-slate-700">
                     {it.title} × {it.qty}
@@ -315,50 +259,51 @@ export default function Storefront() {
             </ul>
           )}
           <div className="mt-3 border-t border-slate-200 pt-3">
-            <p className="text-sm text-slate-600">{count} item</p>
-            <p className="text-lg font-bold text-slate-900">RM {total.toFixed(2)}</p>
-            {checkoutError && (
-              <p className="mt-2 rounded-lg border border-red-200 bg-red-50 p-2 text-xs font-medium text-red-700">
-                {checkoutError}
-              </p>
-            )}
+            <p className="text-sm text-slate-600">
+              {count} items · RM {total.toFixed(2)}
+            </p>
             <button
-              onClick={handleCheckoutOpen}
-              disabled={count === 0 || uploading}
+              onClick={() => setShowCheckout(true)}
+              disabled={count === 0}
               className="mt-3 h-12 w-full rounded-xl bg-emerald-600 font-bold text-white disabled:opacity-40"
             >
-              Proceed to Checkout
+              Review order
             </button>
           </div>
         </aside>
       </main>
 
       <div className="safe-bottom fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 border-t border-slate-200 bg-white p-4 sm:max-w-2xl lg:hidden">
-        {checkoutError && (
-          <p className="mb-2 rounded-lg border border-red-200 bg-red-50 p-2 text-xs font-medium text-red-700">
-            {checkoutError}
-          </p>
-        )}
         <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-sm text-slate-600">{count} item</p>
-            <p className="font-bold text-slate-900">RM {total.toFixed(2)}</p>
-          </div>
+          <p className="text-sm font-bold text-slate-900">
+            {count} items · RM {total.toFixed(2)}
+          </p>
           <button
-            onClick={handleCheckoutOpen}
-            disabled={count === 0 || uploading}
+            onClick={() => setShowCheckout(true)}
+            disabled={count === 0}
             className="h-12 min-w-[180px] rounded-xl bg-emerald-600 px-6 font-bold text-white disabled:opacity-40"
           >
-            Proceed to Checkout
+            Review order
           </button>
         </div>
       </div>
+
+      <ProductSheet
+        open={draft !== null}
+        product={draftProduct}
+        initialValues={draft?.values ?? {}}
+        initialQty={draft?.qty ?? 1}
+        editing={draft?.editing ?? false}
+        shopId={shop.id}
+        onClose={() => setDraft(null)}
+        onCommit={commitDraft}
+      />
 
       {showCheckout && (
         <CheckoutModal
           shop={shop}
           total={total}
-          itemsSummary={itemsSummary}
+          itemsSummary={items}
           shop_id={shop.id}
           onClose={() => setShowCheckout(false)}
         />
