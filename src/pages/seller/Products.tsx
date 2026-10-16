@@ -126,6 +126,15 @@ export default function Products() {
       (f) => f.enabled !== false && f.type === 'number' && Number(f.price_per_unit ?? 0) < 0
     );
     if (badPpu) return setError('Price per unit cannot be negative.');
+    for (const f of cleaned) {
+      if (f.enabled === false || (f.type !== 'select' && f.type !== 'multiselect')) continue;
+      const seen = new Set<string>();
+      for (const o of f.options ?? []) {
+        const key = o.name.trim().toLowerCase();
+        if (seen.has(key)) return setError(`Duplicate option "${o.name.trim()}" in "${f.label}".`);
+        seen.add(key);
+      }
+    }
     setSaving(true);
     try {
       if (editingId) {

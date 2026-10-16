@@ -352,12 +352,17 @@ export function sanitizeFields(fields: CustomField[]): CustomField[] {
       placeholder: f.placeholder,
     };
     if (f.type === 'select' || f.type === 'multiselect') {
-      next.options = (f.options ?? [])
-        .map((o) => ({
-          name: o.name.trim(),
-          price_modifier: Number.isFinite(Number(o.price_modifier)) ? Math.max(0, Number(o.price_modifier)) : 0,
-        }))
-        .filter((o) => o.name !== '');
+      const seen = new Set<string>();
+      next.options = [];
+      for (const o of f.options ?? []) {
+        const name = o.name.trim();
+        if (!name) continue;
+        const key = name.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const price = Number(o.price_modifier);
+        next.options.push({ name, price_modifier: Number.isFinite(price) ? Math.max(0, price) : 0 });
+      }
     }
     if (f.type === 'number') {
       const ppu = Number(f.price_per_unit);

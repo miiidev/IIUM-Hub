@@ -335,6 +335,27 @@ describe('number validation', () => {
     const [clean] = sanitizeFields([{ ...pages, integer: true }]);
     expect(clean.integer).toBe(true);
   });
+
+  it('sanitize keeps the first duplicate option (case-insensitive)', () => {
+    const [clean] = sanitizeFields([
+      {
+        id: 's',
+        label: 'Size',
+        type: 'select',
+        required: true,
+        options: [
+          { name: 'Large', price_modifier: 1 },
+          { name: ' large ', price_modifier: 2 },
+          { name: '', price_modifier: 3 },
+          { name: 'Small', price_modifier: 0 },
+        ],
+      },
+    ]);
+    expect(clean.options).toEqual([
+      { name: 'Large', price_modifier: 1 },
+      { name: 'Small', price_modifier: 0 },
+    ]);
+  });
 });
 
 describe('sanitizeFields', () => {

@@ -10,11 +10,15 @@ if the DB is ever wiped or a new environment is needed, re-apply in order:
 5. `migrations/0005_form_templates.sql` - LEGACY (history only): dropped by 0007
 6. `migrations/0006_duitnow_and_order_columns.sql` - idempotent: `shops.duitnow_*`, `orders.items`, `orders.custom_data`
 7. `migrations/0007_drop_legacy_forms.sql` - drops `forms`, `form_versions`, `form_submissions`
-8. `seed.sql` — demo shops, products, test orders (one per status)
+8. `migrations/0008_duitnow_qr_bucket.sql` - idempotent: public `duitnow-qr` bucket + policies (run once)
+9. `migrations/0009_order_states.sql` - applied: new order statuses, `cancel_reason`, anon UPDATE removed
+10. `migrations/0010_buyer_uploads_private.sql` - NOT APPLIED: makes `buyer-uploads` private (run manually, see file)
+11. `migrations/0011_orders_privacy.sql` - NOT APPLIED: `get_order()` RPC, drops anon SELECT (run only after the matching frontend is deployed)
+12. `seed.sql` — demo shops, products, test orders (one per status)
 
 ## Dashboard checklist (per environment)
 
-- [ ] SQL: run `0001_init.sql`, the `0002`-`0007` migrations, then `seed.sql`
+- [ ] SQL: run `0001_init.sql`, the `0002`-`0011` migrations (0008/0010/0011 need a manual Dashboard run), then `seed.sql`
 - [ ] Realtime: `orders` table must be in the `supabase_realtime` publication
   (the migration does `alter publication ... add table`; verify under Database → Replication)
 - [ ] Auth → Providers → Email: turn OFF **Confirm email** for frictionless demo logins

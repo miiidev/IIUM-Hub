@@ -29,6 +29,7 @@ export default function Storefront() {
   const [values, setValues] = useState<Record<string, Record<string, CustomValue>>>({});
   const [errors, setErrors] = useState<Record<string, Record<string, string>>>({});
   const [showCheckout, setShowCheckout] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
   const [uploadingCount, setUploadingCount] = useState(0);
   const uploading = uploadingCount > 0;
 
@@ -100,7 +101,7 @@ export default function Storefront() {
     setQty((prev) => ({ ...prev, [productId]: clampQty((prev[productId] ?? 0) + delta) }));
   }
 
-  const { count, total, itemsSummary, orderCustomData } = useMemo(() => {
+  const { count, total, itemsSummary } = useMemo(() => {
     let c = 0;
     let t = 0;
     const items: OrderItemSummary[] = [];
@@ -118,11 +119,19 @@ export default function Storefront() {
       t += snap.lineTotal;
       items.push(snap);
     }
-    return { count: c, total: Math.round(t * 100) / 100, itemsSummary: items, orderCustomData: {} };
+    return { count: c, total: Math.round(t * 100) / 100, itemsSummary: items };
   }, [products, qty, values]);
 
   function handleCheckoutOpen() {
-    if (count === 0 || total <= 0 || uploading) return;
+    setCheckoutError(null);
+    if (uploading) {
+      setCheckoutError('Wait for the upload to finish.');
+      return;
+    }
+    if (count === 0 || total <= 0) {
+      setCheckoutError('Add something to your order first.');
+      return;
+    }
     const nextErrors: Record<string, Record<string, string>> = {};
     let invalid = false;
     for (const p of products) {
@@ -211,9 +220,6 @@ export default function Storefront() {
                     {hasForm ? (
                       q > 0 && (
                         <div className="flex shrink-0 items-center gap-2">
-                          <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
-                            ✓ {q} in order
-                          </span>
                           <button
                             className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 bg-white"
                             onClick={() => changeQty(p.id, -1)}
@@ -262,7 +268,7 @@ export default function Storefront() {
                   {hasForm && (
                     <div className="mt-3 border-t border-slate-200 pt-3">
                       <p className="mb-2 text-xs text-slate-500">
-                        Fill in the form to order — quantity is automatically 1.
+                        Fill in the form to add this to your order.
                       </p>
                       <DynamicFormEngine
                         fields={fields}
@@ -311,6 +317,11 @@ export default function Storefront() {
           <div className="mt-3 border-t border-slate-200 pt-3">
             <p className="text-sm text-slate-600">{count} item</p>
             <p className="text-lg font-bold text-slate-900">RM {total.toFixed(2)}</p>
+            {checkoutError && (
+              <p className="mt-2 rounded-lg border border-red-200 bg-red-50 p-2 text-xs font-medium text-red-700">
+                {checkoutError}
+              </p>
+            )}
             <button
               onClick={handleCheckoutOpen}
               disabled={count === 0 || uploading}
@@ -323,6 +334,11 @@ export default function Storefront() {
       </main>
 
       <div className="safe-bottom fixed bottom-0 left-1/2 w-full max-w-md -translate-x-1/2 border-t border-slate-200 bg-white p-4 sm:max-w-2xl lg:hidden">
+        {checkoutError && (
+          <p className="mb-2 rounded-lg border border-red-200 bg-red-50 p-2 text-xs font-medium text-red-700">
+            {checkoutError}
+          </p>
+        )}
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm text-slate-600">{count} item</p>
@@ -330,7 +346,7 @@ export default function Storefront() {
           </div>
           <button
             onClick={handleCheckoutOpen}
-            disabled={count === 0}
+            disabled={count === 0 || uploading}
             className="h-12 min-w-[180px] rounded-xl bg-emerald-600 px-6 font-bold text-white disabled:opacity-40"
           >
             Proceed to Checkout
@@ -342,7 +358,6 @@ export default function Storefront() {
         <CheckoutModal
           shop={shop}
           total={total}
-          custom_data={orderCustomData}
           itemsSummary={itemsSummary}
           shop_id={shop.id}
           onClose={() => setShowCheckout(false)}
