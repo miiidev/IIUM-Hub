@@ -292,6 +292,51 @@ describe('phone and date validation', () => {
   });
 });
 
+describe('number validation', () => {
+  const pages: CustomField = {
+    id: 'pages',
+    label: 'Number of Pages',
+    type: 'number',
+    required: true,
+    price_per_unit: 0.1,
+    min: 1,
+    max: 500,
+    integer: true,
+  };
+
+  it('accepts in-range whole numbers', () => {
+    expect(validateField(pages, 1)).toBeNull();
+    expect(validateField(pages, 500)).toBeNull();
+    expect(validateField(pages, 20)).toBeNull();
+  });
+
+  it('rejects 0, negatives, fractions, over-max and non-numbers', () => {
+    expect(validateField(pages, 0)).toBe('Number of Pages must be a whole number between 1 and 500.');
+    expect(validateField(pages, -5)).toBe('Number of Pages must be a whole number between 1 and 500.');
+    expect(validateField(pages, 1.5)).toBe('Number of Pages must be a whole number between 1 and 500.');
+    expect(validateField(pages, 501)).toBe('Number of Pages must be a whole number between 1 and 500.');
+    expect(validateField(pages, 9999)).toBe('Number of Pages must be a whole number between 1 and 500.');
+    expect(validateField(pages, 'abc')).toBe('Number of Pages must be a number between 1 and 500.');
+    expect(validateField(pages, '')).toBe('Number of Pages is required');
+  });
+
+  it('enforces min/max without integer flag and treats missing min as 0', () => {
+    const loose: CustomField = { id: 'n', label: 'N', type: 'number', required: true, max: 10 };
+    expect(validateField(loose, 5)).toBeNull();
+    expect(validateField(loose, -1)).toBe('N must be a number between 0 and 10.');
+    expect(validateField(loose, 11)).toBe('N must be a number between 0 and 10.');
+    expect(validateField(loose, 2.5)).toBeNull();
+    const noMax: CustomField = { id: 'm', label: 'M', type: 'number', required: false, min: 2 };
+    expect(validateField(noMax, 1)).toBe('M must be a number at least 2.');
+    expect(validateField(noMax, '')).toBeNull();
+  });
+
+  it('sanitize keeps the integer flag', () => {
+    const [clean] = sanitizeFields([{ ...pages, integer: true }]);
+    expect(clean.integer).toBe(true);
+  });
+});
+
 describe('sanitizeFields', () => {
   it('trims, drops empty options, clamps negative prices and dedupes ids', () => {
     const dirty: CustomField[] = [

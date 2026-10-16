@@ -51,8 +51,10 @@ export function buildItemSnapshot(
   const unit = computeUnitTotal(base, fields, values);
   const entries: OrderFieldSnapshot[] = [];
   for (const f of activeFields(fields)) {
-    const v = values[f.id];
-    if (v === undefined || v === null) continue;
+    const raw = values[f.id];
+    if (raw === undefined || raw === null) continue;
+    const v: CustomValue =
+      f.type === 'number' ? clampNumberValue(f, raw) : raw;
     const text = Array.isArray(v) ? v.join(', ') : String(v).trim();
     if (!text) continue;
     entries.push({

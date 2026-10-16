@@ -80,6 +80,7 @@ export const PRESETS: FormPreset[] = [
         price_per_unit: 0.1,
         min: 1,
         max: 500,
+        integer: true,
       },
       { id: 'print_file', label: 'Upload File', type: 'file', required: true, enabled: true },
     ],
@@ -294,6 +295,23 @@ export function validateField(
   const empty =
     v === undefined || v === null || (Array.isArray(v) ? v.length === 0 : String(v).trim() === '');
   if (empty) return f.required ? `${f.label || 'This field'} is required` : null;
+  if (f.type === 'number') {
+    const label = f.label || 'This field';
+    const n = Number(v);
+    const min = Number.isFinite(Number(f.min)) ? Number(f.min) : 0;
+    const max = Number.isFinite(Number(f.max)) ? Number(f.max) : null;
+    const range = max !== null ? `between ${min} and ${max}` : `at least ${min}`;
+    if (!Number.isFinite(n)) return `${label} must be a number ${range}.`;
+    if (n < min || (max !== null && n > max)) {
+      return f.integer
+        ? `${label} must be a whole number ${range}.`
+        : `${label} must be a number ${range}.`;
+    }
+    if (f.integer && !Number.isInteger(n)) {
+      return `${label} must be a whole number ${range}.`;
+    }
+    return null;
+  }
   if (f.type === 'phone' && !normalizeMyPhone(v)) {
     return 'Enter a valid Malaysian mobile number (e.g. 012-3456789).';
   }
@@ -344,6 +362,7 @@ export function sanitizeFields(fields: CustomField[]): CustomField[] {
     if (f.type === 'number') {
       const ppu = Number(f.price_per_unit);
       if (Number.isFinite(ppu)) next.price_per_unit = Math.max(0, ppu);
+      if (f.integer) next.integer = true;
       const min = Number(f.min);
       const max = Number(f.max);
       const validMin = Number.isFinite(min);

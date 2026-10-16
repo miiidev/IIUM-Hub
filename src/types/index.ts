@@ -48,6 +48,7 @@ export interface CustomField {
   price_per_unit?: number;
   min?: number;
   max?: number;
+  integer?: boolean;
 }
 
 export interface CustomFormState {

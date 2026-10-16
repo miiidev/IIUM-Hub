@@ -32,6 +32,17 @@ describe('buildItemSnapshot', () => {
     expect(byId.print_pages.display).toBe('10');
   });
 
+  it('stores the clamped numeric value so display equals priced', () => {
+    const snap = buildItemSnapshot({ title: 'Print', price: 0 }, printing, {
+      print_size: 'A4',
+      print_pages: 9999,
+    }, 1);
+    const pages = (snap.fields ?? []).find((f) => f.field_id === 'print_pages')!;
+    expect(pages.value).toBe(500);
+    expect(pages.display).toBe('500');
+    expect(pages.price_applied).toBe(50);
+  });
+
   it('skips empty values', () => {
     const snap = buildItemSnapshot({ title: 'T', price: 5 }, printing, {}, 1);
     expect(snap.fields).toEqual([]);

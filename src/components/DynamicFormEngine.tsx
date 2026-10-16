@@ -217,7 +217,10 @@ export default function DynamicFormEngine({
                   id={fieldId}
                   className={inputCls}
                   type="number"
-                  inputMode="decimal"
+                  inputMode={f.integer ? 'numeric' : 'decimal'}
+                  min={f.min}
+                  max={f.max}
+                  step={f.integer ? 1 : 'any'}
                   value={val === '' ? '' : Number(val)}
                   placeholder="0"
                   onChange={(e) =>
