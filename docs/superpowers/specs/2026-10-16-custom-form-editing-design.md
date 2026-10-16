@@ -24,6 +24,9 @@ In:
    buttons for touch/keyboard/screen readers.
 2. Add `date` and `phone` as addable question types.
 3. Change a question's type, converting and stripping incompatible config.
+4. Unify the product/form flow: `Add product` is the single entry point and questions
+   are always configured inside it. The parallel preset bulk-apply panel leaves the
+   Products page and becomes a one-off action in Settings (next to Category).
 
 Out (unchanged): preset picker, editor-sheet core fields, `DynamicFormEngine`
 (already renders date/phone), snapshot/pricing paths, `products.custom_fields`
@@ -38,6 +41,12 @@ JSONB shape. No schema migration. No new npm dependency.
   reset). Keep `id`, `label`, `required`, `enabled`.
 - **Confirmation style:** inline bar inside the editor sheet (no native
   `prompt`/`confirm`, consistent with the cancel-reason sheet).
+- **Product vs form naming:** keep the noun "Product". Products and their forms are
+  one entity (`products.custom_fields`); there are no standalone forms, and plain
+  listings (no questions) are common, so "Add form" would mislead. The real fix for
+  the "product then preset" feeling is removing the *parallel* preset panel from the
+  Products page — not renaming. Preset choice then only ever happens inside the
+  create/edit flow, where the wizard already marks the recommended preset.
 
 ## Design
 
@@ -71,6 +80,17 @@ All three helpers are pure and unit-tested.
   discard config, an inline confirm bar appears — e.g. *"This will clear 3 options.
   [Convert] [Keep type]"* — applying `convertFieldType` to the draft on confirm.
   Save persists through the existing `sanitizeFields`.
+
+### Flow unification (product vs form)
+
+- `Products.tsx`: remove the preset bulk-apply panel. The page keeps only
+  "+ Add product" and the product grid, so adding a product is the single entry and
+  no preset concept competes with it.
+- `ProductWizard.tsx`: unchanged — step 2 already surfaces preset cards with the
+  recommended badge, so preset choice happens inside creation/editing.
+- `Settings.tsx`: gains a small one-off "Apply recommended preset to all products"
+  action next to Category (which drives the recommendation), preserving the existing
+  empty-only and overwrite-with-confirm behaviour.
 
 ### Data flow
 
