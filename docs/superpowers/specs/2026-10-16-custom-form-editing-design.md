@@ -24,9 +24,8 @@ In:
    buttons for touch/keyboard/screen readers.
 2. Add `date` and `phone` as addable question types.
 3. Change a question's type, converting and stripping incompatible config.
-4. Unify the product/form flow: `Add product` is the single entry point and questions
-   are always configured inside it. The parallel preset bulk-apply panel leaves the
-   Products page and becomes a one-off action in Settings (next to Category).
+4. Unify the add flow: remove the standalone "apply preset" bulk panel so the wizard
+   is the single path for giving a product its questions.
 
 Out (unchanged): preset picker, editor-sheet core fields, `DynamicFormEngine`
 (already renders date/phone), snapshot/pricing paths, `products.custom_fields`
@@ -41,12 +40,6 @@ JSONB shape. No schema migration. No new npm dependency.
   reset). Keep `id`, `label`, `required`, `enabled`.
 - **Confirmation style:** inline bar inside the editor sheet (no native
   `prompt`/`confirm`, consistent with the cancel-reason sheet).
-- **Product vs form naming:** keep the noun "Product". Products and their forms are
-  one entity (`products.custom_fields`); there are no standalone forms, and plain
-  listings (no questions) are common, so "Add form" would mislead. The real fix for
-  the "product then preset" feeling is removing the *parallel* preset panel from the
-  Products page — not renaming. Preset choice then only ever happens inside the
-  create/edit flow, where the wizard already marks the recommended preset.
 
 ## Design
 
@@ -81,16 +74,19 @@ All three helpers are pure and unit-tested.
   [Convert] [Keep type]"* — applying `convertFieldType` to the draft on confirm.
   Save persists through the existing `sanitizeFields`.
 
-### Flow unification (product vs form)
+### Unifying the add flow (`src/pages/seller/Products.tsx`)
 
-- `Products.tsx`: remove the preset bulk-apply panel. The page keeps only
-  "+ Add product" and the product grid, so adding a product is the single entry and
-  no preset concept competes with it.
-- `ProductWizard.tsx`: unchanged — step 2 already surfaces preset cards with the
-  recommended badge, so preset choice happens inside creation/editing.
-- `Settings.tsx`: gains a small one-off "Apply recommended preset to all products"
-  action next to Category (which drives the recommendation), preserving the existing
-  empty-only and overwrite-with-confirm behaviour.
+The wizard already combines product details and its questions in one flow, so the
+only thing making products and forms feel separate is the standalone panel on the
+Products page: *"Preset X recommended for your shop category → Apply to empty
+products / Overwrite all."* Remove it (and `handleBulkApply` plus the imports it
+alone used). The wizard’s step 2 remains the single place a preset is chosen or
+tuned.
+
+Vocabulary stays "product" everywhere — the buyer surface (marketplace, storefront,
+tracker) talks about products/services, and "form" describes only the questions on a
+product. Trade-off, accepted: existing empty products must each be edited to gain
+questions; there is no bulk backfill anymore.
 
 ### Data flow
 
@@ -114,7 +110,9 @@ Type-change conversion happens on the draft, so an abandoned edit changes nothin
   - reorder by arrows on a phone; reorder by drag on desktop;
   - add Date and Phone questions and see them render for the buyer with validation;
   - change Choice → Number (options cleared, inline confirm shown) and back;
-  - existing presets and legacy products still edit and save unchanged.
+  - existing presets and legacy products still edit and save unchanged;
+  - the Products page shows no standalone "apply preset" panel, and adding a
+    product reveals the preset choice only inside the wizard.
 
 ## Risks
 
