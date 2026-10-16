@@ -246,7 +246,7 @@ export default function SellerDashboard() {
         {shop?.name ?? 'Shop'} — {order.id.slice(0, 8)}...
       </p>
 
-      <div className="mt-5 grid gap-4 lg:grid-cols-2 lg:items-start">
+      <div className="mt-5 grid gap-4 lg:grid-cols-2 lg:items-start animate-fade-in-up">
         <Card className="border-2 border-emerald p-5">
           <p className="text-sm font-semibold text-muted">DUITNOW REF ID — 2-SECOND CROSS-CHECK</p>
           <p className="break-all font-mono text-3xl font-bold tracking-widest text-ink sm:text-4xl">

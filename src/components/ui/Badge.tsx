@@ -18,6 +18,7 @@ export default function Badge({ tone = 'mint', dot = false, className = '', chil
     <span
       className={[
         'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold',
+        'transition-colors duration-150 ease-out-soft',
         TONES[tone],
         className,
       ].join(' ')}

@@ -81,7 +81,7 @@ export default function RequireShop({ children }: { children: ReactNode }) {
       <h2 className="text-2xl font-bold text-ink">Set Up Your Shop</h2>
       <p className="mt-1 text-sm text-muted">Complete the details to start selling.</p>
 
-      <Card className="mt-5 p-4 sm:p-6">
+      <Card className="mt-5 p-4 sm:p-6 animate-fade-in-up">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <label htmlFor="rs-name" className="mb-1 block text-sm font-semibold text-ink">

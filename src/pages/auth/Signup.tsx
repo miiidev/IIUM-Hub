@@ -78,7 +78,7 @@ export default function Signup() {
 
       <main className="flex flex-1 items-start justify-center px-5 py-10 sm:px-8">
         <div className="w-full max-w-lg">
-          <Card className="p-6 sm:p-8">
+          <Card className="p-6 sm:p-8 animate-fade-in-up">
             <p className="text-overline font-semibold uppercase tracking-wider text-muted">
               Seller registration
             </p>

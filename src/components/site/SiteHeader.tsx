@@ -22,7 +22,7 @@ export default function SiteHeader() {
         </nav>
         <Link
           to="/seller"
-          className="inline-flex h-11 items-center gap-1.5 rounded-control bg-emerald px-4 text-sm font-semibold text-white transition-colors hover:bg-emerald/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
+          className="inline-flex h-11 items-center gap-1.5 rounded-control bg-emerald px-4 text-sm font-semibold text-white transition-[color,background-color,transform] duration-150 ease-out-soft hover:-translate-y-px hover:bg-emerald/90 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
         >
           {user ? 'Dashboard' : 'Sell here'}
           <ArrowUpRight size={16} aria-hidden="true" />

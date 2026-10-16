@@ -342,7 +342,7 @@ export default function Storefront() {
           </div>
         </div>
 
-        <aside className="sticky top-24 mt-8 hidden lg:mt-0 lg:block">
+        <aside className="sticky top-24 mt-8 hidden lg:mt-0 lg:block animate-fade-in-up">
           <Card className="p-5">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-ink">Order Summary</h2>

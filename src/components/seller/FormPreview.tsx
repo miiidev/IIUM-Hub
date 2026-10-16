@@ -14,7 +14,7 @@ export default function FormPreview({ fields, basePrice, shopId }: Props) {
   const unit = computeUnitTotal(basePrice, fields, values);
 
   return (
-    <div className="rounded-control border border-line bg-white p-3">
+    <div className="rounded-control border border-line bg-white p-3 animate-fade-in-up">
       <p className="text-xs font-semibold uppercase tracking-wide text-muted">Buyer preview</p>
       <div className="mt-2">
         <DynamicFormEngine

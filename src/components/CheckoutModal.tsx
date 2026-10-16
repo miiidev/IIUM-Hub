@@ -204,7 +204,7 @@ export default function CheckoutModal({
         </ol>
 
         {waLink && placedOrderId && (
-          <div className="mb-4 rounded-control border border-emerald/30 bg-mint/40 p-4 text-center">
+          <div className="mb-4 rounded-control border border-emerald/30 bg-mint/40 p-4 text-center animate-fade-in-up">
             <p className="font-bold text-ink">Order saved!</p>
             <p className="mt-1 text-sm text-muted">
               Your browser blocked the automatic tab. Tap below to open WhatsApp:

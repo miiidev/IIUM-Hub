@@ -93,7 +93,7 @@ export default function Dashboard() {
       <SellerNav />
 
       <main className="mx-auto w-full max-w-[1312px] flex-1 px-5 py-6 sm:px-8">
-        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 animate-fade-in-up">
           <Card className="p-3 text-center sm:p-5">
             <p className="text-2xl font-bold text-amber-600 sm:text-3xl">{stats.pending}</p>
             <p className="text-xs font-semibold uppercase tracking-wide text-muted">Pending</p>
