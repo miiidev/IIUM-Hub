@@ -150,7 +150,7 @@ export default function SellerDashboard() {
   }, [orderId]);
 
   async function updateStatus(
-    status: 'confirmed' | 'ready' | 'completed' | 'rejected' | 'cancelled',
+    status: 'confirmed' | 'ready' | 'completed' | 'cancelled',
     cancelReason?: string
   ) {
     if (!orderId || !order) return;
@@ -296,11 +296,11 @@ export default function SellerDashboard() {
             Verify Payment
           </button>
           <button
-            onClick={() => updateStatus('rejected')}
+            onClick={handleCancel}
             disabled={updating}
             className="h-14 w-full rounded-xl bg-red-600 text-lg font-bold text-white disabled:opacity-60"
           >
-            Reject Order
+            Cancel Order
           </button>
         </div>
       )}
@@ -325,7 +325,7 @@ export default function SellerDashboard() {
         </button>
       )}
 
-      {!['completed', 'rejected', 'cancelled'].includes(order.status) && (
+      {!['completed', 'cancelled'].includes(order.status) && order.status !== 'pending_verification' && (
         <button
           onClick={handleCancel}
           disabled={updating}
@@ -341,9 +341,9 @@ export default function SellerDashboard() {
         </div>
       )}
 
-      {(order.status === 'completed' || order.status === 'rejected') && (
+      {order.status === 'completed' && (
         <div className="mt-4 lg:col-span-2 rounded-xl border border-slate-200 bg-white p-4 text-center text-sm font-bold text-slate-700">
-          Order {order.status}. No further action.
+          Order completed. No further action.
         </div>
       )}
       </div>

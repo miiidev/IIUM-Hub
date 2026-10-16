@@ -17,7 +17,6 @@ function statusToStep(status: Order['status']): number {
     case 'completed':
       return 3;
     case 'cancelled':
-    case 'rejected':
       return -1;
     default:
       return 0;
@@ -41,7 +40,7 @@ export default function OrderTracker() {
     let timer: ReturnType<typeof setInterval> | null = null;
 
     function terminal(status: Order['status']): boolean {
-      return status === 'completed' || status === 'cancelled' || status === 'rejected';
+      return status === 'completed' || status === 'cancelled';
     }
 
     async function fetchRow(): Promise<Order | null> {
@@ -170,7 +169,7 @@ export default function OrderTracker() {
           className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-bold ${
             order.status === 'completed'
               ? 'bg-emerald-100 text-emerald-700'
-              : order.status === 'rejected' || order.status === 'cancelled'
+              : order.status === 'cancelled'
                 ? 'bg-red-100 text-red-700'
                 : order.status === 'confirmed' || order.status === 'ready'
                   ? 'bg-blue-100 text-blue-700'
@@ -181,9 +180,9 @@ export default function OrderTracker() {
         </span>
       </div>
 
-      {order.status === 'rejected' || order.status === 'cancelled' ? (
+      {order.status === 'cancelled' ? (
         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700">
-          {order.status === 'cancelled' ? 'Order cancelled.' : 'Order rejected by seller.'}{' '}
+          Order cancelled.{' '}
           {order.cancel_reason ? `Reason: ${order.cancel_reason}` : 'Please contact the seller on WhatsApp for info.'}
         </div>
       ) : (

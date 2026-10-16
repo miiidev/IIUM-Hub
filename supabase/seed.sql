@@ -41,7 +41,7 @@ join (values
   ('burger-aminah', 'Ali Test', 'Mahalla Aminah, A3-1-20', 16.00, '7788', '{}',
     '[{"title":"Beef Cheese Burger","qty":1,"unitPrice":9,"lineTotal":9},{"title":"Chicken Crispy Burger","qty":1,"unitPrice":7,"lineTotal":7}]', 'completed'),
   ('bike-rental-maryam', 'Maryam Test', 'Mahalla Maryam, D4-2-11', 10.00, '3344', '{}',
-    '[{"title":"Basikal Sewa Harian","qty":1,"unitPrice":10,"lineTotal":10}]', 'rejected'),
+    '[{"title":"Basikal Sewa Harian","qty":1,"unitPrice":10,"lineTotal":10}]', 'cancelled'),
   ('fixphone-bilal', 'Custom Test', 'Mahalla Bilal, E1-1-01', 50.00, '5566',
     '{"Model Telefon":"iPhone 11","Jenis Kerosakan":"Screen Crack","Nota Tambahan":"segera"}',
     '[{"title":"Repair Phone Custom","qty":1,"unitPrice":50,"lineTotal":50}]', 'pending_verification')

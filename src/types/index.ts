@@ -7,8 +7,7 @@ export type OrderStatus =
   | 'confirmed'
   | 'ready'
   | 'completed'
-  | 'cancelled'
-  | 'rejected';
+  | 'cancelled';
 
 export interface Shop {
   id: string;

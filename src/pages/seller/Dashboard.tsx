@@ -5,7 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import type { Order, OrderStatus } from '../../types';
 import SellerNav from '../../components/seller/SellerNav';
 
-const FILTERS: Array<'all' | OrderStatus> = ['all', 'pending_verification', 'confirmed', 'ready', 'completed', 'cancelled', 'rejected'];
+const FILTERS: Array<'all' | OrderStatus> = ['all', 'pending_verification', 'confirmed', 'ready', 'completed', 'cancelled'];
 
 function refLast(ref: string): string {
   return ref.length <= 4 ? ref : ref.slice(-4);
@@ -69,7 +69,7 @@ export default function Dashboard() {
       if (o.status === 'pending_verification') pending++;
       if (o.status === 'completed') completed++;
       if (!o.created_at || new Date(o.created_at).toDateString() === today) {
-        if (o.status !== 'rejected' && o.status !== 'cancelled') todayRM += Number(o.total_amount) || 0;
+        if (o.status !== 'cancelled') todayRM += Number(o.total_amount) || 0;
       }
     }
     return { pending, completed, todayRM, total: orders.length };
