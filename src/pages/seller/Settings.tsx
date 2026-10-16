@@ -19,7 +19,9 @@ export default function Settings() {
   const [isActive, setIsActive] = useState(shop?.is_active ?? true);
   const [account, setAccount] = useState(shop?.duitnow_account ?? '');
   const [qrUrl, setQrUrl] = useState(shop?.duitnow_qr_url ?? '');
+  const [bannerUrl, setBannerUrl] = useState(shop?.banner_url ?? '');
   const [uploading, setUploading] = useState(false);
+  const [uploadingBanner, setUploadingBanner] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -34,6 +36,7 @@ export default function Settings() {
     setIsActive(shop.is_active ?? true);
     setAccount(shop.duitnow_account ?? '');
     setQrUrl(shop.duitnow_qr_url ?? '');
+    setBannerUrl(shop.banner_url ?? '');
   }, [shop?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleQrUpload(file: File) {
@@ -56,6 +59,34 @@ export default function Settings() {
     }
   }
 
+  async function handleBannerUpload(file: File) {
+    if (!shop) return;
+    setError(null);
+    if (!file.type.startsWith('image/')) {
+      setError('Banner must be an image file.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Banner must be 2MB or smaller.');
+      return;
+    }
+    setUploadingBanner(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+      const path = `${shop.id}/banner.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('shop-banners')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('shop-banners').getPublicUrl(path);
+      setBannerUrl(`${data.publicUrl}?t=${Date.now()}`);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to upload banner.');
+    } finally {
+      setUploadingBanner(false);
+    }
+  }
+
   async function handleSave() {
     if (!shop) return;
     setError(null);
@@ -75,6 +106,7 @@ export default function Settings() {
           is_active: isActive,
           duitnow_account: account.trim() || null,
           duitnow_qr_url: qrUrl.split('?')[0] || null,
+          banner_url: bannerUrl.split('?')[0] || null,
         })
         .eq('id', shop.id);
       if (err) throw err;
@@ -120,6 +152,45 @@ export default function Settings() {
           <div className="sm:col-span-2">
             <label className="mb-1 block text-sm font-bold text-slate-900">DuitNow Account No. (shown at checkout)</label>
             <input className={inputCls} value={account} onChange={(e) => setAccount(e.target.value)} placeholder="e.g. 60123456789 / 1234567890" inputMode="numeric" />
+          </div>
+          <div className="sm:col-span-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-bold text-slate-900">Shop Banner</p>
+            <p className="text-xs text-slate-500">Shown on your shop card and page. JPG/PNG, max 2MB.</p>
+            <div className="mt-2">
+              {bannerUrl ? (
+                <img src={bannerUrl} alt="Shop banner" className="aspect-video w-full rounded-xl border border-slate-200 bg-white object-cover" />
+              ) : (
+                <div className="flex aspect-video w-full items-center justify-center rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-400">
+                  No banner
+                </div>
+              )}
+              <div className="mt-2 flex gap-2">
+                <label className="inline-flex h-12 flex-1 cursor-pointer items-center justify-center rounded-xl bg-slate-900 px-4 text-sm font-bold text-white">
+                  {uploadingBanner ? 'Uploading...' : 'Upload banner'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingBanner}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleBannerUpload(f);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+                {bannerUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setBannerUrl('')}
+                    disabled={uploadingBanner}
+                    className="h-12 rounded-xl border border-red-200 px-4 text-sm font-bold text-red-600 disabled:opacity-40"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
           <div className="sm:col-span-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
             <p className="text-sm font-bold text-slate-900">QR DuitNow</p>

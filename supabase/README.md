@@ -14,6 +14,7 @@ if the DB is ever wiped or a new environment is needed, re-apply in order:
 9. `migrations/0009_order_states.sql` - applied: new order statuses, `cancel_reason`, anon UPDATE removed
 10. `migrations/0010_buyer_uploads_private.sql` - NOT APPLIED: makes `buyer-uploads` private (run manually, see file)
 11. `migrations/0011_orders_privacy.sql` - NOT APPLIED: `get_order()` RPC, drops anon SELECT (run only after the matching frontend is deployed)
+12. `migrations/0012_shop_banner.sql` - applied: `shops.banner_url` + public `shop-banners` bucket
 12. `seed.sql` — demo shops, products, test orders (one per status)
 
 ## Dashboard checklist (per environment)

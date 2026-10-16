@@ -162,6 +162,16 @@ export default function Storefront() {
         <Link to="/" className="inline-flex h-11 items-center gap-1 text-sm font-bold text-slate-700">
           <ArrowLeft size={16} /> Marketplace
         </Link>
+        {shop.banner_url && (
+          <img
+            src={shop.banner_url}
+            alt=""
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+            className="mt-3 h-40 w-full rounded-xl bg-slate-100 object-cover sm:h-56"
+          />
+        )}
         <h1 className="mt-1 text-xl font-bold text-slate-900 sm:text-2xl">{shop.name}</h1>
         <div className="mt-1 flex flex-wrap gap-2">
           <span className="rounded-full border border-slate-200 bg-slate-100 px-2 py-1 text-xs font-medium text-slate-800">

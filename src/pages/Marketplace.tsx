@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { Search, Store } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import type { ProductWithShop } from '../types';
+import type { Shop } from '../types';
 import { MAHALLAS } from '../utils/mahallas';
 import { SHOP_CATEGORIES, categoryLabel } from '../utils/categories';
 
@@ -11,7 +11,7 @@ const MAHALLA_FILTERS = ['All', ...MAHALLAS];
 
 export default function Marketplace() {
   const { user } = useAuth();
-  const [products, setProducts] = useState<ProductWithShop[]>([]);
+  const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cat, setCat] = useState('all');
@@ -19,42 +19,35 @@ export default function Marketplace() {
   const [q, setQ] = useState('');
 
   useEffect(() => {
-    async function fetchProducts() {
+    async function fetchShops() {
       setLoading(true);
       setError(null);
       try {
         const { data, error: err } = await supabase
-          .from('products')
-          .select('*, shops!inner(id,slug,name,mahalla,category,is_active)')
-          .eq('is_available', true)
-          .eq('shops.is_active', true)
-          .order('title')
-          .limit(100);
+          .from('shops')
+          .select('*')
+          .eq('is_active', true)
+          .order('name');
         if (err) throw err;
-        setProducts((data as ProductWithShop[]) ?? []);
+        setShops((data as Shop[]) ?? []);
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : 'Failed to load services.');
+        setError(e instanceof Error ? e.message : 'Failed to load shops.');
       } finally {
         setLoading(false);
       }
     }
-    fetchProducts();
+    fetchShops();
   }, []);
 
   const filtered = useMemo(() => {
     const needle = q.trim().toLowerCase();
-    return products.filter((p) => {
-      if (cat !== 'all' && p.shops.category !== cat) return false;
-      if (mahalla !== 'All' && p.shops.mahalla !== mahalla) return false;
-      if (
-        needle &&
-        !p.title.toLowerCase().includes(needle) &&
-        !p.shops.name.toLowerCase().includes(needle)
-      )
-        return false;
+    return shops.filter((s) => {
+      if (cat !== 'all' && s.category !== cat) return false;
+      if (mahalla !== 'All' && s.mahalla !== mahalla) return false;
+      if (needle && !s.name.toLowerCase().includes(needle)) return false;
       return true;
     });
-  }, [products, cat, mahalla, q]);
+  }, [shops, cat, mahalla, q]);
 
   return (
     <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 pb-10">
@@ -76,7 +69,7 @@ export default function Marketplace() {
             <Search size={18} className="shrink-0 text-slate-500" />
             <input
               className="w-full bg-transparent outline-none text-slate-900"
-              placeholder="Search services, food, printing..."
+              placeholder="Search shops..."
               value={q}
               onChange={(e) => setQ(e.target.value)}
             />
@@ -130,31 +123,54 @@ export default function Marketplace() {
         {!loading && !error && filtered.length === 0 && (
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
             <Store className="mx-auto text-slate-400" />
-            <p className="mt-2 font-bold text-slate-900">No services found</p>
+            <p className="mt-2 font-bold text-slate-900">No shops found</p>
             <p className="text-sm text-slate-600">Try a different search or filter.</p>
           </div>
         )}
 
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
-          {filtered.map((p) => (
+          {filtered.map((s) => (
             <Link
-              key={p.id}
-              to={`/s/${p.shops.slug}?product=${p.id}`}
+              key={s.id}
+              to={`/s/${s.slug}`}
               className="rounded-xl border border-slate-200 bg-white p-4 min-h-[88px]"
             >
+              {s.banner_url ? (
+                <img
+                  src={s.banner_url}
+                  alt=""
+                  loading="lazy"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                  }}
+                  className="mb-3 aspect-video w-full rounded-xl bg-slate-100 object-cover"
+                />
+              ) : (
+                <div
+                  aria-hidden
+                  className="mb-3 flex aspect-video w-full items-center justify-center rounded-xl bg-slate-100 text-2xl font-bold text-slate-400"
+                >
+                  {s.name.charAt(0).toUpperCase()}
+                </div>
+              )}
               <div className="flex items-center justify-between gap-2">
-                <h2 className="font-bold text-slate-900">{p.title}</h2>
-                <span className="shrink-0 font-bold text-slate-900">
-                  RM {Number(p.price).toFixed(2)}
+                <h2 className="font-bold text-slate-900">{s.name}</h2>
+                <span
+                  className={`shrink-0 rounded-full px-2 py-1 text-xs font-bold ${
+                    s.is_active
+                      ? 'bg-emerald-100 text-emerald-700'
+                      : 'bg-slate-100 text-slate-500'
+                  }`}
+                >
+                  {s.is_active ? 'Open' : 'Closed'}
                 </span>
               </div>
-              <p className="mt-1 text-sm text-slate-600">{p.shops.name}</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                  {p.shops.mahalla}
+                  {s.mahalla}
                 </span>
                 <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
-                  {categoryLabel(p.shops.category)}
+                  {categoryLabel(s.category)}
                 </span>
               </div>
             </Link>

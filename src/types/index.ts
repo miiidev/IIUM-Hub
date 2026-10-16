@@ -21,6 +21,7 @@ export interface Shop {
   owner_id?: string | null;
   duitnow_qr_url?: string | null;
   duitnow_account?: string | null;
+  banner_url?: string | null;
 }
 
 export interface Profile {
