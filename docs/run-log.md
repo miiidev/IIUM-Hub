@@ -45,7 +45,7 @@ Evidence (file:line) is recorded in the Phase B checklist below.
 
 - [x] **Phase A** — Safety + baseline (branch `overhaul`, tag `pre-overhaul`, this log)
 - [x] **Phase B** — Audit Phases 1–5 vs code; fix only residual gaps (lint, docs drift)
-- [ ] **Phase C** — Figma access + `docs/design-gap-report.md`
+- [x] **Phase C** — Figma access + `docs/design-gap-report.md`
 - [ ] **Phase D** — Apply design (tokens, fonts, `src/components/ui/`, buyer then seller)
 - [ ] **Phase E** — Polish, `docs/design-system.md`, `docs/forms.md`, final report
 
@@ -97,6 +97,22 @@ Rules stay error-free (0 errors). Lint "green" = 0 errors; warnings are DX-only.
 
 ---
 
+## Phase C — Figma gap report (result)
+
+- Figma MCP reachable. Enumerated page `0:1` → 16 top-level frames; saved all as
+  `design/frames/*.png` (plus `design/assets/frame-image-98-57.png`).
+- Tokens: only `Emerald1 #065F46` and `Cream #FFF8E7` are published variables; mint
+  `#A7F3D0` is a raw style. Token sheet in `design/tokens.md`.
+- Font: **Sofia Sans** (SIL OFL 1.1, free); 1 family / 3 weights.
+- Report: `docs/design-gap-report.md` (screen map, A–E element table, missing states,
+  copy diffs, contrast proposals, licensing, form-flow conflicts, owner decisions).
+- Design covers: Welcome + role-choice (no routes), Login, Signup, Logged-out,
+  Marketplace, Storefront/order (mobile + desktop), and a **desktop-only** checkout.
+  No frames exist for the tracker, seller dashboard/products/settings/order page, the
+  sheets, or mobile checkout.
+- `98:57` is a leftover off-system (navy) crop — excluded.
+- Apply policy: A/B/C → build; D → not built (fallback/omit); E → keep behavior, restyle only.
+
 ## Locked areas (from Phase 6 onward)
 
 After Phase C begins, the following directories must have an EMPTY diff for the rest of the run:
@@ -123,6 +139,10 @@ _(Populated as the run proceeds.)_
 
 - D-A1: Treated prompt Phases 1–5 as audit-only (they are already implemented and green).
 - D-A2: Branch `overhaul` created from `main`; tag `pre-overhaul` on 26fadab.
+- D-C1: Kept the checkout modal + our step model + our buyer fields (design conflicts E);
+  applied the design visually only.
+- D-C2: Classified search, sort, shop images, forgot-password, rental checkout fields,
+  welcome/role routes as D → not built (see `docs/design-gap-report.md` §9).
 
 ## Deviations log
 
