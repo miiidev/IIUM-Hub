@@ -6,6 +6,7 @@ import DynamicFormEngine from '../DynamicFormEngine';
 import { buildItemSnapshot } from '../../utils/orderSnapshot';
 import { clampQty, validateRequired } from '../../utils/formPresets';
 import { errorCount, firstErrorFieldId } from '../../utils/formUi';
+import Button from '../ui/Button';
 
 interface Props {
   open: boolean;
@@ -93,35 +94,38 @@ export default function ProductSheet({
               type="button"
               aria-label="Decrease quantity"
               onClick={() => setQty((q) => Math.max(1, clampQty(q - 1)))}
-              className="flex h-12 w-12 items-center justify-center rounded-xl border border-slate-300 bg-white"
+              className="flex h-12 w-12 items-center justify-center rounded-control border border-line bg-white text-ink transition-colors hover:bg-mint/30"
             >
-              <Minus size={18} />
+              <Minus size={18} aria-hidden="true" />
             </button>
-            <span className="w-6 text-center font-bold">{qty}</span>
+            <span className="w-6 text-center font-semibold text-ink">{qty}</span>
             <button
               type="button"
               aria-label="Increase quantity"
               onClick={() => setQty((q) => clampQty(q + 1))}
-              className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-900 text-white"
+              className="flex h-12 w-12 items-center justify-center rounded-control bg-emerald text-white transition-colors hover:bg-emerald/90"
             >
-              <Plus size={18} />
+              <Plus size={18} aria-hidden="true" />
             </button>
           </div>
-          <button
+          <Button
             type="button"
             onClick={handlePrimary}
             disabled={busy}
-            className="h-12 flex-1 rounded-xl bg-emerald-600 font-bold text-white disabled:opacity-60"
+            className="flex-1"
           >
             {busy ? 'Uploading…' : `${editing ? 'Update order' : 'Add to order'} · RM ${snap.lineTotal.toFixed(2)}`}
-          </button>
+          </Button>
         </div>
       }
     >
       <div onFocusCapture={handleFocus}>
-        <p className="text-sm text-slate-600">
-          Base: RM {base.toFixed(2)}
-        </p>
+        {nErrors > 0 && (
+          <p role="alert" className="mb-3 rounded-control border border-red-200 bg-red-50 p-3 text-sm font-semibold text-red-700">
+            {nErrors} {nErrors === 1 ? 'thing' : 'things'} to fill in
+          </p>
+        )}
+        <p className="text-sm text-muted">Base: RM {base.toFixed(2)}</p>
         <div className="mt-3">
           <DynamicFormEngine
             fields={fields}
@@ -135,17 +139,12 @@ export default function ProductSheet({
             onBusyChange={(b) => setBusyCount((c) => Math.max(0, c + (b ? 1 : -1)))}
           />
         </div>
-        {nErrors > 0 && (
-          <p role="alert" className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-bold text-red-700">
-            {nErrors} {nErrors === 1 ? 'thing' : 'things'} to fill in
-          </p>
-        )}
         {snap.fields && snap.fields.length > 0 && (
-          <details className="mt-3 rounded-xl border border-slate-200 bg-white">
-            <summary className="flex min-h-[44px] cursor-pointer items-center px-3 text-sm font-bold text-slate-800">
+          <details className="mt-3 rounded-control border border-line bg-white">
+            <summary className="flex min-h-[44px] cursor-pointer items-center px-3 text-sm font-semibold text-ink">
               See price breakdown
             </summary>
-            <div className="border-t border-slate-200 p-3 text-sm text-slate-700">
+            <div className="border-t border-line p-3 text-sm text-muted">
               <p className="flex justify-between">
                 <span>Base</span>
                 <span>RM {base.toFixed(2)}</span>
@@ -156,11 +155,11 @@ export default function ProductSheet({
                     {f.label}: {f.display}
                   </span>
                   {f.price_applied > 0 && (
-                    <span className="font-bold">+RM {f.price_applied.toFixed(2)}</span>
+                    <span className="font-semibold text-emerald">+RM {f.price_applied.toFixed(2)}</span>
                   )}
                 </p>
               ))}
-              <p className="mt-1 flex justify-between border-t border-slate-200 pt-1 font-bold text-slate-900">
+              <p className="mt-1 flex justify-between border-t border-line pt-1 font-semibold text-ink">
                 <span>
                   {qty} × RM {snap.unitPrice.toFixed(2)}
                 </span>
