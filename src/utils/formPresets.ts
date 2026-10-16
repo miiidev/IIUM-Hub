@@ -182,6 +182,14 @@ export function activeFields(fields: CustomField[] | null | undefined): CustomFi
   return (fields ?? []).filter((f) => f.enabled !== false);
 }
 
+export const MAX_QTY_PER_ITEM = 20;
+
+export function clampQty(q: unknown): number {
+  const n = Math.floor(Number(q));
+  if (!Number.isFinite(n)) return 0;
+  return Math.min(MAX_QTY_PER_ITEM, Math.max(0, n));
+}
+
 export function calculateModifierTotal(
   fields: CustomField[],
   values: Record<string, CustomValue>

@@ -28,7 +28,7 @@ export function buildOrderMessage(shop: Shop, order: OrderPayload, orderId: stri
   lines.push('');
   lines.push('*Items:*');
   order.items.forEach((it) => {
-    lines.push(`- ${it.title} x${it.qty} = ${formatRM(it.lineTotal)}`);
+    lines.push(`- ${it.title} x${it.qty} @ ${formatRM(it.unitPrice)} = ${formatRM(it.lineTotal)}`);
     if (it.selectedOptions) {
       lines.push(`  - ${it.selectedOptions}`);
     }

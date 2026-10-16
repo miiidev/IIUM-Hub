@@ -7,6 +7,7 @@ import DynamicFormEngine from '../components/DynamicFormEngine';
 import CheckoutModal from '../components/CheckoutModal';
 import {
   activeFields,
+  clampQty,
   computeUnitTotal,
   describeValues,
   validateRequired,
@@ -96,7 +97,7 @@ export default function Storefront() {
   }
 
   function changeQty(productId: string, delta: number) {
-    setQty((prev) => ({ ...prev, [productId]: Math.max(0, (prev[productId] ?? 0) + delta) }));
+    setQty((prev) => ({ ...prev, [productId]: clampQty((prev[productId] ?? 0) + delta) }));
   }
 
   const { count, total, itemsSummary, orderCustomData } = useMemo(() => {
@@ -217,8 +218,23 @@ export default function Storefront() {
                       q > 0 && (
                         <div className="flex shrink-0 items-center gap-2">
                           <span className="rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold text-emerald-700">
-                            ✓ 1 in order
+                            ✓ {q} in order
                           </span>
+                          <button
+                            className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-300 bg-white"
+                            onClick={() => changeQty(p.id, -1)}
+                            aria-label={`Decrease ${p.title}`}
+                          >
+                            <Minus size={18} />
+                          </button>
+                          <span className="w-6 text-center font-bold">{q}</span>
+                          <button
+                            className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-900 text-white"
+                            onClick={() => changeQty(p.id, 1)}
+                            aria-label={`Add ${p.title}`}
+                          >
+                            <Plus size={18} />
+                          </button>
                           <button
                             onClick={() => changeQty(p.id, -q)}
                             aria-label={`Remove ${p.title}`}
@@ -268,6 +284,11 @@ export default function Storefront() {
                         RM {Number(p.price).toFixed(2)}
                         {extra > 0 && ` + RM ${extra.toFixed(2)}`} ={' '}
                         <span className="font-bold text-slate-900">RM {unit.toFixed(2)} / unit</span>
+                        {q > 0 && (
+                          <span className="block font-bold text-slate-900">
+                            {q} × RM {unit.toFixed(2)} = RM {(unit * q).toFixed(2)}
+                          </span>
+                        )}
                       </p>
                     </div>
                   )}

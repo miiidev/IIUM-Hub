@@ -2,9 +2,11 @@ import { describe, expect, it } from 'vitest';
 import type { CustomField } from '../../types';
 import {
   CATEGORY_PRESET_MAP,
+  MAX_QTY_PER_ITEM,
   PRESETS,
   activeFields,
   calculateModifierTotal,
+  clampQty,
   clonePresetFields,
   computeUnitTotal,
   createQuestionCard,
@@ -117,6 +119,25 @@ describe('validation and description', () => {
     expect(describeValues(fields, { food_size: 'Large', food_notes: '  ' })).toEqual([
       { label: 'Size', value: 'Large' },
     ]);
+  });
+});
+
+describe('clampQty', () => {
+  it('floors and clamps to 0..MAX_QTY_PER_ITEM', () => {
+    expect(MAX_QTY_PER_ITEM).toBe(20);
+    expect(clampQty(3)).toBe(3);
+    expect(clampQty(2.9)).toBe(2);
+    expect(clampQty(-5)).toBe(0);
+    expect(clampQty(999)).toBe(20);
+    expect(clampQty(NaN)).toBe(0);
+    expect(clampQty(undefined)).toBe(0);
+  });
+
+  it('qty x unit math holds for multi-unit lines', () => {
+    const fields = clonePresetFields('printing');
+    const unit = computeUnitTotal(1, fields, { print_size: 'A3', print_color: 'Color' });
+    expect(unit).toBeCloseTo(1.9);
+    expect(unit * clampQty(2)).toBeCloseTo(3.8);
   });
 });
 

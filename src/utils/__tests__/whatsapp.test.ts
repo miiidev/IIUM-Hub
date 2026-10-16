@@ -30,7 +30,7 @@ describe('whatsapp', () => {
   it('builds a markdown message with specs, total, ref id and manage link', () => {
     const msg = buildOrderMessage(shop, order, 'order-123');
     expect(msg).toContain('*New Order - Kedai Test*');
-    expect(msg).toContain('- Print A4 x2 = RM 5.90');
+    expect(msg).toContain('- Print A4 x2 @ RM 2.95 = RM 5.90');
     expect(msg).toContain('- Saiz Kertas: A4');
     expect(msg).toContain('*Total: RM 5.90*');
     expect(msg).toContain('DuitNow Ref ID: 9412');
