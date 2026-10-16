@@ -98,7 +98,7 @@ export default function ProductSheet({
             >
               <Minus size={18} aria-hidden="true" />
             </button>
-            <span className="w-6 text-center font-semibold text-ink">{qty}</span>
+            <span key={qty} className="w-6 text-center font-semibold text-ink animate-scale-in">{qty}</span>
             <button
               type="button"
               aria-label="Increase quantity"

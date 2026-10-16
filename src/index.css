@@ -52,6 +52,7 @@
   --animate-fade-in: fade-in 0.24s var(--ease-out-soft) both;
   --animate-fade-in-up: fade-in-up 0.3s var(--ease-out-soft) both;
   --animate-scale-in: scale-in 0.22s var(--ease-out-soft) both;
+  --animate-page: fade-in 0.2s var(--ease-out-soft) both;
 }
 
 /* Enter recipe (Jakub): opacity + translateY + blur → materializing, not just fading. */

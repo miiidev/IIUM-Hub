@@ -179,13 +179,16 @@ export default function Marketplace() {
           )}
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((s) => (
+            {filtered.map((s, i) => (
               <Link
                 key={s.id}
                 to={`/s/${s.slug}`}
                 className="group block rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
               >
-                <Card className="overflow-hidden group-hover:shadow-button group-hover:-translate-y-0.5">
+                <Card
+                  className="overflow-hidden group-hover:shadow-button group-hover:-translate-y-0.5 animate-fade-in-up"
+                  style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
+                >
                   <div className="relative aspect-[16/10] w-full bg-mint/40">
                     {s.banner_url ? (
                       <img
@@ -195,7 +198,7 @@ export default function Marketplace() {
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
                         }}
-                        className="h-full w-full object-cover animate-fade-in"
+                        className="h-full w-full object-cover animate-fade-in transition-transform duration-300 ease-out-soft group-hover:scale-105"
                       />
                     ) : (
                       <span

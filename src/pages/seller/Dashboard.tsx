@@ -137,13 +137,16 @@ export default function Dashboard() {
         )}
 
         <div className="mt-4 grid gap-3 lg:grid-cols-2 xl:grid-cols-3">
-          {visible.map((o) => (
+          {visible.map((o, i) => (
             <Link
               key={o.id}
               to={`/seller/orders/${o.id}`}
               className="rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald focus-visible:ring-offset-2 focus-visible:ring-offset-cream"
             >
-              <Card className="p-4 transition-shadow hover:shadow-button">
+              <Card
+                className="p-4 hover:shadow-button hover:-translate-y-0.5 animate-fade-in-up"
+                style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
+              >
                 <div className="flex items-center justify-between gap-2">
                   <p className="truncate font-semibold text-ink">{o.buyer_name}</p>
                   <Badge tone={o.status === 'pending_verification' ? 'muted' : 'mint'}>

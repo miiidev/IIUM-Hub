@@ -256,7 +256,7 @@ export default function CheckoutModal({
                         >
                           <Minus size={16} aria-hidden="true" />
                         </button>
-                        <span className="w-6 text-center text-sm font-semibold text-ink">{line.item.qty}</span>
+                        <span key={line.item.qty} className="w-6 text-center text-sm font-semibold text-ink animate-scale-in">{line.item.qty}</span>
                         <button
                           type="button"
                           aria-label="Increase quantity"

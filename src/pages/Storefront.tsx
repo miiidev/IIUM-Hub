@@ -221,7 +221,7 @@ export default function Storefront() {
           )}
 
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            {products.map((p) => {
+            {products.map((p, i) => {
               const fields = p.custom_fields ?? [];
               const hasForm = activeFields(fields).length > 0;
               const line = cart[p.id];
@@ -233,11 +233,17 @@ export default function Storefront() {
                 <Card
                   key={p.id}
                   id={`product-${p.id}`}
-                  className={`p-4 ${
+                  className={`group p-4 animate-fade-in-up ${
                     highlightId === p.id ? 'ring-2 ring-emerald' : ''
                   }`}
+                  style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
                 >
-                  <ProductImage src={p.image_url} className="mb-3 aspect-video w-full rounded-control" />
+                  <div className="mb-3 overflow-hidden rounded-control">
+                    <ProductImage
+                      src={p.image_url}
+                      className="aspect-video w-full rounded-control transition-transform duration-300 ease-out-soft group-hover:scale-105"
+                    />
+                  </div>
                   <div className="min-w-0">
                     <h3 className="break-words font-semibold text-ink">{p.title}</h3>
                     <p className="mt-0.5 text-sm font-semibold text-emerald">
@@ -294,7 +300,10 @@ export default function Storefront() {
                       >
                         <Minus size={18} aria-hidden="true" />
                       </button>
-                      <span className="w-7 text-center font-semibold text-ink">
+                      <span
+                        key={inCart ? line.qty : 0}
+                        className="w-7 text-center font-semibold text-ink animate-scale-in"
+                      >
                         {inCart ? line.qty : 0}
                       </span>
                       <button
@@ -358,7 +367,7 @@ export default function Storefront() {
                 <p className="text-sm text-muted">
                   {count} {count === 1 ? 'item' : 'items'}
                 </p>
-                <p className="text-2xl font-bold text-ink">RM {total.toFixed(2)}</p>
+                <p key={total} className="text-2xl font-bold text-ink animate-scale-in">RM {total.toFixed(2)}</p>
               </div>
               <Button
                 variant="secondary"
@@ -381,9 +390,9 @@ export default function Storefront() {
 
       <SiteFooter />
 
-      <div className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white p-4 sm:hidden">
+      <div className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t border-line bg-white p-4 animate-fade-in-up sm:hidden">
         <div className="mx-auto flex max-w-[1312px] items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-ink">
+          <p key={total} className="text-sm font-semibold text-ink animate-scale-in">
             {count} items · RM {total.toFixed(2)}
           </p>
           <Button

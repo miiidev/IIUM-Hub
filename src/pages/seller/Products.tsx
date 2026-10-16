@@ -162,8 +162,12 @@ export default function Products() {
           )}
 
           <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-            {products.map((p) => (
-              <Card key={p.id} className="p-4">
+            {products.map((p, i) => (
+              <Card
+                key={p.id}
+                className="p-4 animate-fade-in-up"
+                style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
+              >
                 <div className="flex items-center justify-between gap-2">
                   <h3 className="truncate font-semibold text-ink">{p.title}</h3>
                   <Badge tone={p.is_available ? 'mint' : 'muted'}>{p.is_available ? 'On' : 'Off'}</Badge>

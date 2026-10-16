@@ -61,17 +61,23 @@ elaborate or looping motion.
 | `animate-fade-in` | `fade-in 0.24s` | Images, small appearing blocks |
 | `animate-fade-in-up` | `fade-in-up 0.3s` (opacity + translateY 8px + blur 4px) | Sheets, modals, banners, empty states |
 | `animate-scale-in` | `scale-in 0.22s` (from 0.9, never 0) | Contextual swaps |
+| `animate-page` | `fade-in 0.2s` (opacity only) | Route transitions |
 
 Where it's applied:
 
-- **Buttons / Chips / tab bar**: `transition-[color,background-color,border-color,box-shadow,transform] duration-150 ease-out-soft active:scale-[0.97]` (press feedback).
-- **Cards** (interactive): `transition-[box-shadow,transform] duration-200`; shop cards lift `group-hover:-translate-y-0.5`.
-- **Bottom sheet + checkout modal**: backdrop `animate-fade-in`, panel `animate-fade-in-up` (enter only — exits unmount instantly; a designed exit is deferred, no animation lib).
+- **Route transitions**: `App.tsx` keys the routes by `location.pathname` and wraps them in
+  `animate-page` — a **opacity-only** fade (a transform here would create a containing block
+  and break `position: fixed` sheets/cart bar/tab bar).
+- **Buttons / Chips / tab bar**: `transition-[color,background-color,border-color,box-shadow,transform] duration-150 ease-out-soft` + `hover:-translate-y-px active:scale-[0.97]` (press/lift feedback).
+- **Cards** (interactive): `transition-[box-shadow,transform] duration-200`; shop/order cards lift `hover:-translate-y-0.5`.
+- **Lists** (shop, product, order, seller-product cards): staggered `animate-fade-in-up` with an inline `animation-delay` per index (~40 ms steps).
+- **Images** (shop + product): `transition-transform duration-300`; inner image zooms `group-hover:scale-105` inside an `overflow-hidden` wrapper.
+- **Numbers that change** (qty steppers, order total): keyed by value + `animate-scale-in` (pop).
+- **Bottom sheet + checkout modal**: backdrop `animate-fade-in`, panel `animate-fade-in-up` (enter only — exits unmount instantly; a designed exit is deferred, no animation lib). Mobile cart bar slides in (`animate-fade-in-up`).
 - **Every `role="alert"`** (error banners): animated on mount via one global rule in `index.css`.
-- **Product/shop images** (`ProductImage`, banners): `animate-fade-in`.
-- Only `transform` / `opacity` / `filter` are animated — never `width`/`height`/`top`/`left`.
-- `prefers-reduced-motion: reduce` (global rule in `index.css`) zeroes all durations while
-  preserving final states, so nothing breaks.
+- Only `transform` / `opacity` / `filter` are animated — never `width`/`height`/`top`/`left`, and never a transform/filter on a container that holds `position: fixed` children.
+- `prefers-reduced-motion: reduce` (global rule in `index.css`) zeroes durations **and delays**
+  while preserving final states, so nothing breaks and staggered items appear instantly.
 
 ## Rules
 

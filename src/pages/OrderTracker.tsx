@@ -187,7 +187,7 @@ export default function OrderTracker() {
                 ))}
               </div>
             ))}
-            <span className="mt-3 inline-block">
+            <span key={order.status} className="mt-3 inline-block animate-scale-in">
               <Badge
                 tone={order.status === 'completed' ? 'mint' : 'muted'}
                 className={
