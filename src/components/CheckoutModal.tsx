@@ -284,8 +284,8 @@ export default function CheckoutModal({
                           <Button
                             type="button"
                             size="sm"
+                            variant="danger"
                             onClick={() => onEdit(line.productId, errs)}
-                            className="bg-danger hover:bg-danger/90"
                           >
                             Fix
                           </Button>

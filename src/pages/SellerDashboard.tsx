@@ -319,9 +319,10 @@ export default function SellerDashboard() {
             </Button>
             <Button
               size="md"
+              variant="danger"
               onClick={handleCancel}
               disabled={updating}
-              className="h-14 bg-danger text-lg hover:bg-danger/90"
+              className="h-14 text-lg"
             >
               Cancel Order
             </Button>
@@ -387,9 +388,10 @@ export default function SellerDashboard() {
               Keep order
             </Button>
             <Button
+              variant="danger"
               onClick={confirmCancel}
               disabled={updating || !cancelReason.trim()}
-              className="flex-1 bg-danger hover:bg-danger/90"
+              className="flex-1"
             >
               {updating ? 'Cancelling…' : 'Cancel order'}
             </Button>

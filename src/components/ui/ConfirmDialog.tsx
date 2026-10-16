@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import Button from './Button';
 
 interface Props {
@@ -7,6 +8,7 @@ interface Props {
   message?: ReactNode;
   confirmLabel?: string;
   cancelLabel?: string;
+  destructive?: boolean;
   busy?: boolean;
   onConfirm: () => void;
   onClose: () => void;
@@ -37,6 +39,7 @@ export default function ConfirmDialog({
   message,
   confirmLabel = 'Delete',
   cancelLabel = 'Cancel',
+  destructive = true,
   busy = false,
   onConfirm,
   onClose,
@@ -69,7 +72,7 @@ export default function ConfirmDialog({
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div
       className="fixed inset-0 z-[60] flex items-center justify-center bg-black/40 p-4 animate-fade-in"
       role="dialog"
@@ -99,14 +102,15 @@ export default function ConfirmDialog({
           </Button>
           <Button
             type="button"
+            variant={destructive ? 'danger' : 'primary'}
             onClick={onConfirm}
             disabled={busy}
-            className="bg-danger hover:bg-danger/90"
           >
             {busy ? 'Working…' : confirmLabel}
           </Button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
