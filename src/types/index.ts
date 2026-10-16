@@ -75,6 +75,17 @@ export interface OrderItemSummary {
   unitPrice: number;
   lineTotal: number;
   selectedOptions?: string;
+  basePrice?: number;
+  fields?: OrderFieldSnapshot[];
+}
+
+export interface OrderFieldSnapshot {
+  field_id: string;
+  label: string;
+  type: string;
+  value: CustomValue;
+  display: string;
+  price_applied: number;
 }
 
 export interface Order {

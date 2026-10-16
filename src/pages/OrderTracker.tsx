@@ -2,21 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import type { CustomValue, Order } from '../types';
-import { displayFileName } from '../utils/uploadFile';
-
-function renderValue(v: CustomValue) {
-  if (Array.isArray(v)) return v.join(', ');
-  const s = String(v);
-  if (/^https?:\/\//.test(s)) {
-    return (
-      <a href={s} target="_blank" rel="noreferrer" className="font-bold text-emerald-700 underline">
-        View file ({displayFileName(s)})
-      </a>
-    );
-  }
-  return s;
-}
+import type { Order } from '../types';
+import { normalizeOrderFields } from '../utils/orderSnapshot';
 
 const STEPS = ['Order Placed', 'Payment Verified', 'Preparing', 'Ready'];
 
@@ -106,6 +93,7 @@ export default function OrderTracker() {
   }
 
   const step = statusToStep(order.status);
+  const groups = normalizeOrderFields(order);
 
   return (
     <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6 pb-10">
@@ -127,15 +115,37 @@ export default function OrderTracker() {
             ))}
           </div>
         )}
-        {Object.keys(order.custom_data || {}).length > 0 && (
-          <div className="mt-2 border-t border-slate-200 pt-2">
-            {Object.entries(order.custom_data).map(([k, v]) => (
-              <p key={k} className="text-sm text-slate-700">
-                <span className="font-bold">{k}:</span> {renderValue(v)}
+        {groups.map((g, gi) => (
+          <div key={gi} className="mt-2 border-t border-slate-200 pt-2">
+            {groups.length > 1 && (
+              <p className="text-sm font-bold text-slate-900">
+                {g.title} × {g.qty}
+              </p>
+            )}
+            {g.entries.map((e, ei) => (
+              <p key={ei} className="text-sm text-slate-700">
+                <span className="font-bold">{e.label}:</span>{' '}
+                {/^https?:\/\//.test(Array.isArray(e.value) ? '' : String(e.value)) ? (
+                  <a
+                    href={String(e.value)}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-bold text-emerald-700 underline"
+                  >
+                    View file ({e.display})
+                  </a>
+                ) : (
+                  e.display
+                )}
+                {e.price_applied > 0 && (
+                  <span className="ml-1 text-xs font-bold text-emerald-700">
+                    (+RM {e.price_applied.toFixed(2)})
+                  </span>
+                )}
               </p>
             ))}
           </div>
-        )}
+        ))}
         <span
           className={`mt-2 inline-block rounded-full px-3 py-1 text-xs font-bold ${
             order.status === 'completed'

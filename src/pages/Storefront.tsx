@@ -9,9 +9,9 @@ import {
   activeFields,
   clampQty,
   computeUnitTotal,
-  describeValues,
   validateRequired,
 } from '../utils/formPresets';
+import { buildItemSnapshot } from '../utils/orderSnapshot';
 
 const wrapCls =
   'mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50';
@@ -104,27 +104,21 @@ export default function Storefront() {
     let c = 0;
     let t = 0;
     const items: OrderItemSummary[] = [];
-    const custom: Record<string, CustomValue> = {};
-    const withForms = products.filter(
-      (p) => (qty[p.id] ?? 0) > 0 && activeFields(p.custom_fields).length > 0
-    ).length;
 
     for (const p of products) {
       const q = qty[p.id] ?? 0;
       if (q <= 0) continue;
-      const fields = p.custom_fields ?? [];
-      const vals = values[p.id] ?? {};
-      const unit = computeUnitTotal(Number(p.price), fields, vals);
-      const line = unit * q;
+      const snap = buildItemSnapshot(
+        { title: p.title, price: Number(p.price) },
+        p.custom_fields ?? [],
+        values[p.id] ?? {},
+        q
+      );
       c += q;
-      t += line;
-      items.push({ title: p.title, qty: q, unitPrice: unit, lineTotal: line });
-      for (const entry of describeValues(fields, vals)) {
-        const key = withForms > 1 ? `${p.title}: ${entry.label}` : entry.label;
-        custom[key] = entry.value;
-      }
+      t += snap.lineTotal;
+      items.push(snap);
     }
-    return { count: c, total: t, itemsSummary: items, orderCustomData: custom };
+    return { count: c, total: Math.round(t * 100) / 100, itemsSummary: items, orderCustomData: {} };
   }, [products, qty, values]);
 
   function handleCheckoutOpen() {

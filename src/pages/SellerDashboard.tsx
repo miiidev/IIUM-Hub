@@ -2,20 +2,28 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import type { CustomValue, Order, Shop } from '../types';
-import { displayFileName } from '../utils/uploadFile';
+import type { Order, Shop } from '../types';
+import { normalizeOrderFields, type NormalizedEntry } from '../utils/orderSnapshot';
 
-function renderValue(v: CustomValue) {
-  if (Array.isArray(v)) return v.join(', ');
-  const s = String(v);
-  if (/^https?:\/\//.test(s)) {
-    return (
-      <a href={s} target="_blank" rel="noreferrer" className="font-bold text-emerald-700 underline">
-        View file ({displayFileName(s)})
-      </a>
-    );
-  }
-  return s;
+function renderEntry(entry: NormalizedEntry) {
+  const raw = Array.isArray(entry.value) ? '' : String(entry.value);
+  const body = /^https?:\/\//.test(raw) ? (
+    <a href={raw} target="_blank" rel="noreferrer" className="font-bold text-emerald-700 underline">
+      View file ({entry.display})
+    </a>
+  ) : (
+    entry.display
+  );
+  return (
+    <span>
+      <span className="font-bold">{entry.label}:</span> {body}
+      {entry.price_applied > 0 && (
+        <span className="ml-1 text-xs font-bold text-emerald-700">
+          (+RM {entry.price_applied.toFixed(2)})
+        </span>
+      )}
+    </span>
+  );
 }
 
 export default function SellerDashboard() {
@@ -122,6 +130,8 @@ export default function SellerDashboard() {
 
   if (!order) return null;
 
+  const groups = normalizeOrderFields(order);
+
   // Ownership check: sellers can only manage their own shop's orders.
   if (myShop && order.shop_id !== myShop.id) {
     return (
@@ -171,15 +181,25 @@ export default function SellerDashboard() {
             ))}
           </div>
         )}
-        {Object.keys(order.custom_data || {}).length > 0 && (
-          <div className="mt-2 border-t border-slate-200 pt-2">
-            {Object.entries(order.custom_data).map(([k, v]) => (
-              <p key={k} className="text-sm text-slate-700">
-                <span className="font-bold">{k}:</span> {renderValue(v)}
+        {groups.map((g, gi) => (
+          <div key={gi} className="mt-2 border-t border-slate-200 pt-2">
+            {groups.length > 1 && (
+              <p className="text-sm font-bold text-slate-900">
+                {g.title} × {g.qty} — RM {g.lineTotal.toFixed(2)}
+              </p>
+            )}
+            {g.entries.map((e, ei) => (
+              <p key={ei} className="text-sm text-slate-700">
+                {renderEntry(e)}
               </p>
             ))}
+            {g.mismatch && (
+              <p className="mt-1 inline-block rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">
+                Total doesn't match the form breakdown
+              </p>
+            )}
           </div>
-        )}
+        ))}
         <span className="mt-2 inline-block rounded-full bg-slate-100 px-3 py-1 text-xs font-bold">
           {order.status.toUpperCase()}
         </span>

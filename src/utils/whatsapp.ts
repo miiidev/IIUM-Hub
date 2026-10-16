@@ -29,6 +29,10 @@ export function buildOrderMessage(shop: Shop, order: OrderPayload, orderId: stri
   lines.push('*Items:*');
   order.items.forEach((it) => {
     lines.push(`- ${it.title} x${it.qty} @ ${formatRM(it.unitPrice)} = ${formatRM(it.lineTotal)}`);
+    (it.fields ?? []).forEach((f) => {
+      const extra = Number(f.price_applied) > 0 ? ` (+RM ${Number(f.price_applied).toFixed(2)})` : '';
+      lines.push(`  - ${f.label}: ${f.display}${extra}`);
+    });
     if (it.selectedOptions) {
       lines.push(`  - ${it.selectedOptions}`);
     }
