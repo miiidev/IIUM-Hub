@@ -26,3 +26,7 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Isolated git worktrees (scratch workspaces)
+.worktrees/
+.superpowers/
