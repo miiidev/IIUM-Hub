@@ -20,6 +20,7 @@ interface Props {
   shopId: string;
   disabled?: boolean;
   recommendedKey?: PresetKey | null;
+  hidePresets?: boolean;
 }
 
 export default function SellerFormConfigurator({
@@ -29,6 +30,7 @@ export default function SellerFormConfigurator({
   shopId,
   disabled = false,
   recommendedKey = null,
+  hidePresets = false,
 }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
@@ -59,8 +61,9 @@ export default function SellerFormConfigurator({
         </p>
       </div>
 
-      <div>
-        <p className="mb-2 text-sm font-bold text-slate-900">1. Choose a preset</p>
+      {!hidePresets && (
+        <div>
+          <p className="mb-2 text-sm font-bold text-slate-900">1. Choose a preset</p>
         <div className="grid grid-cols-2 gap-2">
           {PRESETS.map((p) => (
             <button
@@ -84,7 +87,8 @@ export default function SellerFormConfigurator({
             </button>
           ))}
         </div>
-      </div>
+        </div>
+      )}
 
       <div>
         <p className="mb-2 text-sm font-bold text-slate-900">2. Questions ({fields.length})</p>

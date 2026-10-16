@@ -1,14 +1,10 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import type { CustomField, Product } from '../../types';
+import type { Product } from '../../types';
 import SellerNav from '../../components/seller/SellerNav';
-import SellerFormConfigurator from '../../components/SellerFormConfigurator';
+import ProductWizard from '../../components/seller/ProductWizard';
 import { activeFields, clonePresetFields, getPreset, getPresetForCategory, sanitizeFields } from '../../utils/formPresets';
-import FormPreview from '../../components/seller/FormPreview';
-
-const inputCls =
-  'h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 outline-none focus:border-emerald-600';
 
 export default function Products() {
   const { shop } = useAuth();
@@ -17,12 +13,8 @@ export default function Products() {
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [title, setTitle] = useState('');
-  const [price, setPrice] = useState('');
-  const [available, setAvailable] = useState(true);
-  const [fields, setFields] = useState<CustomField[]>([]);
-  const [showPreview, setShowPreview] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
+  const [editing, setEditing] = useState<Product | null>(null);
 
   async function load() {
     if (!shop) return;
@@ -49,23 +41,14 @@ export default function Products() {
   }, [shop?.id]);
 
   function startAdd() {
-    setEditingId(null);
-    setTitle('');
-    setPrice('');
-    setAvailable(true);
-    const preset = shop ? getPresetForCategory(shop.category) : null;
-    setFields(preset ? clonePresetFields(preset) : []);
-    setShowPreview(false);
+    setEditing(null);
+    setShowWizard(true);
     setError(null);
   }
 
   function startEdit(p: Product) {
-    setEditingId(p.id);
-    setTitle(p.title);
-    setPrice(String(p.price));
-    setAvailable(p.is_available);
-    setFields(p.custom_fields ?? []);
-    setShowPreview(false);
+    setEditing(p);
+    setShowWizard(true);
     setError(null);
   }
 
@@ -110,58 +93,6 @@ export default function Products() {
     }
   }
 
-  async function handleSave() {
-    if (!shop) return;
-    setError(null);
-    if (!title.trim()) return setError('Product name is required.');
-    const numPrice = Number(price);
-    if (!price || isNaN(numPrice) || numPrice <= 0)
-      return setError('Price must be a number above 0.');
-    const cleaned = sanitizeFields(fields);
-    const missingLabel = cleaned.some((f) => f.enabled !== false && !f.label);
-    if (missingLabel) return setError('Every active question needs a label.');
-    const badSelect = cleaned.some((f) => f.enabled !== false && f.type === 'select' && (f.options ?? []).length === 0);
-    if (badSelect) return setError('Choice questions need at least one option.');
-    const badPpu = cleaned.some(
-      (f) => f.enabled !== false && f.type === 'number' && Number(f.price_per_unit ?? 0) < 0
-    );
-    if (badPpu) return setError('Price per unit cannot be negative.');
-    for (const f of cleaned) {
-      if (f.enabled === false || (f.type !== 'select' && f.type !== 'multiselect')) continue;
-      const seen = new Set<string>();
-      for (const o of f.options ?? []) {
-        const key = o.name.trim().toLowerCase();
-        if (seen.has(key)) return setError(`Duplicate option "${o.name.trim()}" in "${f.label}".`);
-        seen.add(key);
-      }
-    }
-    setSaving(true);
-    try {
-      if (editingId) {
-        const { error: err } = await supabase
-          .from('products')
-          .update({ title: title.trim(), price: numPrice, is_available: available, custom_fields: cleaned })
-          .eq('id', editingId);
-        if (err) throw err;
-      } else {
-        const { error: err } = await supabase.from('products').insert({
-          shop_id: shop.id,
-          title: title.trim(),
-          price: numPrice,
-          is_available: available,
-          custom_fields: cleaned,
-        });
-        if (err) throw err;
-      }
-      startAdd();
-      await load();
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to save product.');
-    } finally {
-      setSaving(false);
-    }
-  }
-
   async function toggleAvailable(p: Product) {
     const { error: err } = await supabase
       .from('products')
@@ -185,7 +116,16 @@ export default function Products() {
       <SellerNav />
       <main className="p-4 sm:p-6 lg:grid lg:grid-cols-[1fr_320px] lg:gap-6 lg:items-start">
         <div>
-          <h2 className="font-bold text-slate-900">Products ({products.length})</h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="font-bold text-slate-900">Products ({products.length})</h2>
+            <button
+              type="button"
+              onClick={startAdd}
+              className="h-11 rounded-xl bg-slate-900 px-4 text-sm font-bold text-white"
+            >
+              + Add product
+            </button>
+          </div>
           {shop && getPresetForCategory(shop.category) && (
             <div className="mt-2 rounded-xl border border-slate-300 bg-white p-3">
               <p className="text-sm text-slate-800">
@@ -213,6 +153,11 @@ export default function Products() {
             </div>
           )}
           {loading && <p className="mt-2 text-sm text-slate-500">Loading...</p>}
+          {error && (
+            <div className="mt-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+              {error}
+            </div>
+          )}
           <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {products.map((p) => (
               <div key={p.id} className="rounded-xl border border-slate-200 bg-white p-4">
@@ -255,60 +200,40 @@ export default function Products() {
           </div>
           {!loading && products.length === 0 && (
             <div className="mt-3 rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-600">
-              No products yet. Add your first one in the form.
+              No products yet. Tap + Add product to create your first one.
             </div>
           )}
         </div>
 
         <div className="mt-4 lg:mt-0 rounded-xl border border-slate-200 bg-white p-4 lg:sticky lg:top-24">
-          <h2 className="font-bold text-slate-900">{editingId ? 'Edit Product' : 'Add Product'}</h2>
-          <div className="mt-3 space-y-3">
-            <div>
-              <label className="mb-1 block text-sm font-bold text-slate-900">Name *</label>
-              <input className={inputCls} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Nasi Lemak Ayam" />
+          {showWizard ? (
+            <ProductWizard
+              editing={editing}
+              products={products}
+              onDone={() => {
+                setShowWizard(false);
+                setEditing(null);
+                load();
+              }}
+              onCancel={() => {
+                setShowWizard(false);
+                setEditing(null);
+              }}
+            />
+          ) : (
+            <div className="p-2 text-center">
+              <p className="text-sm font-bold text-slate-900">Product editor</p>
+              <p className="mt-1 text-sm text-slate-600">
+                Add a new product or tap Edit on one above.
+              </p>
+              <button
+                type="button"
+                onClick={startAdd}
+                className="mt-3 h-12 w-full rounded-xl bg-slate-900 font-bold text-white"
+              >
+                + Add product
+              </button>
             </div>
-            <div>
-              <label className="mb-1 block text-sm font-bold text-slate-900">Price (RM) *</label>
-              <input className={inputCls} type="number" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="e.g. 8.50" min="0" step="0.10" />
-            </div>
-            <label className="flex h-12 items-center gap-2 text-sm font-bold text-slate-900">
-              <input type="checkbox" checked={available} onChange={(e) => setAvailable(e.target.checked)} className="h-5 w-5" />
-              Available for sale
-            </label>
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
-              <SellerFormConfigurator fields={fields} onChange={setFields} basePrice={Number(price) || 0} shopId={shop?.id ?? ''} disabled={saving} recommendedKey={shop ? getPresetForCategory(shop.category) : null} />
-              {activeFields(fields).length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShowPreview((s) => !s)}
-                  className="mt-3 h-11 w-full rounded-xl border border-slate-300 bg-white text-sm font-bold text-slate-800"
-                >
-                  {showPreview ? 'Hide preview' : 'Show preview'}
-                </button>
-              )}
-              {showPreview && activeFields(fields).length > 0 && (
-                <div className="mt-3">
-                  <FormPreview fields={fields} basePrice={Number(price) || 0} shopId={shop?.id ?? ''} />
-                </div>
-              )}
-            </div>
-          </div>
-          {error && (
-            <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
-              {error}
-            </div>
-          )}
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="mt-3 h-12 w-full rounded-xl bg-emerald-600 font-bold text-white disabled:opacity-60"
-          >
-            {saving ? 'Saving...' : editingId ? 'Save Changes' : 'Add Product'}
-          </button>
-          {editingId && (
-            <button onClick={startAdd} className="mt-2 h-11 w-full rounded-xl border border-slate-200 text-sm font-bold text-slate-700">
-              Cancel Edit
-            </button>
           )}
         </div>
       </main>
