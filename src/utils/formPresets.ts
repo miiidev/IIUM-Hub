@@ -263,17 +263,44 @@ export function computeUnitTotal(
 
 export function validateRequired(
   fields: CustomField[],
-  values: Record<string, CustomValue>
+  values: Record<string, CustomValue>,
+  today?: string
 ): Record<string, string> {
   const errs: Record<string, string> = {};
   for (const f of activeFields(fields)) {
-    if (!f.required) continue;
-    const v = values[f.id];
-    const empty =
-      v === undefined || v === null || (Array.isArray(v) ? v.length === 0 : String(v).trim() === '');
-    if (empty) errs[f.id] = `${f.label || 'This field'} is required`;
+    const err = validateField(f, values[f.id], today);
+    if (err) errs[f.id] = err;
   }
   return errs;
+}
+
+export function todayLocal(d = new Date()): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+}
+
+export function normalizeMyPhone(input: unknown): string {
+  const digits = String(input ?? '').replace(/[\s\-()]/g, '');
+  const m = digits.match(/^(?:\+?60|0)?(1\d{7,9})$/);
+  if (!m) return '';
+  return `+60${m[1]}`;
+}
+
+export function validateField(
+  f: CustomField,
+  v: CustomValue | undefined,
+  today: string = todayLocal()
+): string | null {
+  const empty =
+    v === undefined || v === null || (Array.isArray(v) ? v.length === 0 : String(v).trim() === '');
+  if (empty) return f.required ? `${f.label || 'This field'} is required` : null;
+  if (f.type === 'phone' && !normalizeMyPhone(v)) {
+    return 'Enter a valid Malaysian mobile number (e.g. 012-3456789).';
+  }
+  if (f.type === 'date' && String(v) < today) {
+    return 'Date must be today or later.';
+  }
+  return null;
 }
 
 export function describeValues(

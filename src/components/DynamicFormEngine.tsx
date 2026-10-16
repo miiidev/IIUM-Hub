@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import type { CustomField, CustomValue } from '../types';
-import { activeFields } from '../utils/formPresets';
+import { activeFields, normalizeMyPhone, todayLocal } from '../utils/formPresets';
 import {
   FILE_ACCEPT,
   displayFileName,
@@ -240,6 +240,7 @@ export default function DynamicFormEngine({
                 id={fieldId}
                 className={inputCls}
                 type="date"
+                min={todayLocal()}
                 value={String(val)}
                 onChange={(e) => onChange(f.id, e.target.value)}
               />
@@ -251,9 +252,14 @@ export default function DynamicFormEngine({
                 className={inputCls}
                 type="tel"
                 inputMode="tel"
+                autoComplete="tel"
                 value={String(val)}
                 placeholder={f.placeholder || 'e.g. 012-3456789'}
                 onChange={(e) => onChange(f.id, e.target.value)}
+                onBlur={(e) => {
+                  const normalized = normalizeMyPhone(e.target.value);
+                  if (normalized && normalized !== e.target.value) onChange(f.id, normalized);
+                }}
               />
             )}
 

@@ -15,7 +15,10 @@ import {
   getPresetForCategory,
   isFormApplicable,
   maxExtraForField,
+  normalizeMyPhone,
   sanitizeFields,
+  todayLocal,
+  validateField,
   validateRequired,
 } from '../formPresets';
 
@@ -241,6 +244,51 @@ describe('multiselect', () => {
       { id: 'm', label: 'M', type: 'multiselect', required: false, options: [{ name: ' A ', price_modifier: -1 }, { name: '', price_modifier: 2 }] },
     ]);
     expect(clean.options).toEqual([{ name: 'A', price_modifier: 0 }]);
+  });
+});
+
+describe('phone and date validation', () => {
+  const phone = (id = 'p'): CustomField => ({ id, label: 'Phone', type: 'phone', required: true });
+  const date = (id = 'd'): CustomField => ({ id, label: 'Date', type: 'date', required: true });
+
+  it('normalizes Malaysian mobile variants to +60 form', () => {
+    expect(normalizeMyPhone('012-345 6789')).toBe('+60123456789');
+    expect(normalizeMyPhone('0123456789')).toBe('+60123456789');
+    expect(normalizeMyPhone('60123456789')).toBe('+60123456789');
+    expect(normalizeMyPhone('+60123456789')).toBe('+60123456789');
+    expect(normalizeMyPhone('(012) 345-6789')).toBe('+60123456789');
+    expect(normalizeMyPhone('011-12345678')).toBe('+601112345678');
+    expect(normalizeMyPhone('01112345678')).toBe('+601112345678');
+  });
+
+  it('rejects landlines, short, long and non-numeric input', () => {
+    expect(normalizeMyPhone('031234567')).toBe('');
+    expect(normalizeMyPhone('0123456')).toBe('');
+    expect(normalizeMyPhone('012345678901')).toBe('');
+    expect(normalizeMyPhone('abc')).toBe('');
+    expect(normalizeMyPhone('')).toBe('');
+    expect(normalizeMyPhone(undefined)).toBe('');
+  });
+
+  it('validateField gives a clear message for bad phones', () => {
+    expect(validateField(phone(), '012-345 6789')).toBeNull();
+    expect(validateField(phone(), '031234567')).toBe(
+      'Enter a valid Malaysian mobile number (e.g. 012-3456789).'
+    );
+    expect(validateField(phone(), '')).toBe('Phone is required');
+    expect(validateField({ ...phone(), required: false }, '')).toBeNull();
+  });
+
+  it('todayLocal returns device-local YYYY-MM-DD', () => {
+    expect(todayLocal(new Date(2026, 9, 16))).toBe('2026-10-16');
+    expect(todayLocal()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it('rejects past dates and accepts today or later', () => {
+    expect(validateField(date(), '2026-10-15', '2026-10-16')).toBe('Date must be today or later.');
+    expect(validateField(date(), '2026-10-16', '2026-10-16')).toBeNull();
+    expect(validateField(date(), '2026-10-17', '2026-10-16')).toBeNull();
+    expect(validateField(date(), '', '2026-10-16')).toBe('Date is required');
   });
 });
 
