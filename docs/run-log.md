@@ -303,6 +303,12 @@ the time of writing):
     Storage, and grew to 20 accounts (seller1..seller20) so **every** shop has exactly one
     owner. Ownership is deterministic: `sellerN` ↔ Nth shop by slug order. `supabase/seed.sql`
     reproduces the 20 shops + the account block + the assignment.
+18. **Overlay fix (Preview as buyer behind the nav)** — the sticky headers (`SiteHeader`,
+    `SellerNav`) had `backdrop-blur`; Chromium promotes `backdrop-filter` elements to their own
+    composited layer, which paints above a later overlay, so the `BottomSheet` backdrop didn't
+    cover the nav. Removed `backdrop-blur` and made both navs opaque (`bg-cream`). Verified by
+    driving a real login with Playwright + Edge: the nav is now dimmed (measured cream×0.6) under
+    the sheet, desktop and mobile.
 
 Verification: build clean, 78 tests pass, 0 lint errors, locked-area diff empty; new screens
 screenshotted below `sm` (500px) and at 800/1440 → `design/shots/`.
