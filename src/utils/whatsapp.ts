@@ -22,13 +22,16 @@ export function getAppOrigin(): string {
 }
 
 export function buildOrderMessage(shop: Shop, order: OrderPayload, orderId: string): string {
+  const divider = '━━━━━━━━━━━━━━';
   const lines: string[] = [];
   lines.push(`*New Order - ${shop.name}*`);
+  lines.push(divider);
   lines.push('');
-  lines.push(`- *Buyer:* ${order.buyer_name}`);
+  lines.push('*👤 Buyer*');
+  lines.push(`- *Name:* ${order.buyer_name}`);
   lines.push(`- *Location:* ${order.location}`);
   lines.push('');
-  lines.push('*Items:*');
+  lines.push(`*🛒 Items (${order.items.length})*`);
   order.items.forEach((it) => {
     lines.push(`- ${it.title} x${it.qty} @ ${formatRM(it.unitPrice)} = ${formatRM(it.lineTotal)}`);
     (it.fields ?? []).forEach((f) => {
@@ -42,17 +45,18 @@ export function buildOrderMessage(shop: Shop, order: OrderPayload, orderId: stri
   const custom = Object.entries(order.custom_data || {});
   if (custom.length > 0) {
     lines.push('');
-    lines.push('*Spec:*');
+    lines.push('*📋 Details*');
     custom.forEach(([k, v]) => {
       const text = Array.isArray(v) ? v.join(', ') : String(v);
       lines.push(`- ${k}: ${/^https?:\/\//.test(text) ? displayFileName(text) : text}`);
     });
   }
   lines.push('');
+  lines.push(divider);
   lines.push(`*Total: ${formatRM(order.total_amount)}*`);
   lines.push(`DuitNow Ref ID: ${order.payment_ref_id}`);
   lines.push('');
-  lines.push('Manage order:');
+  lines.push('*🔗 Manage order*');
   lines.push(`${getAppOrigin()}/seller/orders/${orderId}`);
   return lines.join('\n');
 }
