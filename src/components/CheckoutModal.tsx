@@ -49,6 +49,8 @@ export default function CheckoutModal({
   const [refId, setRefId] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [waLink, setWaLink] = useState<string | null>(null);
+  const [placedOrderId, setPlacedOrderId] = useState<string | null>(null);
   const [lineErrors, setLineErrors] = useState<Record<string, Record<string, string>>>({});
 
   useEffect(() => {
@@ -90,6 +92,10 @@ export default function CheckoutModal({
     if (!shop.whatsapp_number) {
       return setError("Seller has no WhatsApp number. Can't continue.");
     }
+
+    // Open the tab synchronously inside the click gesture — browsers block
+    // window.open() called after an await. Navigate it once the order saves.
+    const waWin = window.open('', '_blank');
 
     setLoading(true);
     try {
@@ -141,9 +147,17 @@ export default function CheckoutModal({
         orderId
       );
 
-      window.open(link, '_blank');
-      onClose();
-      navigate(`/order/${orderId}/track`);
+      if (waWin && !waWin.closed) {
+        waWin.location.href = link;
+        onClose();
+        navigate(`/order/${orderId}/track`);
+      } else {
+        // Popup was blocked: keep the order (it saved fine) and let the buyer
+        // open WhatsApp with a real tap instead.
+        if (waWin) waWin.close();
+        setPlacedOrderId(orderId);
+        setWaLink(link);
+      }
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : 'Failed to create order. Try again.';
       setError(msg);
@@ -174,6 +188,33 @@ export default function CheckoutModal({
             </span>
           ))}
         </p>
+
+        {waLink && placedOrderId && (
+          <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
+            <p className="font-bold text-slate-900">Order saved!</p>
+            <p className="mt-1 text-sm text-slate-600">
+              Your browser blocked the automatic tab. Tap below to open WhatsApp:
+            </p>
+            <a
+              href={waLink}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-3 flex h-12 items-center justify-center rounded-xl bg-emerald-600 font-bold text-white"
+            >
+              Open WhatsApp
+            </a>
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                navigate(`/order/${placedOrderId}/track`);
+              }}
+              className="mt-2 h-11 w-full rounded-xl border border-slate-300 bg-white text-sm font-bold text-slate-700"
+            >
+              View order status
+            </button>
+          </div>
+        )}
 
         {step === 0 && (
           <div>
