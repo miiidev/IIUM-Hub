@@ -181,6 +181,9 @@ export default function Storefront() {
             {shop.category}
           </span>
         </div>
+        {shop.description && (
+          <p className="mt-2 text-sm text-slate-600">{shop.description}</p>
+        )}
       </header>
 
       <main className="p-4 sm:p-6 lg:grid lg:grid-cols-[1fr_320px] lg:items-start lg:gap-6">
@@ -208,6 +211,16 @@ export default function Storefront() {
                     highlightId === p.id ? 'border-slate-900 ring-2 ring-slate-900' : 'border-slate-200'
                   }`}
                 >
+                  {p.image_url && (
+                    <img
+                      src={p.image_url}
+                      alt=""
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                      className="mb-3 aspect-video w-full rounded-xl bg-slate-100 object-cover"
+                    />
+                  )}
                   <div className="min-w-0">
                     <h3 className="break-words font-bold text-slate-900">{p.title}</h3>
                     <p className="text-sm font-bold text-slate-700">

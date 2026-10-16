@@ -14,6 +14,7 @@ import {
   sanitizeFields,
 } from '../../utils/formPresets';
 import { formatRange, priceRange } from '../../utils/priceRange';
+import { randomUuid } from '../../utils/uuid';
 
 const inputCls =
   'h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 outline-none focus:border-emerald-600';
@@ -37,6 +38,8 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
   const [copyFrom, setCopyFrom] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [imageUrl, setImageUrl] = useState(editing?.image_url ?? '');
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   useEffect(() => {
     setStep(editing ? 3 : 1);
@@ -46,6 +49,8 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
     setFields(editing?.custom_fields ?? []);
     setCopyFrom('');
     setError(null);
+    setImageUrl(editing?.image_url ?? '');
+    setUploadingImage(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing?.id]);
 
@@ -74,6 +79,34 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
     if (!src) return;
     if (fields.length > 0 && !window.confirm('Replace current questions with the copy?')) return;
     setFields(copyFields(src.custom_fields ?? []));
+  }
+
+  async function handleImageUpload(file: File) {
+    if (!shop) return;
+    setError(null);
+    if (!file.type.startsWith('image/')) {
+      setError('Product image must be an image file.');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setError('Product image must be 2MB or smaller.');
+      return;
+    }
+    setUploadingImage(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase().replace(/[^a-z0-9]/g, '') || 'jpg';
+      const path = `${shop.id}/${randomUuid()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('product-images')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+      setImageUrl(`${data.publicUrl}?t=${Date.now()}`);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Failed to upload image.');
+    } finally {
+      setUploadingImage(false);
+    }
   }
 
   async function handleSave() {
@@ -106,7 +139,7 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
       if (editing) {
         const { error: err } = await supabase
           .from('products')
-          .update({ title: title.trim(), price: numPrice, is_available: available, custom_fields: cleaned })
+          .update({ title: title.trim(), price: numPrice, is_available: available, custom_fields: cleaned, image_url: imageUrl.split('?')[0] || null })
           .eq('id', editing.id);
         if (err) throw err;
       } else {
@@ -116,6 +149,7 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
           price: numPrice,
           is_available: available,
           custom_fields: cleaned,
+          image_url: imageUrl.split('?')[0] || null,
         });
         if (err) throw err;
       }
@@ -152,6 +186,45 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
             <input type="checkbox" checked={available} onChange={(e) => setAvailable(e.target.checked)} className="h-5 w-5" />
             Available for sale
           </label>
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-bold text-slate-900">Product image (optional)</p>
+            <p className="text-xs text-slate-500">JPG/PNG, max 2MB.</p>
+            <div className="mt-2">
+              {imageUrl ? (
+                <img src={imageUrl} alt="Product" className="aspect-video w-full rounded-xl border border-slate-200 bg-white object-cover" />
+              ) : (
+                <div className="flex aspect-video w-full items-center justify-center rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-400">
+                  No image
+                </div>
+              )}
+              <div className="mt-2 flex gap-2">
+                <label className="inline-flex h-12 flex-1 cursor-pointer items-center justify-center rounded-xl bg-slate-900 px-4 text-sm font-bold text-white">
+                  {uploadingImage ? 'Uploading...' : 'Upload image'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    disabled={uploadingImage}
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      if (f) handleImageUpload(f);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+                {imageUrl && (
+                  <button
+                    type="button"
+                    onClick={() => setImageUrl('')}
+                    disabled={uploadingImage}
+                    className="h-12 rounded-xl border border-red-200 px-4 text-sm font-bold text-red-600 disabled:opacity-40"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
           <button
             onClick={nextFromInfo}
             className="h-12 w-full rounded-xl bg-slate-900 font-bold text-white"

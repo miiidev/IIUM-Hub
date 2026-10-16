@@ -20,6 +20,7 @@ export default function Settings() {
   const [account, setAccount] = useState(shop?.duitnow_account ?? '');
   const [qrUrl, setQrUrl] = useState(shop?.duitnow_qr_url ?? '');
   const [bannerUrl, setBannerUrl] = useState(shop?.banner_url ?? '');
+  const [description, setDescription] = useState(shop?.description ?? '');
   const [uploading, setUploading] = useState(false);
   const [uploadingBanner, setUploadingBanner] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +38,7 @@ export default function Settings() {
     setAccount(shop.duitnow_account ?? '');
     setQrUrl(shop.duitnow_qr_url ?? '');
     setBannerUrl(shop.banner_url ?? '');
+    setDescription(shop.description ?? '');
   }, [shop?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleQrUpload(file: File) {
@@ -107,6 +109,7 @@ export default function Settings() {
           duitnow_account: account.trim() || null,
           duitnow_qr_url: qrUrl.split('?')[0] || null,
           banner_url: bannerUrl.split('?')[0] || null,
+          description: description.trim() || null,
         })
         .eq('id', shop.id);
       if (err) throw err;
@@ -152,6 +155,17 @@ export default function Settings() {
           <div className="sm:col-span-2">
             <label className="mb-1 block text-sm font-bold text-slate-900">DuitNow Account No. (shown at checkout)</label>
             <input className={inputCls} value={account} onChange={(e) => setAccount(e.target.value)} placeholder="e.g. 60123456789 / 1234567890" inputMode="numeric" />
+          </div>
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-bold text-slate-900">Shop description (optional)</label>
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={300}
+              placeholder="Tell buyers what you sell and when you're open"
+              className="min-h-[96px] w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none focus:border-emerald-600"
+            />
+            <p className="mt-1 text-xs text-slate-500">{description.length}/300</p>
           </div>
           <div className="sm:col-span-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
             <p className="text-sm font-bold text-slate-900">Shop Banner</p>

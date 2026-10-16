@@ -21,6 +21,7 @@ export interface Shop {
   duitnow_qr_url?: string | null;
   duitnow_account?: string | null;
   banner_url?: string | null;
+  description?: string | null;
 }
 
 export interface Profile {
@@ -65,6 +66,7 @@ export interface Product {
   price: number;
   is_available: boolean;
   custom_fields: CustomField[] | null;
+  image_url?: string | null;
 }
 
 export interface ProductWithShop extends Product {
