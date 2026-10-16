@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { UploadCloud } from 'lucide-react';
 import type { CustomField, CustomValue } from '../types';
 import { activeFields, clampNumberValue, normalizeMyPhone, todayLocal } from '../utils/formPresets';
 import { quickPicksFor, shouldRenderAsChips } from '../utils/formUi';
@@ -40,21 +41,16 @@ function FileField({
 }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [dragging, setDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const url = typeof value === 'string' ? value : '';
 
   if (preview) {
     return (
-      <div>
-        <input
-          id={inputId}
-          type="file"
-          disabled
-          className="block w-full rounded-control border border-line bg-white px-4 py-2.5 text-sm text-ink outline-none file:mr-3 file:rounded-control file:border-0 file:bg-cream file:px-3 file:py-2 file:text-sm file:font-semibold file:text-muted disabled:opacity-60"
-        />
-        <p className="mt-1 text-xs text-muted">
-          Preview only — real upload happens in the storefront.
-        </p>
+      <div className="flex flex-col items-center justify-center gap-1.5 rounded-control border-2 border-dashed border-line bg-cream px-4 py-6 text-center opacity-70">
+        <UploadCloud size={22} className="text-muted" aria-hidden="true" />
+        <span className="text-sm font-semibold text-ink">Customers upload a file here</span>
+        <span className="text-xs text-muted">Preview only — real uploads happen in the storefront.</span>
       </div>
     );
   }
@@ -83,17 +79,43 @@ function FileField({
 
   return (
     <div>
-      <input
-        ref={inputRef}
-        id={inputId}
-        type="file"
-        accept={FILE_ACCEPT}
-        disabled={uploading}
-        onChange={(e) => handlePicked(e.target.files?.[0])}
-        className="block w-full rounded-control border border-line bg-white px-4 py-2.5 text-sm text-ink outline-none file:mr-3 file:rounded-control file:border-0 file:bg-emerald file:px-3 file:py-2 file:text-sm file:font-semibold file:text-white disabled:opacity-60"
-      />
-      {uploading && <p className="mt-1 text-sm text-muted">Uploading…</p>}
-      {uploadError && <p className="mt-1 text-sm font-medium text-danger">{uploadError}</p>}
+      <label
+        onDragOver={(e) => {
+          e.preventDefault();
+          if (!uploading) setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragging(false);
+          handlePicked(e.dataTransfer.files?.[0]);
+        }}
+        className={[
+          'flex cursor-pointer flex-col items-center justify-center gap-1.5 rounded-control border-2 border-dashed px-4 py-6 text-center',
+          'transition-colors duration-150 ease-out-soft',
+          dragging
+            ? 'border-emerald bg-mint/50'
+            : 'border-emerald/40 bg-mint/20 hover:border-emerald hover:bg-mint/40',
+          uploading ? 'pointer-events-none opacity-60' : '',
+        ].join(' ')}
+      >
+        <UploadCloud size={24} className="text-emerald" aria-hidden="true" />
+        <span className="text-sm font-semibold text-ink">
+          {uploading ? 'Uploading…' : url ? 'Replace file' : 'Tap to upload a file'}
+        </span>
+        <span className="text-xs text-muted">JPG, PNG, WEBP or PDF · max 5 MB</span>
+        <input
+          ref={inputRef}
+          id={inputId}
+          type="file"
+          accept={FILE_ACCEPT}
+          disabled={uploading}
+          onChange={(e) => handlePicked(e.target.files?.[0])}
+          className="sr-only"
+        />
+      </label>
+
+      {uploadError && <p role="alert" className="mt-1 text-sm font-medium text-danger">{uploadError}</p>}
       {url && (
         <div className="mt-2 flex items-center gap-2 rounded-control border border-line bg-cream p-2">
           {isLegacyFileUrl(url) ? (
@@ -113,13 +135,12 @@ function FileField({
           <button
             type="button"
             onClick={() => onChange('')}
-            className="h-10 shrink-0 rounded-control px-3 text-xs font-semibold text-danger"
+            className="h-10 shrink-0 rounded-control px-3 text-xs font-semibold text-danger transition-colors duration-150 ease-out-soft hover:bg-red-50"
           >
             Remove
           </button>
         </div>
       )}
-      <p className="mt-1 text-xs text-muted">JPG, PNG, WEBP or PDF — max 5MB.</p>
     </div>
   );
 }
