@@ -12,6 +12,7 @@ interface Props {
   product: Product | null;
   initialValues: Record<string, CustomValue>;
   initialQty: number;
+  initialErrors?: Record<string, string>;
   editing: boolean;
   shopId: string;
   onClose: () => void;
@@ -23,6 +24,7 @@ export default function ProductSheet({
   product,
   initialValues,
   initialQty,
+  initialErrors = {},
   editing,
   shopId,
   onClose,
@@ -30,7 +32,7 @@ export default function ProductSheet({
 }: Props) {
   const [values, setValues] = useState<Record<string, CustomValue>>(initialValues);
   const [qty, setQty] = useState(initialQty);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Record<string, string>>(initialErrors);
   const [busyCount, setBusyCount] = useState(0);
   const busy = busyCount > 0;
 
@@ -38,7 +40,7 @@ export default function ProductSheet({
     if (open) {
       setValues(initialValues);
       setQty(Math.max(1, initialQty));
-      setErrors({});
+      setErrors(initialErrors);
       setBusyCount(0);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

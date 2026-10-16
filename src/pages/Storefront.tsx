@@ -8,6 +8,7 @@ import ProductSheet from '../components/buyer/ProductSheet';
 import { activeFields } from '../utils/formPresets';
 import { formatRange, priceRange } from '../utils/priceRange';
 import { buildCartSummary, removeLine, setLineQty, upsertLine, type Cart } from '../utils/cart';
+import type { ReviewLine } from '../components/CheckoutModal';
 
 const wrapCls =
   'mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50';
@@ -17,6 +18,7 @@ interface Draft {
   values: Record<string, CustomValue>;
   qty: number;
   editing: boolean;
+  errors: Record<string, string>;
 }
 
 export default function Storefront() {
@@ -88,13 +90,33 @@ export default function Storefront() {
   const { count, total, items } = summary;
 
   function openAdd(p: Product) {
-    setDraft({ productId: p.id, values: {}, qty: 1, editing: false });
+    setDraft({ productId: p.id, values: {}, qty: 1, editing: false, errors: {} });
   }
 
   function openEdit(p: Product) {
     const line = cart[p.id];
     if (!line) return;
-    setDraft({ productId: p.id, values: line.values, qty: line.qty, editing: true });
+    setDraft({ productId: p.id, values: line.values, qty: line.qty, editing: true, errors: {} });
+  }
+
+  function editFromReview(productId: string, errs: Record<string, string>) {
+    const p = products.find((x) => x.id === productId);
+    const line = cart[productId];
+    if (!p || !line) return;
+    setShowCheckout(false);
+    setDraft({ productId, values: line.values, qty: line.qty, editing: true, errors: errs });
+  }
+
+  function removeFromReview(productId: string) {
+    const next = removeLine(cart, productId);
+    setCart(next);
+    if (Object.keys(next).length === 0) setShowCheckout(false);
+  }
+
+  function qtyFromReview(productId: string, qty: number) {
+    const next = setLineQty(cart, productId, qty);
+    setCart(next);
+    if (Object.keys(next).length === 0) setShowCheckout(false);
   }
 
   function commitDraft(values: Record<string, CustomValue>, qty: number) {
@@ -104,6 +126,14 @@ export default function Storefront() {
   }
 
   const draftProduct = draft ? products.find((p) => p.id === draft.productId) ?? null : null;
+
+  const reviewLines: ReviewLine[] = summary.lines
+    .map((l) => {
+      const p = products.find((x) => x.id === l.productId);
+      if (!p) return null;
+      return { productId: l.productId, item: l.item, fields: p.custom_fields ?? [] };
+    })
+    .filter((l): l is ReviewLine => l !== null);
 
   if (loading) {
     return (
@@ -293,6 +323,7 @@ export default function Storefront() {
         product={draftProduct}
         initialValues={draft?.values ?? {}}
         initialQty={draft?.qty ?? 1}
+        initialErrors={draft?.errors ?? {}}
         editing={draft?.editing ?? false}
         shopId={shop.id}
         onClose={() => setDraft(null)}
@@ -305,6 +336,10 @@ export default function Storefront() {
           total={total}
           itemsSummary={items}
           shop_id={shop.id}
+          lines={reviewLines}
+          onEdit={editFromReview}
+          onRemove={removeFromReview}
+          onQty={qtyFromReview}
           onClose={() => setShowCheckout(false)}
         />
       )}
