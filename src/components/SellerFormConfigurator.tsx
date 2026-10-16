@@ -5,6 +5,7 @@ import {
   QUESTION_CARD_TYPES,
   clonePresetFields,
   createQuestionCard,
+  getPreset,
 } from '../utils/formPresets';
 import { FIELD_TYPE_LABEL } from '../utils/fieldLabels';
 import { formatRange, priceRange } from '../utils/priceRange';
@@ -14,6 +15,7 @@ import QuestionRow from './seller/QuestionRow';
 import QuestionEditorSheet from './seller/QuestionEditorSheet';
 import Button from './ui/Button';
 import Badge from './ui/Badge';
+import ConfirmDialog from './ui/ConfirmDialog';
 
 interface Props {
   fields: CustomField[];
@@ -36,11 +38,20 @@ export default function SellerFormConfigurator({
 }: Props) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [pendingPreset, setPendingPreset] = useState<PresetKey | null>(null);
   const editingField = fields.find((f) => f.id === editingId) ?? null;
 
   function applyPreset(key: PresetKey) {
-    if (fields.length > 0 && !window.confirm('Replace all current questions with this preset?')) return;
+    if (fields.length > 0) {
+      setPendingPreset(key);
+      return;
+    }
     onChange(clonePresetFields(key));
+  }
+
+  function confirmApplyPreset() {
+    if (pendingPreset) onChange(clonePresetFields(pendingPreset));
+    setPendingPreset(null);
   }
 
   function saveField(next: CustomField) {
@@ -55,7 +66,8 @@ export default function SellerFormConfigurator({
   const range = priceRange(basePrice, fields);
 
   return (
-    <div className="space-y-4">
+    <>
+      <div className="space-y-4">
       <div className="rounded-control bg-mint/50 p-3">
         <p className="text-sm text-ink">
           Customers pay{' '}
@@ -165,6 +177,24 @@ export default function SellerFormConfigurator({
       >
         <FormPreview fields={fields} basePrice={basePrice} shopId={shopId} />
       </BottomSheet>
-    </div>
+      </div>
+
+      <ConfirmDialog
+        open={pendingPreset !== null}
+        title="Replace questions?"
+        message={
+          <>
+            Applying the{' '}
+            <span className="font-semibold text-ink">
+              {pendingPreset ? getPreset(pendingPreset).label : ''}
+            </span>{' '}
+            preset will replace all current questions. This can’t be undone.
+          </>
+        }
+        confirmLabel="Replace questions"
+        onConfirm={confirmApplyPreset}
+        onClose={() => setPendingPreset(null)}
+      />
+    </>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
-import type { CustomField, Product } from '../../types';
+import type { CustomField, PresetKey, Product } from '../../types';
 import SellerFormConfigurator from '../../components/SellerFormConfigurator';
 import FormPreview from '../../components/seller/FormPreview';
 import QuestionRow from '../../components/seller/QuestionRow';
@@ -12,11 +12,13 @@ import {
   copyFields,
   getPresetForCategory,
   sanitizeFields,
+  getPreset,
 } from '../../utils/formPresets';
 import { formatRange, priceRange } from '../../utils/priceRange';
 import { randomUuid } from '../../utils/uuid';
 import Button from '../ui/Button';
 import Badge from '../ui/Badge';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 const inputCls =
   'h-12 w-full rounded-control border border-line bg-white px-4 text-ink outline-none transition-colors placeholder:text-placeholder focus:border-emerald focus:ring-2 focus:ring-emerald/25';
@@ -48,6 +50,8 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
   const [saving, setSaving] = useState(false);
   const [imageUrl, setImageUrl] = useState(editing?.image_url ?? '');
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [pendingPreset, setPendingPreset] = useState<PresetKey | null>(null);
+  const [pendingCopy, setPendingCopy] = useState(false);
 
   useEffect(() => {
     setStep(editing ? 3 : 1);
@@ -77,16 +81,33 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
     setStep(2);
   }
 
-  function applyPreset(key: Parameters<typeof clonePresetFields>[0]) {
-    if (fields.length > 0 && !window.confirm('Replace current questions?')) return;
+  function applyPreset(key: PresetKey) {
+    if (fields.length > 0) {
+      setPendingPreset(key);
+      return;
+    }
     setFields(clonePresetFields(key));
   }
 
   function applyCopy() {
     const src = products.find((p) => p.id === copyFrom);
     if (!src) return;
-    if (fields.length > 0 && !window.confirm('Replace current questions with the copy?')) return;
+    if (fields.length > 0) {
+      setPendingCopy(true);
+      return;
+    }
     setFields(copyFields(src.custom_fields ?? []));
+  }
+
+  function confirmApplyPreset() {
+    if (pendingPreset) setFields(clonePresetFields(pendingPreset));
+    setPendingPreset(null);
+  }
+
+  function confirmApplyCopy() {
+    const src = products.find((p) => p.id === copyFrom);
+    if (src) setFields(copyFields(src.custom_fields ?? []));
+    setPendingCopy(false);
   }
 
   async function handleImageUpload(file: File) {
@@ -170,8 +191,9 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
   }
 
   return (
-    <div>
-      <h2 className="text-lg font-semibold text-ink">{editing ? 'Edit Product' : 'Add Product'}</h2>
+    <>
+      <div>
+        <h2 className="text-lg font-semibold text-ink">{editing ? 'Edit Product' : 'Add Product'}</h2>
       <p className="mt-1 text-sm font-semibold text-muted" aria-label={`Step ${step} of 3`}>
         {STEP_LABELS.map((s, i) => (
           <span key={s.n} className={step === s.n ? 'text-ink' : ''}>
@@ -332,8 +354,37 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
 
       {step === 3 && (
         <div className="mt-3 space-y-3">
-          <div className="rounded-control border border-line bg-white p-3">
-            <p className="font-semibold text-ink">{title || '(No name yet)'}</p>
+          <div className="space-y-3 rounded-control border border-line bg-white p-3">
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-ink">Name *</label>
+              <input
+                className={inputCls}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Nasi Lemak Ayam"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-semibold text-ink">Price (RM) *</label>
+              <input
+                className={inputCls}
+                type="number"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+                placeholder="e.g. 8.50"
+                min="0"
+                step="0.10"
+              />
+            </div>
+            <label className="flex h-12 items-center gap-2 text-sm font-semibold text-ink">
+              <input
+                type="checkbox"
+                checked={available}
+                onChange={(e) => setAvailable(e.target.checked)}
+                className="h-5 w-5 accent-emerald"
+              />
+              Available for sale
+            </label>
             <p className="text-sm text-muted">
               Customers pay{' '}
               <span className="font-bold text-ink">{formatRange(priceRange(numPrice, fields))}</span>
@@ -375,6 +426,33 @@ export default function ProductWizard({ editing, products, onDone, onCancel }: P
           {error}
         </div>
       )}
-    </div>
+      </div>
+
+      <ConfirmDialog
+        open={pendingPreset !== null}
+        title="Replace questions?"
+        message={
+          <>
+            Applying the{' '}
+            <span className="font-semibold text-ink">
+              {pendingPreset ? getPreset(pendingPreset).label : ''}
+            </span>{' '}
+            preset will replace the current questions on this product. This can’t be undone.
+          </>
+        }
+        confirmLabel="Replace questions"
+        onConfirm={confirmApplyPreset}
+        onClose={() => setPendingPreset(null)}
+      />
+
+      <ConfirmDialog
+        open={pendingCopy}
+        title="Replace with copied questions?"
+        message="The copied questions will replace the current questions on this product. This can’t be undone."
+        confirmLabel="Replace questions"
+        onConfirm={confirmApplyCopy}
+        onClose={() => setPendingCopy(false)}
+      />
+    </>
   );
 }
