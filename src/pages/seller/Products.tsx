@@ -122,6 +122,10 @@ export default function Products() {
     if (missingLabel) return setError('Every active question needs a label.');
     const badSelect = cleaned.some((f) => f.enabled !== false && f.type === 'select' && (f.options ?? []).length === 0);
     if (badSelect) return setError('Choice questions need at least one option.');
+    const badPpu = cleaned.some(
+      (f) => f.enabled !== false && f.type === 'number' && Number(f.price_per_unit ?? 0) < 0
+    );
+    if (badPpu) return setError('Price per unit cannot be negative.');
     setSaving(true);
     try {
       if (editingId) {

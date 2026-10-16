@@ -45,6 +45,9 @@ export interface CustomField {
   enabled?: boolean;
   options?: CustomOption[];
   placeholder?: string;
+  price_per_unit?: number;
+  min?: number;
+  max?: number;
 }
 
 export interface CustomFormState {

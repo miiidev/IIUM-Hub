@@ -71,6 +71,16 @@ export const PRESETS: FormPreset[] = [
         ['Single-sided', 0],
         ['Double-sided', 0],
       ]),
+      {
+        id: 'print_pages',
+        label: 'Number of Pages',
+        type: 'number',
+        required: true,
+        enabled: true,
+        price_per_unit: 0.1,
+        min: 1,
+        max: 500,
+      },
       { id: 'print_file', label: 'Upload File', type: 'file', required: true, enabled: true },
     ],
   },
@@ -196,16 +206,44 @@ export function calculateModifierTotal(
 ): number {
   let total = 0;
   for (const f of activeFields(fields)) {
-    if (f.type !== 'select') continue;
-    const chosen = values[f.id];
-    if (!chosen) continue;
-    const names = Array.isArray(chosen) ? chosen : [String(chosen)];
-    for (const name of names) {
-      const opt = (f.options ?? []).find((o) => o.name === name);
-      if (opt) total += Number(opt.price_modifier) || 0;
+    if (f.type === 'select') {
+      const chosen = values[f.id];
+      if (!chosen) continue;
+      const names = Array.isArray(chosen) ? chosen : [String(chosen)];
+      for (const name of names) {
+        const opt = (f.options ?? []).find((o) => o.name === name);
+        if (opt) total += Number(opt.price_modifier) || 0;
+      }
+    } else if (f.type === 'number') {
+      const ppu = Number(f.price_per_unit) || 0;
+      if (ppu > 0) total += clampNumberValue(f, values[f.id]) * ppu;
     }
   }
-  return total;
+  return Math.round(total * 100) / 100;
+}
+
+export function clampNumberValue(f: CustomField, raw: CustomValue | undefined): number {
+  if (raw === undefined || raw === null) return 0;
+  if (typeof raw === 'string' && raw.trim() === '') return 0;
+  const n = Number(raw);
+  if (!Number.isFinite(n) || n < 0) return 0;
+  let v = n;
+  if (Number.isFinite(Number(f.min))) v = Math.max(v, Number(f.min));
+  if (Number.isFinite(Number(f.max))) v = Math.min(v, Number(f.max));
+  return v;
+}
+
+export function maxExtraForField(f: CustomField): number | null {
+  if (f.enabled === false) return 0;
+  if (f.type === 'select') {
+    return Math.max(0, ...(f.options ?? []).map((o) => Number(o.price_modifier) || 0));
+  }
+  if (f.type === 'number') {
+    const ppu = Number(f.price_per_unit) || 0;
+    if (ppu <= 0) return 0;
+    return Number.isFinite(Number(f.max)) ? Number(f.max) * ppu : null;
+  }
+  return 0;
 }
 
 export function computeUnitTotal(
@@ -268,6 +306,22 @@ export function sanitizeFields(fields: CustomField[]): CustomField[] {
           price_modifier: Number.isFinite(Number(o.price_modifier)) ? Math.max(0, Number(o.price_modifier)) : 0,
         }))
         .filter((o) => o.name !== '');
+    }
+    if (f.type === 'number') {
+      const ppu = Number(f.price_per_unit);
+      if (Number.isFinite(ppu)) next.price_per_unit = Math.max(0, ppu);
+      const min = Number(f.min);
+      const max = Number(f.max);
+      const validMin = Number.isFinite(min);
+      const validMax = Number.isFinite(max);
+      if (validMin && validMax && min <= max) {
+        next.min = min;
+        next.max = max;
+      } else if (validMin && !validMax) {
+        next.min = min;
+      } else if (!validMin && validMax) {
+        next.max = max;
+      }
     }
     out.push(next);
   }

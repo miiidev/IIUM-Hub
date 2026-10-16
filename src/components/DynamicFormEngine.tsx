@@ -172,17 +172,24 @@ export default function DynamicFormEngine({
             )}
 
             {f.type === 'number' && (
-              <input
-                id={fieldId}
-                className={inputCls}
-                type="number"
-                inputMode="decimal"
-                value={val === '' ? '' : Number(val)}
-                placeholder="0"
-                onChange={(e) =>
-                  onChange(f.id, e.target.value === '' ? '' : Number(e.target.value))
-                }
-              />
+              <div>
+                <input
+                  id={fieldId}
+                  className={inputCls}
+                  type="number"
+                  inputMode="decimal"
+                  value={val === '' ? '' : Number(val)}
+                  placeholder="0"
+                  onChange={(e) =>
+                    onChange(f.id, e.target.value === '' ? '' : Number(e.target.value))
+                  }
+                />
+                {Number(f.price_per_unit) > 0 && (
+                  <p className="mt-1 text-xs text-slate-500">
+                    RM {Number(f.price_per_unit).toFixed(2)} per unit
+                  </p>
+                )}
+              </div>
             )}
 
             {f.type === 'textarea' && (

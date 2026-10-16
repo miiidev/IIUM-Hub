@@ -1,5 +1,5 @@
 import type { CustomField, CustomFieldType, PresetKey } from '../types';
-import { PRESETS, QUESTION_CARD_TYPES, clonePresetFields, createQuestionCard } from '../utils/formPresets';
+import { PRESETS, QUESTION_CARD_TYPES, clonePresetFields, createQuestionCard, maxExtraForField } from '../utils/formPresets';
 
 interface Props {
   fields: CustomField[];
@@ -52,9 +52,9 @@ export default function SellerFormConfigurator({ fields, onChange, basePrice, di
     patch(fieldIndex, { options: (field.options ?? []).filter((_, i) => i !== optionIndex) });
   }
 
-  const maxExtra = fields
-    .filter((f) => f.enabled !== false && f.type === 'select')
-    .reduce((sum, f) => sum + Math.max(0, ...(f.options ?? []).map((o) => Number(o.price_modifier) || 0)), 0);
+  const extras = fields.map(maxExtraForField);
+  const maxKnown = !extras.includes(null);
+  const maxExtra = extras.reduce<number>((sum, e) => sum + (e ?? 0), 0);
 
   return (
     <div className="space-y-4">
@@ -190,6 +190,52 @@ export default function SellerFormConfigurator({ fields, onChange, basePrice, di
                   </button>
                 </div>
               )}
+              {f.type === 'number' && (
+                <div className="mt-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
+                  <p className="text-xs font-bold text-slate-700">Price per unit (RM) + limits</p>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    <label className="block">
+                      <span className="text-xs text-slate-600">RM / unit</span>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        step="0.01"
+                        value={f.price_per_unit ?? 0}
+                        disabled={disabled}
+                        onChange={(e) => patch(i, { price_per_unit: Number(e.target.value) || 0 })}
+                        className={`mt-0.5 ${smallInput}`}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs text-slate-600">Min</span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        value={f.min ?? ''}
+                        disabled={disabled}
+                        onChange={(e) =>
+                          patch(i, { min: e.target.value === '' ? undefined : Number(e.target.value) })
+                        }
+                        className={`mt-0.5 ${smallInput}`}
+                      />
+                    </label>
+                    <label className="block">
+                      <span className="text-xs text-slate-600">Max</span>
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        value={f.max ?? ''}
+                        disabled={disabled}
+                        onChange={(e) =>
+                          patch(i, { max: e.target.value === '' ? undefined : Number(e.target.value) })
+                        }
+                        className={`mt-0.5 ${smallInput}`}
+                      />
+                    </label>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -218,7 +264,9 @@ export default function SellerFormConfigurator({ fields, onChange, basePrice, di
         </p>
         <p>
           Maximum (all add-ons selected):{' '}
-          <span className="font-bold">RM {(basePrice + maxExtra).toFixed(2)}</span>
+          <span className="font-bold">
+            {maxKnown ? `RM ${(basePrice + maxExtra).toFixed(2)}` : 'depends on input'}
+          </span>
         </p>
       </div>
 

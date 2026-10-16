@@ -7,12 +7,14 @@ import {
   activeFields,
   calculateModifierTotal,
   clampQty,
+  clampNumberValue,
   clonePresetFields,
   computeUnitTotal,
   createQuestionCard,
   describeValues,
   getPresetForCategory,
   isFormApplicable,
+  maxExtraForField,
   sanitizeFields,
   validateRequired,
 } from '../formPresets';
@@ -80,7 +82,8 @@ describe('presets', () => {
         print_size: 'A4',
         print_color: 'Black & White',
         print_duplex: 'Single-sided',
-        print_file: 'https://x/y.pdf',
+        print_pages: 20,
+        print_file: 'https://x/f.pdf',
       })
     ).toEqual({});
   });
@@ -138,6 +141,67 @@ describe('clampQty', () => {
     const unit = computeUnitTotal(1, fields, { print_size: 'A3', print_color: 'Color' });
     expect(unit).toBeCloseTo(1.9);
     expect(unit * clampQty(2)).toBeCloseTo(3.8);
+  });
+});
+
+describe('number per-unit pricing', () => {
+  const pages: CustomField = {
+    id: 'pages',
+    label: 'Pages',
+    type: 'number',
+    required: true,
+    price_per_unit: 0.1,
+    min: 1,
+    max: 500,
+  };
+
+  it('multiplies value by price_per_unit without float dust', () => {
+    expect(calculateModifierTotal([pages], { pages: 3 })).toBe(0.3);
+    expect(computeUnitTotal(0, [pages], { pages: 10 })).toBe(1);
+  });
+
+  it('treats empty, NaN and negatives as 0 and clamps to min/max', () => {
+    expect(calculateModifierTotal([pages], {})).toBe(0);
+    expect(calculateModifierTotal([pages], { pages: '' })).toBe(0);
+    expect(calculateModifierTotal([pages], { pages: -4 })).toBe(0);
+    expect(calculateModifierTotal([pages], { pages: 9999 })).toBe(50);
+    expect(clampNumberValue(pages, 'abc')).toBe(0);
+  });
+
+  it('ignores numbers without a positive price_per_unit', () => {
+    const plain: CustomField = { id: 'n', label: 'N', type: 'number', required: false };
+    expect(calculateModifierTotal([plain], { n: 5 })).toBe(0);
+  });
+
+  it('sanitize clamps negative ppu and drops bad min/max', () => {
+    const [clean] = sanitizeFields([
+      { id: 'n', label: 'N', type: 'number', required: false, price_per_unit: -2, min: 10, max: 5 },
+    ]);
+    expect(clean.price_per_unit).toBe(0);
+    expect(clean.min).toBeUndefined();
+    expect(clean.max).toBeUndefined();
+  });
+
+  it('maxExtraForField uses max x ppu or null when unbounded', () => {
+    expect(maxExtraForField(pages)).toBe(50);
+    const unbounded: CustomField = { id: 'u', label: 'U', type: 'number', required: false, price_per_unit: 2 };
+    expect(maxExtraForField(unbounded)).toBeNull();
+    expect(maxExtraForField({ ...unbounded, enabled: false })).toBe(0);
+  });
+
+  it('printing preset charges per page', () => {
+    const fields = clonePresetFields('printing');
+    const pagesField = fields.find((f) => f.id === 'print_pages');
+    expect(pagesField?.price_per_unit).toBe(0.1);
+    expect(
+      computeUnitTotal(0, fields, {
+        print_size: 'A4',
+        print_color: 'Black & White',
+        print_duplex: 'Single-sided',
+        print_pages: 20,
+        print_file: 'https://x/f.pdf',
+      })
+    ).toBe(2);
   });
 });
 
