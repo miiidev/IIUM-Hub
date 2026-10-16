@@ -22,10 +22,12 @@ on storage.objects for select
 to authenticated
 using (
   bucket_id = 'buyer-uploads'
-  and exists (
-    select 1 from public.shops s
-    where s.id::text = (storage.foldername(name))[1]
-    and s.owner_id = auth.uid()
+  -- NOTE: must NOT write `... where s.id::text = (storage.foldername(name))[1]`
+  -- inside this subquery. `public.shops` has its own `name` column, so an
+  -- unqualified `name` resolves to shops.name, not the storage object's path,
+  -- and the check silently denies everyone. Keeping the IN form avoids it.
+  and (storage.foldername(name))[1] in (
+    select s.id::text from public.shops s where s.owner_id = auth.uid()
   )
 );
 
