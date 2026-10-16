@@ -21,7 +21,26 @@ function sanitizeName(name: string): string {
 }
 
 export function displayFileName(url: string): string {
-  const last = url.split('/').pop() ?? '';
+  return fileNameFromValue(url);
+}
+
+export function isFilePath(v: unknown): boolean {
+  if (typeof v !== 'string' || v === '') return false;
+  if (/^https?:\/\//.test(v)) return false;
+  return v.includes('/');
+}
+
+export function isLegacyFileUrl(v: unknown): boolean {
+  return typeof v === 'string' && /^https?:\/\//.test(v);
+}
+
+export function fileNameFromValue(v: unknown): string {
+  if (typeof v !== 'string' || v === '') return 'View file';
+  const withoutOrigin = v.replace(/^https?:\/\/[^/]+\//, '');
+  const path = withoutOrigin.includes('/storage/v1/object/public/buyer-uploads/')
+    ? withoutOrigin.split('/storage/v1/object/public/buyer-uploads/').pop() ?? withoutOrigin
+    : withoutOrigin;
+  const last = path.split('/').pop() ?? '';
   const stripped = last.replace(/^[0-9a-fA-F-]{36}-/, '');
   try {
     return decodeURIComponent(stripped) || 'View file';
@@ -40,6 +59,13 @@ export async function uploadBuyerFile(shopId: string, file: File): Promise<strin
     .from(BUYER_UPLOADS_BUCKET)
     .upload(path, file, { contentType: file.type });
   if (error) throw error;
-  const { data } = supabase.storage.from(BUYER_UPLOADS_BUCKET).getPublicUrl(path);
-  return data.publicUrl;
+  return path;
+}
+
+export async function signBuyerFile(path: string, expiresIn = 3600): Promise<string> {
+  const { data, error } = await supabase.storage
+    .from(BUYER_UPLOADS_BUCKET)
+    .createSignedUrl(path, expiresIn);
+  if (error || !data?.signedUrl) throw error ?? new Error('Sign failed');
+  return data.signedUrl;
 }

@@ -26,6 +26,9 @@ if the DB is ever wiped or a new environment is needed, re-apply in order:
   (custom-field file uploads, 5MB + jpg/png/webp/pdf cap) with policies:
   - `INSERT` for `anon, authenticated` (buyers check out without login)
   - `SELECT` for `anon, authenticated` (anyone with the link; sellers via dashboard)
+- [ ] Storage privacy (manual step): run `migrations/0010_buyer_uploads_private.sql` in
+  SQL Editor to make `buyer-uploads` private (SELECT becomes owner-only + signed URLs).
+  Until then the bucket stays public. `storage.foldername()` was verified present.
 
 ## RLS summary (honor-system for hackathon)
 
@@ -36,8 +39,10 @@ alone breaks logged-in users — see `migrations/0002_public_read_for_authentica
 |---|---|---|
 | `shops` | read `is_active=true` | full access to own (`owner_id = auth.uid()`) |
 | `products` | read `is_available=true` | full access to own shop's |
-| `orders` | insert + read + update (open) | read + update own shop's |
+| `orders` | insert + read (open) | read + update own shop's |
 | `profiles` | — | own row only |
 
-Post-demo hardening: restrict anon `orders` select/update (currently open so buyer
-tracker links and honor-flow checkout work without login).
+Anon UPDATE on `orders` was removed (`0009`) — only signed-in sellers update status.
+
+Post-demo hardening: orphan-file cleanup in `buyer-uploads`, anon-upload abuse controls
+(rate limiting), and scoped buyer-tracker reads.

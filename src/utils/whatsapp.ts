@@ -1,11 +1,8 @@
-import type { CustomValue, OrderPayload, Shop } from '../types';
+import type { OrderPayload, Shop } from '../types';
+import { displayFileName } from './uploadFile';
 
 function formatRM(n: number): string {
   return `RM ${Number(n).toFixed(2)}`;
-}
-
-function formatValue(v: CustomValue): string {
-  return Array.isArray(v) ? v.join(', ') : String(v);
 }
 
 export function normalizeWhatsappNumber(raw: string): string {
@@ -42,7 +39,8 @@ export function buildOrderMessage(shop: Shop, order: OrderPayload, orderId: stri
     lines.push('');
     lines.push('*Spec:*');
     custom.forEach(([k, v]) => {
-      lines.push(`- ${k}: ${formatValue(v)}`);
+      const text = Array.isArray(v) ? v.join(', ') : String(v);
+      lines.push(`- ${k}: ${/^https?:\/\//.test(text) ? displayFileName(text) : text}`);
     });
   }
   lines.push('');

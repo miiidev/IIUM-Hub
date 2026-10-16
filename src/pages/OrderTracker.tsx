@@ -124,19 +124,7 @@ export default function OrderTracker() {
             )}
             {g.entries.map((e, ei) => (
               <p key={ei} className="text-sm text-slate-700">
-                <span className="font-bold">{e.label}:</span>{' '}
-                {/^https?:\/\//.test(Array.isArray(e.value) ? '' : String(e.value)) ? (
-                  <a
-                    href={String(e.value)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-bold text-emerald-700 underline"
-                  >
-                    View file ({e.display})
-                  </a>
-                ) : (
-                  e.display
-                )}
+                <span className="font-bold">{e.label}:</span> {e.display}
                 {e.price_applied > 0 && (
                   <span className="ml-1 text-xs font-bold text-emerald-700">
                     (+RM {e.price_applied.toFixed(2)})

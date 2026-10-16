@@ -4,6 +4,7 @@ import { activeFields, normalizeMyPhone, todayLocal } from '../utils/formPresets
 import {
   FILE_ACCEPT,
   displayFileName,
+  isLegacyFileUrl,
   uploadBuyerFile,
   validateUploadFile,
 } from '../utils/uploadFile';
@@ -68,8 +69,8 @@ function FileField({
     setUploading(true);
     onBusyChange?.(true);
     try {
-      const publicUrl = await uploadBuyerFile(shopId, picked);
-      onChange(publicUrl);
+      const path = await uploadBuyerFile(shopId, picked);
+      onChange(path);
     } catch {
       setUploadError('Upload failed. Try again.');
     } finally {
@@ -94,14 +95,20 @@ function FileField({
       {uploadError && <p className="mt-1 text-sm font-medium text-red-600">{uploadError}</p>}
       {url && (
         <div className="mt-2 flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2">
-          <a
-            href={url}
-            target="_blank"
-            rel="noreferrer"
-            className="min-w-0 flex-1 truncate text-sm font-bold text-emerald-700 underline"
-          >
-            {displayFileName(url)}
-          </a>
+          {isLegacyFileUrl(url) ? (
+            <a
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="min-w-0 flex-1 truncate text-sm font-bold text-emerald-700 underline"
+            >
+              {displayFileName(url)}
+            </a>
+          ) : (
+            <span className="min-w-0 flex-1 truncate text-sm font-bold text-slate-900">
+              {displayFileName(url)} ✓
+            </span>
+          )}
           <button
             type="button"
             onClick={() => onChange('')}

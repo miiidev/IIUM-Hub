@@ -4,13 +4,77 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { Order, Shop } from '../types';
 import { normalizeOrderFields, type NormalizedEntry } from '../utils/orderSnapshot';
+import { isFilePath, isLegacyFileUrl, signBuyerFile } from '../utils/uploadFile';
+
+function SellerFileLink({ path, name }: { path: string; name: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [failed, setFailed] = useState(false);
+  const [signing, setSigning] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function sign() {
+      setSigning(true);
+      setFailed(false);
+      try {
+        const signed = await signBuyerFile(path);
+        if (!cancelled) setUrl(signed);
+      } catch {
+        if (!cancelled) setFailed(true);
+      } finally {
+        if (!cancelled) setSigning(false);
+      }
+    }
+    sign();
+    return () => {
+      cancelled = true;
+    };
+  }, [path]);
+
+  if (url) {
+    return (
+      <a href={url} target="_blank" rel="noreferrer" className="font-bold text-emerald-700 underline">
+        View file ({name})
+      </a>
+    );
+  }
+  return (
+    <span>
+      <span className="font-bold">{name}</span>{' '}
+      <button
+        type="button"
+        disabled={signing}
+        onClick={async () => {
+          setSigning(true);
+          setFailed(false);
+          try {
+            setUrl(await signBuyerFile(path));
+          } catch {
+            setFailed(true);
+          } finally {
+            setSigning(false);
+          }
+        }}
+        className="h-11 px-2 text-xs font-bold text-emerald-700 underline disabled:opacity-50"
+      >
+        {signing ? 'Preparing link…' : failed ? 'Link expired — Retry' : 'Get link'}
+      </button>
+    </span>
+  );
+}
 
 function renderEntry(entry: NormalizedEntry) {
   const raw = Array.isArray(entry.value) ? '' : String(entry.value);
-  const body = /^https?:\/\//.test(raw) ? (
-    <a href={raw} target="_blank" rel="noreferrer" className="font-bold text-emerald-700 underline">
-      View file ({entry.display})
-    </a>
+  const body = entry.isFile ? (
+    isFilePath(entry.value) ? (
+      <SellerFileLink path={raw} name={entry.display} />
+    ) : isLegacyFileUrl(entry.value) ? (
+      <a href={raw} target="_blank" rel="noreferrer" className="font-bold text-emerald-700 underline">
+        View file ({entry.display})
+      </a>
+    ) : (
+      entry.display
+    )
   ) : (
     entry.display
   );

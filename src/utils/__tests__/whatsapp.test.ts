@@ -42,4 +42,37 @@ describe('whatsapp', () => {
     expect(link.startsWith('https://wa.me/60123456789?text=')).toBe(true);
     expect(decodeURIComponent(link.split('?text=')[1])).toBe(buildOrderMessage(shop, order, 'order-123'));
   });
+
+  it('shows file names, never urls, for file values', () => {
+    const withFile: OrderPayload = {
+      ...order,
+      items: [
+        {
+          title: 'Print',
+          qty: 1,
+          unitPrice: 2,
+          lineTotal: 2,
+          fields: [
+            {
+              field_id: 'f',
+              label: 'Upload File',
+              type: 'file',
+              value: 'shop1/12345678-1234-1234-1234-123456789012-doc.pdf',
+              display: 'doc.pdf',
+              price_applied: 0,
+            },
+          ],
+        },
+      ],
+      custom_data: {
+        Old: 'https://cdn.example.com/storage/v1/object/public/buyer-uploads/shop1/12345678-1234-1234-1234-123456789012-old.pdf',
+      },
+    };
+    const msg = buildOrderMessage(shop, withFile, 'order-9');
+    expect(msg).toContain('- Upload File: doc.pdf');
+    expect(msg).toContain('- Old: old.pdf');
+    expect(msg).not.toContain('cdn.example.com');
+    expect(msg).not.toContain('/storage/v1/object/');
+    expect(msg).not.toContain('12345678-1234');
+  });
 });

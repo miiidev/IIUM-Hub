@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { displayFileName, validateUploadFile } from '../uploadFile';
+import {
+  displayFileName,
+  fileNameFromValue,
+  isFilePath,
+  isLegacyFileUrl,
+  validateUploadFile,
+} from '../uploadFile';
 
 describe('validateUploadFile', () => {
   it('accepts an in-limit image', () => {
@@ -26,5 +32,18 @@ describe('displayFileName', () => {
 
   it('falls back for plain urls', () => {
     expect(displayFileName('https://x/y.pdf')).toBe('y.pdf');
+  });
+
+  it('detects storage paths vs legacy urls', () => {
+    expect(isFilePath('shop1/12345678-1234-1234-1234-123456789012-a.pdf')).toBe(true);
+    expect(isFilePath('https://x/y.pdf')).toBe(false);
+    expect(isFilePath('')).toBe(false);
+    expect(isLegacyFileUrl('https://x/y.pdf')).toBe(true);
+    expect(isLegacyFileUrl('shop1/a.pdf')).toBe(false);
+  });
+
+  it('extracts names from storage paths', () => {
+    expect(fileNameFromValue('shop1/12345678-1234-1234-1234-123456789012-doc.pdf')).toBe('doc.pdf');
+    expect(fileNameFromValue('')).toBe('View file');
   });
 });

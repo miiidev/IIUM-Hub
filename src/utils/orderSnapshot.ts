@@ -6,7 +6,7 @@ import type {
   OrderItemSummary,
 } from '../types';
 import { activeFields, clampNumberValue, computeUnitTotal } from './formPresets';
-import { displayFileName } from './uploadFile';
+import { displayFileName, fileNameFromValue } from './uploadFile';
 
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
@@ -14,9 +14,8 @@ function round2(n: number): number {
 
 export function displayForField(f: CustomField, v: CustomValue): string {
   if (Array.isArray(v)) return v.join(', ');
-  const s = String(v).trim();
-  if (f.type === 'file' && /^https?:\/\//.test(s)) return displayFileName(s);
-  return s;
+  if (f.type === 'file') return fileNameFromValue(v);
+  return String(v).trim();
 }
 
 export function priceForField(f: CustomField, v: CustomValue): number {
