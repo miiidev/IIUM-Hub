@@ -19,7 +19,10 @@ if the DB is ever wiped or a new environment is needed, re-apply in order:
 
 ## RLS summary (honor-system for hackathon)
 
-| Table | anon | authenticated |
+Public browse + buyer policies apply to `anon` **and** `authenticated` (scoping them to `anon`
+alone breaks logged-in users — see `migrations/0002_public_read_for_authenticated.sql`).
+
+| Table | anon + authenticated | authenticated (owner) |
 |---|---|---|
 | `shops` | read `is_active=true` | full access to own (`owner_id = auth.uid()`) |
 | `products` | read `is_available=true` | full access to own shop's |
