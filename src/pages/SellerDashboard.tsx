@@ -122,7 +122,7 @@ export default function SellerDashboard() {
         </p>
       </div>
 
-      <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
+      <div className="mt-4 lg:mt-0 rounded-xl border border-slate-200 bg-white p-4">
         <p className="font-bold text-slate-900">{order.buyer_name}</p>
         <p className="text-sm text-slate-600">{order.location}</p>
         {(order.items?.length ?? 0) > 0 && (

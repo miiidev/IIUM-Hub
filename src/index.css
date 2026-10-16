@@ -12,7 +12,7 @@ body {
 }
 
 /* Thumb-friendly tap targets (mobile-first) + no iOS zoom on focus */
-input, select, textarea, button {
+input, select, textarea {
   font-size: 16px;
 }
 

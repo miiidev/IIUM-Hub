@@ -161,13 +161,13 @@ export default function Products() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md sm:max-w-2xl min-h-screen bg-slate-50 pb-10">
+    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl min-h-screen bg-slate-50 pb-10">
       <SellerNav />
       <main className="p-4 sm:p-6 lg:grid lg:grid-cols-[1fr_320px] lg:gap-6 lg:items-start">
         <div>
           <h2 className="font-bold text-slate-900">Produk ({products.length})</h2>
           {loading && <p className="mt-2 text-sm text-slate-500">Memuatkan...</p>}
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-2">
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
             {products.map((p) => (
               <div key={p.id} className="rounded-xl border border-slate-200 bg-white p-4">
                 <div className="flex items-center justify-between gap-2">

@@ -212,14 +212,14 @@ function SortableFieldCard({ field, disabled, onChangeField, onDelete }: Sortabl
               <p className="text-xs font-bold text-slate-700">Pilihan & harga tambahan</p>
               <div className="mt-1 space-y-1.5">
                 {draft.choices.map((choice, index) => (
-                  <div key={index} className="flex items-center gap-1.5">
+                  <div key={index} className="flex flex-wrap items-center gap-1.5">
                     <input
                       type="text"
                       value={choice.name}
                       onChange={(e) => patchChoice(index, { name: e.target.value })}
                       placeholder="Nama pilihan"
                       disabled={disabled}
-                      className="h-10 min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-900 outline-none focus:border-emerald-600 disabled:opacity-50"
+                      className="h-10 min-w-[128px] flex-1 rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-900 outline-none focus:border-emerald-600 disabled:opacity-50"
                     />
                     <input
                       type="number"

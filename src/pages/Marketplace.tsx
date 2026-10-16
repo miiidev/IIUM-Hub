@@ -4,9 +4,10 @@ import { Search, Store } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import type { Shop } from '../types';
+import { MAHALLAS } from '../utils/mahallas';
 
 const CATEGORIES = ['All', 'Food', 'Printing', 'Repairs', 'Rentals', 'Others / Custom'];
-const MAHALLAS = ['All', 'Aminah', 'Faruq', 'Ali', 'Bilal', 'Maryam', 'Asma', 'Ruqayyah'];
+const MAHALLA_FILTERS = ['All', ...MAHALLAS];
 
 function categoryToDb(cat: string): string | null {
   if (cat === 'All') return null;
@@ -84,7 +85,7 @@ export default function Marketplace() {
             value={mahalla}
             onChange={(e) => setMahalla(e.target.value)}
           >
-            {MAHALLAS.map((m) => (
+            {MAHALLA_FILTERS.map((m) => (
               <option key={m} value={m}>
                 {m === 'All' ? 'Semua Mahalla' : m}
               </option>
@@ -133,7 +134,7 @@ export default function Marketplace() {
           </div>
         )}
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
           {filtered.map((s) => (
             <Link
               key={s.id}
@@ -152,7 +153,7 @@ export default function Marketplace() {
                   {s.is_active ? 'Open' : 'Closed'}
                 </span>
               </div>
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex flex-wrap gap-2">
                 <span className="rounded-full bg-slate-100 px-2 py-1 text-xs font-medium text-slate-700">
                   {s.mahalla}
                 </span>

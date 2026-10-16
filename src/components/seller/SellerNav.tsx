@@ -46,7 +46,7 @@ export default function SellerNav() {
               <Link
                 key={t.to}
                 to={t.to}
-                className={`h-11 flex-1 rounded-t-xl border border-b-0 px-4 py-3 text-center text-sm font-bold ${
+                className={`h-11 flex-1 truncate rounded-t-xl border border-b-0 px-2 py-3 text-center text-sm font-bold sm:px-4 ${
                   active
                     ? 'border-slate-200 bg-slate-50 text-slate-900'
                     : 'border-transparent text-slate-500'

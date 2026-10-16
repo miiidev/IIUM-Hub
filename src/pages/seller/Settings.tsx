@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { validateWhatsappMY } from '../../utils/validation';
+import { MAHALLA_FORM_OPTIONS } from '../../utils/mahallas';
 import SellerNav from '../../components/seller/SellerNav';
 
-const MAHALLAS = ['Aminah', 'Faruq', 'Ali', 'Bilal', 'Maryam', 'Asma', 'Ruqayyah', 'Lain-lain'];
 const CATEGORIES = ['food', 'printing', 'repairs', 'rentals', 'custom'];
 
 const inputCls =
@@ -103,7 +103,7 @@ export default function Settings() {
           <div>
             <label className="mb-1 block text-sm font-bold text-slate-900">Mahalla</label>
             <select className={inputCls} value={mahalla} onChange={(e) => setMahalla(e.target.value)}>
-              {MAHALLAS.map((m) => <option key={m} value={m}>{m}</option>)}
+              {MAHALLA_FORM_OPTIONS.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
           <div>

@@ -2,8 +2,8 @@ import { useState } from 'react';
 import type { ReactNode } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { validateWhatsappMY } from '../../utils/validation';
+import { MAHALLA_FORM_OPTIONS } from '../../utils/mahallas';
 
-const MAHALLAS = ['Aminah', 'Faruq', 'Ali', 'Bilal', 'Maryam', 'Asma', 'Ruqayyah', 'Lain-lain'];
 const CATEGORIES = ['food', 'printing', 'repairs', 'rentals', 'custom'];
 
 const inputCls =
@@ -103,7 +103,7 @@ export default function RequireShop({ children }: { children: ReactNode }) {
           <div>
             <label className="mb-1 block text-sm font-bold text-slate-900">Mahalla</label>
             <select className={inputCls} value={mahalla} onChange={(e) => setMahalla(e.target.value)}>
-              {MAHALLAS.map((m) => <option key={m} value={m}>{m}</option>)}
+              {MAHALLA_FORM_OPTIONS.map((m) => <option key={m} value={m}>{m}</option>)}
             </select>
           </div>
           <div>
