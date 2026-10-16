@@ -68,9 +68,7 @@ export default function Dashboard() {
     for (const o of orders) {
       if (o.status === 'pending') pending++;
       if (o.status === 'completed') completed++;
-      // created_at not in Order type; skip date filter if absent
-      const d = (o as Order & { created_at?: string }).created_at;
-      if (!d || new Date(d).toDateString() === today) {
+      if (!o.created_at || new Date(o.created_at).toDateString() === today) {
         if (o.status !== 'rejected') todayRM += Number(o.total_amount) || 0;
       }
     }

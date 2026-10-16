@@ -125,6 +125,16 @@ export default function SellerDashboard() {
       <div className="mt-4 rounded-xl border border-slate-200 bg-white p-4">
         <p className="font-bold text-slate-900">{order.buyer_name}</p>
         <p className="text-sm text-slate-600">{order.location}</p>
+        {(order.items?.length ?? 0) > 0 && (
+          <div className="mt-2 border-t border-slate-200 pt-2">
+            {(order.items ?? []).map((it, i) => (
+              <p key={i} className="flex justify-between gap-2 text-sm text-slate-700">
+                <span>{it.title} × {it.qty}</span>
+                <span className="font-bold">RM {Number(it.lineTotal).toFixed(2)}</span>
+              </p>
+            ))}
+          </div>
+        )}
         {Object.keys(order.custom_data || {}).length > 0 && (
           <div className="mt-2 border-t border-slate-200 pt-2">
             {Object.entries(order.custom_data).map(([k, v]) => (

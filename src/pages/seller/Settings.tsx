@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import { validateWhatsappMY } from '../../utils/validation';
@@ -17,9 +17,44 @@ export default function Settings() {
   const [mahalla, setMahalla] = useState(shop?.mahalla ?? 'Faruq');
   const [category, setCategory] = useState(shop?.category ?? 'food');
   const [isActive, setIsActive] = useState(shop?.is_active ?? true);
+  const [account, setAccount] = useState(shop?.duitnow_account ?? '');
+  const [qrUrl, setQrUrl] = useState(shop?.duitnow_qr_url ?? '');
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  // Sync form when shop finishes loading (avoids saving stale empty values)
+  useEffect(() => {
+    if (!shop) return;
+    setName(shop.name ?? '');
+    setWhatsapp(shop.whatsapp_number ?? '');
+    setMahalla(shop.mahalla ?? 'Faruq');
+    setCategory(shop.category ?? 'food');
+    setIsActive(shop.is_active ?? true);
+    setAccount(shop.duitnow_account ?? '');
+    setQrUrl(shop.duitnow_qr_url ?? '');
+  }, [shop?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function handleQrUpload(file: File) {
+    if (!shop) return;
+    setError(null);
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop()?.toLowerCase() ?? 'png';
+      const path = `${shop.id}/qr.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('duitnow-qr')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('duitnow-qr').getPublicUrl(path);
+      setQrUrl(`${data.publicUrl}?t=${Date.now()}`);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Gagal muat naik QR.');
+    } finally {
+      setUploading(false);
+    }
+  }
 
   async function handleSave() {
     if (!shop) return;
@@ -38,6 +73,8 @@ export default function Settings() {
           mahalla,
           category,
           is_active: isActive,
+          duitnow_account: account.trim() || null,
+          duitnow_qr_url: qrUrl.split('?')[0] || null,
         })
         .eq('id', shop.id);
       if (err) throw err;
@@ -84,8 +121,36 @@ export default function Settings() {
               {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
-          <label className="sm:col-span-2 flex min-h-[48px] items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4">
-            <span className="text-sm font-bold text-slate-900">
+          <div className="sm:col-span-2">
+            <label className="mb-1 block text-sm font-bold text-slate-900">No. Akaun DuitNow (dipapar di checkout)</label>
+            <input className={inputCls} value={account} onChange={(e) => setAccount(e.target.value)} placeholder="cth: 60123456789 / 1234567890" inputMode="numeric" />
+          </div>
+          <div className="sm:col-span-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="text-sm font-bold text-slate-900">QR DuitNow</p>
+            <div className="mt-2 flex items-center gap-3">
+              {qrUrl ? (
+                <img src={qrUrl} alt="QR DuitNow" className="h-24 w-24 rounded-xl border border-slate-200 bg-white object-contain" />
+              ) : (
+                <div className="flex h-24 w-24 items-center justify-center rounded-xl border border-slate-200 bg-white text-xs font-bold text-slate-400">
+                  Tiada QR
+                </div>
+              )}
+              <label className="inline-flex h-12 cursor-pointer items-center rounded-xl bg-slate-900 px-4 text-sm font-bold text-white">
+                {uploading ? 'Muat naik...' : 'Muat naik QR'}
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  disabled={uploading}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleQrUpload(f);
+                  }}
+                />
+              </label>
+            </div>
+          </div>
+          <label className="sm:col-span-2 flex min-h-[48px] items-center justify-between rounded-xl border border-slate-200 bg-slate-50 px-4">            <span className="text-sm font-bold text-slate-900">
               Kedai Open {isActive ? '(nampak di Marketplace)' : '(disorok)'}
             </span>
             <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} className="h-6 w-6" />

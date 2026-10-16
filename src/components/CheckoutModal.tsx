@@ -52,6 +52,7 @@ export default function CheckoutModal({
         total_amount: total,
         payment_ref_id: refId.trim(),
         custom_data,
+        items: itemsSummary,
         status: 'pending' as const,
       };
 
@@ -104,9 +105,20 @@ export default function CheckoutModal({
         </div>
 
         <div className="mb-4 rounded-xl border border-slate-200 bg-slate-50 p-4 text-center">
-          <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-xl bg-white text-sm font-bold text-slate-400 border border-slate-200">
-            QR PLACEHOLDER
-          </div>
+          {shop.duitnow_qr_url ? (
+            <img
+              src={shop.duitnow_qr_url}
+              alt="DuitNow QR seller"
+              className="mx-auto h-40 w-40 rounded-xl border border-slate-200 bg-white object-contain"
+            />
+          ) : (
+            <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-xl bg-white text-sm font-bold text-slate-400 border border-slate-200">
+              QR PLACEHOLDER
+            </div>
+          )}
+          {shop.duitnow_account && (
+            <p className="mt-2 font-mono text-sm font-bold text-slate-900">{shop.duitnow_account}</p>
+          )}
           <p className="mt-2 text-sm font-bold text-slate-900">
             Total: RM {total.toFixed(2)}
           </p>

@@ -11,6 +11,8 @@ export interface Shop {
   mahalla: string;
   is_active: boolean;
   owner_id?: string | null;
+  duitnow_qr_url?: string | null;
+  duitnow_account?: string | null;
 }
 
 export interface Profile {
@@ -50,7 +52,9 @@ export interface Order {
   total_amount: number;
   payment_ref_id: string;
   custom_data: Record<string, string | number>;
+  items: OrderItemSummary[];
   status: OrderStatus;
+  created_at?: string;
 }
 
 export interface OrderItemSummary {
