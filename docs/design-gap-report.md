@@ -224,7 +224,8 @@ Corrections to the tables above (found while implementing):
   `/how-to-order` page were added (category B).
 - **AU-5 / WB-1 / WB-2 / AU-2:** logged-out page, welcome landing, role choice and
   forgot-password were **not** added (D/E). Login/Signup restyled only.
-- **Shoe Wash** category chip is kept (the design omits it) — functionality over fidelity.
+- Category chips follow `SHOP_CATEGORIES` (the design omits none now; Shoe Wash was removed from
+  the product at the owner's request) — functionality over fidelity.
 
 Built this phase:
 

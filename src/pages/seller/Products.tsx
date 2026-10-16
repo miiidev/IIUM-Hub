@@ -13,6 +13,8 @@ import { activeFields, clonePresetFields, getPreset, getPresetForCategory, sanit
 
 export default function Products() {
   const { shop } = useAuth();
+  const presetKey = shop ? getPresetForCategory(shop.category) : null;
+  const presetLabel = presetKey ? getPreset(presetKey).label : '';
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +24,7 @@ export default function Products() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [pendingDelete, setPendingDelete] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [applyRequest, setApplyRequest] = useState<{ overwrite: boolean; count: number } | null>(null);
 
   async function load() {
     if (!shop) return;
@@ -59,7 +62,7 @@ export default function Products() {
     setError(null);
   }
 
-  async function handleBulkApply(overwrite: boolean) {
+  function requestApply(overwrite: boolean) {
     if (!shop) return;
     const preset = getPresetForCategory(shop.category);
     if (!preset) return;
@@ -74,13 +77,21 @@ export default function Products() {
       );
       return;
     }
-    if (
-      !window.confirm(
-        `Apply the ${getPreset(preset).label} preset to ${targets.length} products?` +
-          (overwrite ? ' Existing questions will be replaced.' : '')
-      )
-    )
+    setError(null);
+    setApplyRequest({ overwrite, count: targets.length });
+  }
+
+  async function performApply() {
+    if (!shop || !applyRequest) return;
+    const preset = getPresetForCategory(shop.category);
+    if (!preset) {
+      setApplyRequest(null);
       return;
+    }
+    const { overwrite } = applyRequest;
+    const targets = products.filter((p) =>
+      overwrite ? true : activeFields(p.custom_fields).length === 0
+    );
     setSaving(true);
     setError(null);
     try {
@@ -97,6 +108,7 @@ export default function Products() {
       setError(e instanceof Error ? e.message : 'Failed to apply preset.');
     } finally {
       setSaving(false);
+      setApplyRequest(null);
     }
   }
 
@@ -126,17 +138,12 @@ export default function Products() {
       <SellerNav />
       <main className="mx-auto w-full max-w-[1312px] flex-1 px-5 py-6 sm:px-8 lg:grid lg:grid-cols-[1fr_360px] lg:items-start lg:gap-8">
         <div>
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="text-xl font-semibold text-ink">Products ({products.length})</h2>
-            <Button size="sm" onClick={startAdd}>
-              + Add product
-            </Button>
-          </div>
+          <h2 className="text-xl font-semibold text-ink">Products ({products.length})</h2>
 
-          {shop && getPresetForCategory(shop.category) && (
+          {presetKey && (
             <Card className="mt-3 bg-mint/40 p-4">
               <p className="text-sm text-ink">
-                Preset <span className="font-bold">{getPreset(getPresetForCategory(shop.category)!).label}</span>{' '}
+                Preset <span className="font-bold">{presetLabel}</span>{' '}
                 recommended for your shop category.
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
@@ -144,7 +151,7 @@ export default function Products() {
                   variant="secondary"
                   size="sm"
                   disabled={saving}
-                  onClick={() => handleBulkApply(false)}
+                  onClick={() => requestApply(false)}
                 >
                   Apply to empty products
                 </Button>
@@ -152,7 +159,7 @@ export default function Products() {
                   variant="ghost"
                   size="sm"
                   disabled={saving}
-                  onClick={() => handleBulkApply(true)}
+                  onClick={() => requestApply(true)}
                 >
                   Overwrite all
                 </Button>
@@ -251,6 +258,29 @@ export default function Products() {
         busy={deleting}
         onConfirm={confirmDelete}
         onClose={() => setPendingDelete(null)}
+      />
+
+      <ConfirmDialog
+        open={applyRequest !== null}
+        title={
+          applyRequest?.overwrite
+            ? 'Overwrite all questions?'
+            : 'Apply preset to empty products?'
+        }
+        message={
+          applyRequest?.overwrite
+            ? `The ${presetLabel} preset will replace the questions on ${applyRequest.count} ${
+                applyRequest.count === 1 ? 'product' : 'products'
+              }. Existing questions and options will be lost.`
+            : `The ${presetLabel} preset will be added to ${applyRequest?.count} ${
+                applyRequest?.count === 1 ? 'product' : 'products'
+              } that have no questions yet.`
+        }
+        confirmLabel={applyRequest?.overwrite ? 'Overwrite all' : 'Apply preset'}
+        destructive={applyRequest?.overwrite ?? false}
+        busy={saving}
+        onConfirm={performApply}
+        onClose={() => setApplyRequest(null)}
       />
     </div>
   );

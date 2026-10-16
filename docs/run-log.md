@@ -258,6 +258,57 @@ the time of writing):
 7. **Category label rename** — `src/utils/categories.ts`: `Others / Custom` → `Others` (label
    only; the `custom` value is unchanged). This is a deliberate edit to the previously-locked
    `src/utils/` dir, so the locked-area diff is intentionally non-empty now.
+8. **WhatsApp message restructured** — `src/utils/whatsapp.ts` `buildOrderMessage` now uses
+   labelled sections (👤 Buyer / 🛒 Items (n) / 📋 Details / Total / 🔗 Manage order) with a
+   divider. All asserted substrings preserved, so the WhatsApp tests are unchanged; the
+   "file values are names, never URLs" guarantee is intact. (Also a deliberate `src/utils/` edit.)
+9. **Upload field standout** — `DynamicFormEngine` buyer file field is now a prominent dashed
+   dropzone (icon, "Tap to upload", accepted types/size, drag-and-drop, Uploading…/Replace states).
+10. **All `window.confirm` replaced** — custom `ConfirmDialog` now covers the products bulk
+    apply ("Apply to empty products" / "Overwrite all") and the wizard/configurator preset +
+    copy replaces. No `window.confirm` remains in `src/`. `Button` gained a `danger` variant
+    (no more class-override for destructive actions). `ConfirmDialog` + `BottomSheet` now render
+    via `createPortal(document.body)` so `position: fixed` overlays are no longer offset by
+    `space-y-*` parents.
+11. **Product rename fix** — the wizard's edit flow opens on Review (step 3) with no editable
+    name, so renaming was not discoverable. Review now has inline editable Name / Price /
+    Available fields, saved via "Save Changes".
+12. **Shoe Wash removed** — dropped the `shoe_wash` shop category, its preset, the
+    `CATEGORY_PRESET_MAP` entry, the type unions and the Marketplace chip/icon; tests updated.
+    Existing shops with `category = 'shoe_wash'` still render (label falls back to the raw
+    value) but can no longer be chosen. (Deliberate `src/types` + `src/utils` edits.)
+13. **Database reseeded** — demo catalog reset: `truncate public.shops cascade` (products +
+    orders) then 16 demo shops across 16 Mahallas (5 food, 3 printing, 3 repairs, 3 rentals,
+    2 custom) with 21 products (1–2 each, English) and category preset questions applied.
+    `shops.banner_url` and `products.image_url` left empty for in-app uploads. `supabase/seed.sql`
+    rewritten to this dataset. Pre-wipe rows snapshotted to schema `zz_backup_pre_seed`
+    (`drop schema zz_backup_pre_seed cascade;` when no longer needed). Run manually against the
+    live project — no migration applied.
+14. **Seed images** — 37 photos in `public/seed/` (banners + product photos), wired into
+    `shops.banner_url` / `products.image_url` via `supabase/seed.sql` and applied to the demo
+    DB. fal.ai was unavailable (403 Forbidden on every endpoint), so images were **downloaded**
+    (Wikimedia Commons, freely licensed, Picsum fallback) rather than AI-generated; re-encoded
+    to JPEG ≤1024px/q65 (~3.6 MB total). Provenance in `public/seed/README.md` + `ATTRIBUTION.json`.
+15. **Seed images uploaded to Supabase Storage** — all 37 uploaded to the public buckets
+    `shop-banners` / `product-images` under `seed/`, and `shops.banner_url` /
+    `products.image_url` repointed to the Supabase public URLs. Done with a **temporary anon
+    INSERT policy** on `storage.objects` that was **dropped immediately after** (verified gone).
+    `supabase/seed.sql` reproduces the mapping.
+16. **Demo seller accounts** — confirmed auth users created directly in `auth.users`
+    (+ `auth.identities`, `public.profiles`), with a shared demo password (shared with the
+    owner in chat, **not stored in the repo**). **Constraint:** the app is one-shop-per-account
+    (`AuthContext` loads the shop with `.maybeSingle()`), so each account owns exactly one shop.
+17. **20 shops + 20 accounts** — added 4 shops (Sumayyah Nasi Kerabu, Zubair Binding &
+    Laminating, Ali MacBook Clinic, Bilal Scooter Rental) with Commons images uploaded to
+    Storage, and grew to 20 accounts (seller1..seller20) so **every** shop has exactly one
+    owner. Ownership is deterministic: `sellerN` ↔ Nth shop by slug order. `supabase/seed.sql`
+    reproduces the 20 shops + the account block + the assignment.
+18. **Overlay fix (Preview as buyer behind the nav)** — the sticky headers (`SiteHeader`,
+    `SellerNav`) had `backdrop-blur`; Chromium promotes `backdrop-filter` elements to their own
+    composited layer, which paints above a later overlay, so the `BottomSheet` backdrop didn't
+    cover the nav. Removed `backdrop-blur` and made both navs opaque (`bg-cream`). Verified by
+    driving a real login with Playwright + Edge: the nav is now dimmed (measured cream×0.6) under
+    the sheet, desktop and mobile.
 
 Verification: build clean, 78 tests pass, 0 lint errors, locked-area diff empty; new screens
 screenshotted below `sm` (500px) and at 800/1440 → `design/shots/`.

@@ -6,7 +6,6 @@ export interface ShopCategoryOption {
 export const SHOP_CATEGORIES: ShopCategoryOption[] = [
   { value: 'food', label: 'Food' },
   { value: 'printing', label: 'Printing' },
-  { value: 'shoe_wash', label: 'Shoe Wash' },
   { value: 'repairs', label: 'Repairs' },
   { value: 'rentals', label: 'Rentals' },
   { value: 'custom', label: 'Others' },

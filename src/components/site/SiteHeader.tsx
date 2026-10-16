@@ -6,7 +6,7 @@ import Logo from './Logo';
 export default function SiteHeader() {
   const { user } = useAuth();
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-cream/95 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-line bg-cream">
       <div className="mx-auto flex h-16 w-full max-w-[1312px] items-center justify-between gap-4 px-5 sm:px-8">
         <Logo />
         <nav aria-label="Primary" className="hidden items-center gap-7 text-sm font-semibold text-ink sm:flex">

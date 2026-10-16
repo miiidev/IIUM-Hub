@@ -24,10 +24,9 @@ import {
 } from '../formPresets';
 
 describe('presets', () => {
-  it('defines the six presets with only standard field types', () => {
+  it('defines the five presets with only standard field types', () => {
     expect(PRESETS.map((p) => p.key)).toEqual([
       'printing',
-      'shoe_wash',
       'food_addons',
       'repairs',
       'rentals',
@@ -42,7 +41,7 @@ describe('presets', () => {
   it('maps every shop category to a preset', () => {
     expect(getPresetForCategory('food')).toBe('food_addons');
     expect(getPresetForCategory('printing')).toBe('printing');
-    expect(getPresetForCategory('shoe_wash')).toBe('shoe_wash');
+    expect(getPresetForCategory('shoe_wash')).toBeNull();
     expect(getPresetForCategory('repairs')).toBe('repairs');
     expect(getPresetForCategory('rentals')).toBe('rentals');
     expect(getPresetForCategory('custom')).toBe('custom');
@@ -55,7 +54,6 @@ describe('presets', () => {
       'printing',
       'rentals',
       'repairs',
-      'shoe_wash',
     ]);
   });
 
@@ -129,11 +127,17 @@ describe('pricing', () => {
 
 describe('validation and description', () => {
   it('flags only required, enabled, empty fields', () => {
-    const fields = clonePresetFields('shoe_wash');
-    const errs = validateRequired(fields, { shoe_level: 'Basic' });
-    expect(Object.keys(errs).sort()).toEqual(['shoe_details', 'shoe_pickup']);
-    const off = fields.map((f) => (f.id === 'shoe_details' ? { ...f, enabled: false } : f));
-    expect(validateRequired(off, { shoe_level: 'Basic', shoe_pickup: 'No, I will send it myself' })).toEqual({});
+    const fields = clonePresetFields('repairs');
+    const errs = validateRequired(fields, { repair_urgency: 'Normal' });
+    expect(Object.keys(errs).sort()).toEqual(['repair_issue', 'repair_item', 'repair_phone']);
+    const off = fields.map((f) => (f.id === 'repair_issue' ? { ...f, enabled: false } : f));
+    expect(
+      validateRequired(off, {
+        repair_urgency: 'Normal',
+        repair_item: 'iPhone 11',
+        repair_phone: '+60123456789',
+      })
+    ).toEqual({});
   });
 
   it('describes only filled values with labels', () => {

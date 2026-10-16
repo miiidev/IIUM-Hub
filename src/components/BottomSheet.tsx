@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
 
 interface Props {
   open: boolean;
@@ -60,7 +61,7 @@ export default function BottomSheet({ open, onClose, title, children, footer, bu
 
   if (!open) return null;
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby={titleId}>
       <button
         type="button"
@@ -96,6 +97,7 @@ export default function BottomSheet({ open, onClose, title, children, footer, bu
           )}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

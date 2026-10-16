@@ -13,7 +13,7 @@ export default function SellerNav() {
   ];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-line bg-cream/95 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-line bg-cream">
       <div className="mx-auto w-full max-w-[1312px] px-5 sm:px-8">
         <div className="flex h-16 items-center justify-between gap-3">
           <div className="flex min-w-0 items-center gap-3">

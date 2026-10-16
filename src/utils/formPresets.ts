@@ -15,7 +15,6 @@ export interface FormPreset {
 export const CATEGORY_PRESET_MAP: Record<string, PresetKey | null> = {
   food: 'food_addons',
   printing: 'printing',
-  shoe_wash: 'shoe_wash',
   repairs: 'repairs',
   rentals: 'rentals',
   custom: 'custom',
@@ -85,23 +84,6 @@ export const PRESETS: FormPreset[] = [
       },
       { id: 'print_file', label: 'Upload File', type: 'file', required: true, enabled: true },
       textarea('print_notes', 'Notes', false, 'e.g. single page colour, instructions'),
-    ],
-  },
-  {
-    key: 'shoe_wash',
-    label: 'Shoe Wash',
-    description: 'Treatment level, shoe details and room pickup.',
-    fields: [
-      select('shoe_level', 'Treatment Level', [
-        ['Basic', 0],
-        ['Deep Clean', 5],
-      ]),
-      text('shoe_details', 'Shoe Details', true, 'e.g. white Nike, size 42'),
-      select('shoe_pickup', 'Room Pickup', [
-        ['Yes, pick up from my room', 1],
-        ['No, I will send it myself', 0],
-      ]),
-      textarea('shoe_notes', 'Notes', false, 'e.g. stains, special instructions'),
     ],
   },
   {
