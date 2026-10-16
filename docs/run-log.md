@@ -250,6 +250,14 @@ the time of writing):
 4. **Welcome + Seller-or-Buyer pages added; routing changed** — `/` is now Welcome, `/start`
    is the role choice, **Marketplace moved to `/marketplace`** (all Marketplace links
    repointed). See `docs/design-gap-report.md` §11 follow-up.
+5. **Custom delete popup** — reusable `ConfirmDialog` (`src/components/ui/`), replacing native
+   `window.confirm` for delete product and remove question (overwrite/preset prompts remain
+   native). Escape + backdrop close, focus move/restore, scroll lock, enter animation.
+6. **Motion coverage audit** — every visual component now has a transition/animation; only
+   `src/context/AuthContext.tsx` (provider) and `src/main.tsx` (entry) have none (non-visual).
+7. **Category label rename** — `src/utils/categories.ts`: `Others / Custom` → `Others` (label
+   only; the `custom` value is unchanged). This is a deliberate edit to the previously-locked
+   `src/utils/` dir, so the locked-area diff is intentionally non-empty now.
 
 Verification: build clean, 78 tests pass, 0 lint errors, locked-area diff empty; new screens
 screenshotted below `sm` (500px) and at 800/1440 → `design/shots/`.

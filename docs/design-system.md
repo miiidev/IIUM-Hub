@@ -40,6 +40,7 @@ Fonts: **Sofia Sans** (SIL OFL 1.1), self-hosted at `public/fonts/*.woff2` (vari
 | `SectionHeader` | `title`, `overline?`, `action?` | Section title + optional overline and right-side action. |
 | `EmptyState` | `title`, `description?`, `action?` | Empty results / no-data states. |
 | `Skeleton` | `className` | Loading placeholders (pulse, mint-tinted). |
+| `ConfirmDialog` | `open`, `title`, `message?`, `confirmLabel?`, `cancelLabel?`, `busy?`, `onConfirm`, `onClose` | Centered destructive confirm popup (replaces `window.confirm`). Escape + backdrop close, focus move/restore, scroll lock, enter animation. |
 
 ## Site chrome (`src/components/site/`)
 
