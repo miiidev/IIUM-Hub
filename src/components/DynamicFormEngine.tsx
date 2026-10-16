@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { Minus, Plus } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { CustomField, CustomValue } from '../types';
 import {
@@ -16,6 +17,7 @@ interface Props {
   onChange: (fieldId: string, value: CustomValue) => void;
   errors?: Record<string, string>;
   shopId: string;
+  preview?: boolean;
 }
 
 type Values = Record<string, CustomValue>;
@@ -27,17 +29,34 @@ function FileField({
   field,
   value,
   shopId,
+  preview,
   onChange,
 }: {
   field: CustomField;
   value: CustomValue | undefined;
   shopId: string;
+  preview?: boolean;
   onChange: (value: CustomValue) => void;
 }) {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const url = typeof value === 'string' ? value : '';
+
+  if (preview) {
+    return (
+      <div>
+        <input
+          type="file"
+          disabled
+          className="block w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none file:mr-3 file:rounded-lg file:border-0 file:bg-slate-200 file:px-3 file:py-2 file:text-sm file:font-bold file:text-slate-500 disabled:opacity-60"
+        />
+        <p className="mt-1 text-xs text-slate-500">
+          Preview sahaja — muat naik sebenar di Storefront.
+        </p>
+      </div>
+    );
+  }
 
   async function handlePicked(picked: File | undefined) {
     if (!picked || uploading) return;
@@ -106,7 +125,7 @@ function FileField({
   );
 }
 
-export default function DynamicFormEngine({ fields, values, onChange, errors = {}, shopId }: Props) {
+export default function DynamicFormEngine({ fields, values, onChange, errors = {}, shopId, preview = false }: Props) {
   if (!fields || fields.length === 0) {
     return (
       <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
@@ -239,8 +258,54 @@ export default function DynamicFormEngine({ fields, values, onChange, errors = {
                 field={f}
                 value={val}
                 shopId={shopId}
+                preview={preview}
                 onChange={(v) => onChange(f.id, v)}
               />
+            )}
+
+            {f.type === 'stepper' && (
+              <div>
+                <div className="flex h-12 items-center justify-between rounded-xl border border-slate-200 bg-white px-2">
+                  <button
+                    type="button"
+                    aria-label="Kurang"
+                    onClick={() => {
+                      const min = Number(f.min ?? 0);
+                      const max = Number(f.max ?? 10);
+                      const step = Math.max(1, Number(f.step ?? 1));
+                      const cur = typeof val === 'number' ? val : min;
+                      onChange(f.id, Math.min(max, Math.max(min, cur - step)));
+                    }}
+                    disabled={(typeof val === 'number' ? val : Number(f.min ?? 0)) <= Number(f.min ?? 0)}
+                    className="flex h-10 w-10 items-center justify-center rounded-lg text-slate-700 disabled:opacity-30"
+                  >
+                    <Minus size={18} />
+                  </button>
+                  <span className="text-base font-bold text-slate-900">
+                    {typeof val === 'number' ? val : Number(f.min ?? 0)}
+                  </span>
+                  <button
+                    type="button"
+                    aria-label="Tambah"
+                    onClick={() => {
+                      const min = Number(f.min ?? 0);
+                      const max = Number(f.max ?? 10);
+                      const step = Math.max(1, Number(f.step ?? 1));
+                      const cur = typeof val === 'number' ? val : min;
+                      onChange(f.id, Math.min(max, Math.max(min, cur + step)));
+                    }}
+                    disabled={(typeof val === 'number' ? val : Number(f.min ?? 0)) >= Number(f.max ?? 10)}
+                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-600 text-white disabled:opacity-30"
+                  >
+                    <Plus size={18} />
+                  </button>
+                </div>
+                {Number(f.unit_price) > 0 && (
+                  <p className="mt-1 text-xs text-slate-500">
+                    +RM {Number(f.unit_price).toFixed(2)} setiap satu
+                  </p>
+                )}
+              </div>
             )}
 
             {err && <p className="mt-1 text-sm font-medium text-red-600">{err}</p>}
@@ -254,6 +319,11 @@ export default function DynamicFormEngine({ fields, values, onChange, errors = {
 export function computeModifierTotal(fields: CustomField[], values: Values): number {
   let total = 0;
   for (const f of fields) {
+    if (f.type === 'stepper') {
+      const qty = Number(values[f.id]) || 0;
+      total += qty * (Number(f.unit_price) || 0);
+      continue;
+    }
     if (f.type !== 'select' && f.type !== 'radio' && f.type !== 'checkbox') continue;
     const chosen = values[f.id];
     if (!chosen) continue;

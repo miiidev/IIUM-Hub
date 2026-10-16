@@ -34,6 +34,7 @@ const FIELD_TYPES: Array<{ type: CustomFieldType; label: string }> = [
   { type: 'number', label: 'Number Field' },
   { type: 'textarea', label: 'Textarea' },
   { type: 'file', label: 'File Upload' },
+  { type: 'stepper', label: 'Stepper (+/-)' },
 ];
 
 const TYPE_BADGES: Record<CustomFieldType, string> = {
@@ -44,6 +45,7 @@ const TYPE_BADGES: Record<CustomFieldType, string> = {
   number: 'Nombor',
   textarea: 'Catatan',
   file: 'Fail',
+  stepper: 'Stepper',
 };
 
 function hasOptions(type: CustomFieldType): boolean {
@@ -59,6 +61,30 @@ interface FieldDraft {
   label: string;
   required: boolean;
   choices: ChoiceDraft[];
+  stepper: StepperDraft;
+}
+
+interface StepperDraft {
+  min: string;
+  max: string;
+  step: string;
+  unitPrice: string;
+}
+
+const KNOWN_TYPES: CustomFieldType[] = [
+  'select',
+  'radio',
+  'checkbox',
+  'text',
+  'number',
+  'textarea',
+  'file',
+  'stepper',
+];
+
+function numOr(raw: unknown, fallback: number): number {
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : fallback;
 }
 
 function randomId(): string {
@@ -78,7 +104,7 @@ function sanitize(fields: CustomField[]): CustomField[] {
     const next: CustomField = {
       id,
       label: field.label.trim(),
-      type: field.type,
+      type: KNOWN_TYPES.includes(field.type) ? field.type : 'text',
       required: Boolean(field.required),
     };
     if (hasOptions(field.type)) {
@@ -90,6 +116,12 @@ function sanitize(fields: CustomField[]): CustomField[] {
         options.push({ name, price_modifier: Number.isFinite(modifier) ? modifier : 0 });
       }
       next.options = options;
+    }
+    if (next.type === 'stepper') {
+      next.min = numOr(field.min, 0);
+      next.max = numOr(field.max, 10);
+      next.step = Math.max(1, numOr(field.step, 1));
+      next.unit_price = Math.max(0, numOr(field.unit_price, 0));
     }
     result.push(next);
   }
@@ -107,6 +139,12 @@ function toDraft(field: CustomField): FieldDraft {
             price: String(option.price_modifier),
           }))
         : [],
+    stepper: {
+      min: String(field.min ?? 0),
+      max: String(field.max ?? 10),
+      step: String(field.step ?? 1),
+      unitPrice: String(field.unit_price ?? 0),
+    },
   };
 }
 
@@ -136,6 +174,14 @@ function SortableFieldCard({ field, disabled, onChangeField, onDelete }: Sortabl
       label: next.label,
       required: next.required,
       options: next.choices.length > 0 ? choicesToOptions(next.choices) : undefined,
+      ...(field.type === 'stepper'
+        ? {
+            min: numOr(next.stepper.min, 0),
+            max: numOr(next.stepper.max, 10),
+            step: Math.max(1, numOr(next.stepper.step, 1)),
+            unit_price: Math.max(0, numOr(next.stepper.unitPrice, 0)),
+          }
+        : {}),
     };
   }
 
@@ -160,6 +206,12 @@ function SortableFieldCard({ field, disabled, onChangeField, onDelete }: Sortabl
     const choices = draft.choices.filter((_, i) => i !== index);
     setDraft((current) => ({ ...current, choices }));
     onChangeField(toField({ choices }));
+  }
+
+  function patchStepper(patch: Partial<StepperDraft>) {
+    const stepper = { ...draft.stepper, ...patch };
+    setDraft((current) => ({ ...current, stepper }));
+    onChangeField(toField({ stepper }));
   }
 
   return (
@@ -275,6 +327,32 @@ function SortableFieldCard({ field, disabled, onChangeField, onDelete }: Sortabl
             <p className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-2 text-xs text-slate-500">
               Pembeli boleh muat naik JPG, PNG, WEBP atau PDF (maks 5MB setiap fail).
             </p>
+          )}
+          {field.type === 'stepper' && (
+            <div className="mt-2 rounded-xl border border-slate-200 bg-slate-50 p-2">
+              <p className="text-xs font-bold text-slate-700">Had & harga seunit (RM)</p>
+              <div className="mt-1 grid grid-cols-4 gap-1.5">
+                {(
+                  [
+                    { key: 'min', label: 'Min' },
+                    { key: 'max', label: 'Maks' },
+                    { key: 'step', label: 'Step' },
+                    { key: 'unitPrice', label: '+RM' },
+                  ] as const
+                ).map((cfg) => (
+                  <label key={cfg.key} className="block">
+                    <span className="text-xs text-slate-500">{cfg.label}</span>
+                    <input
+                      type="number"
+                      value={draft.stepper[cfg.key]}
+                      onChange={(e) => patchStepper({ [cfg.key]: e.target.value })}
+                      disabled={disabled}
+                      className="mt-0.5 h-10 w-full rounded-lg border border-slate-200 bg-white px-2 text-sm text-slate-900 outline-none focus:border-emerald-600 disabled:opacity-50"
+                    />
+                  </label>
+                ))}
+              </div>
+            </div>
           )}
         </div>
       </div>

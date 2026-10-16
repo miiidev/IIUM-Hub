@@ -25,7 +25,7 @@ export interface CustomOption {
   price_modifier: number;
 }
 
-export type CustomFieldType = 'select' | 'text' | 'number' | 'textarea' | 'radio' | 'checkbox' | 'file';
+export type CustomFieldType = 'select' | 'text' | 'number' | 'textarea' | 'radio' | 'checkbox' | 'file' | 'stepper';
 
 export type CustomValue = string | number | string[];
 
@@ -35,6 +35,10 @@ export interface CustomField {
   type: CustomFieldType;
   required: boolean;
   options?: CustomOption[];
+  min?: number;
+  max?: number;
+  step?: number;
+  unit_price?: number;
 }
 
 export interface Product {

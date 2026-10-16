@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import type { CustomField, Product } from '../../types';
 import SellerNav from '../../components/seller/SellerNav';
 import SellerFormBuilder from '../../components/SellerFormBuilder';
+import FormPreview from '../../components/seller/FormPreview';
 
 const inputCls =
   'h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-slate-900 outline-none focus:border-emerald-600';
@@ -20,6 +21,7 @@ export default function Products() {
   const [price, setPrice] = useState('');
   const [available, setAvailable] = useState(true);
   const [fields, setFields] = useState<CustomField[]>([]);
+  const [showPreview, setShowPreview] = useState(false);
 
   const fieldsRef = useRef(fields);
   useEffect(() => {
@@ -95,6 +97,7 @@ export default function Products() {
     setPrice('');
     setAvailable(true);
     setFields([]);
+    setShowPreview(false);
     setError(null);
   }
 
@@ -105,6 +108,7 @@ export default function Products() {
     setPrice(String(p.price));
     setAvailable(p.is_available);
     setFields(p.custom_fields ?? []);
+    setShowPreview(false);
     setError(null);
   }
 
@@ -250,6 +254,18 @@ export default function Products() {
               <div className="mt-2">
                 <SellerFormBuilder value={fields} onChange={setFields} disabled={saving} />
               </div>
+              {fields.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setShowPreview((s) => !s)}
+                  className="mt-2 h-11 w-full rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-700"
+                >
+                  {showPreview ? 'Sembunyi preview' : 'Lihat preview'}
+                </button>
+              )}
+              {showPreview && fields.length > 0 && (
+                <FormPreview fields={fields} basePrice={Number(price) || 0} shopId={shop?.id ?? ''} />
+              )}
             </div>
           </div>
           {error && (
