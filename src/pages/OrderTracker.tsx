@@ -29,6 +29,7 @@ export default function OrderTracker() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [debugDetail, setDebugDetail] = useState<string | null>(null);
 
   useEffect(() => {
     if (!orderId) {
@@ -43,13 +44,36 @@ export default function OrderTracker() {
       return status === 'completed' || status === 'cancelled' || status === 'rejected';
     }
 
+    async function fetchRow(): Promise<Order | null> {
+      const debug =
+        typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('debug') === '1';
+      try {
+        const { data, error: rpcErr } = await supabase.rpc('get_order', { p_id: orderId });
+        if (!rpcErr) {
+          const row = (data as Order[] | null)?.[0] ?? null;
+          if (row) return row;
+        } else if (debug) {
+          setDebugDetail(`rpc get_order: ${rpcErr.code ?? '?'} ${rpcErr.message}`);
+        }
+      } catch (e: unknown) {
+        if (debug) setDebugDetail(`rpc get_order threw: ${e instanceof Error ? e.message : e}`);
+      }
+      // Fallback for databases where 0011 hasn't run yet (anon SELECT still open).
+      const { data: fbData, error: fbErr } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .maybeSingle();
+      if (fbErr) throw fbErr;
+      return (fbData as Order | null) ?? null;
+    }
+
     async function fetchOrder(first = false) {
       if (document.hidden) return;
       if (first) setLoading(true);
       try {
-        const { data, error: err } = await supabase.rpc('get_order', { p_id: orderId });
-        if (err) throw err;
-        const row = (data as Order[] | null)?.[0] ?? null;
+        const row = await fetchRow();
         if (cancelled) return;
         if (!row) {
           setError('Order not found.');
@@ -92,6 +116,9 @@ export default function OrderTracker() {
         <Link to="/" className="inline-flex h-11 items-center text-sm font-bold text-slate-700">← Marketplace</Link>
         <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
           {error ?? 'Order not found.'}
+          {debugDetail && (
+            <p className="mt-1 break-all font-mono text-xs">{debugDetail}</p>
+          )}
         </div>
       </div>
     );

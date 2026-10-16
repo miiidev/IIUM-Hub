@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Minus, Plus, X } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import type { CustomField, OrderItemSummary, Shop } from '../types';
 import { generateWhatsAppLink } from '../utils/whatsapp';
 import { randomUuid } from '../utils/uuid';
@@ -81,6 +81,9 @@ export default function CheckoutModal({
 
   async function handleSubmit() {
     setError(null);
+    if (!isSupabaseConfigured) {
+      return setError('App not configured. Missing Supabase settings — contact the seller.');
+    }
     if (!/^\d{4,6}$/.test(refId.trim()))
       return setError('DuitNow Ref ID must be 4-6 digits.');
 
@@ -105,7 +108,24 @@ export default function CheckoutModal({
 
       const { error: insErr } = await supabase.from('orders').insert(payload);
 
-      if (insErr) throw insErr;
+      if (insErr) {
+        console.error('[checkout] insert error', {
+          code: (insErr as { code?: string }).code,
+          message: insErr.message,
+          hint: (insErr as { hint?: string }).hint,
+        });
+        const code = (insErr as { code?: string }).code ?? '';
+        if (code === '42501') {
+          return setError('Order blocked by database permissions. Contact the seller.');
+        }
+        if (code === '23514') {
+          return setError('Order rejected by the database. The app may need an update — contact the seller.');
+        }
+        if (code === '23505') {
+          return setError('Please try again.');
+        }
+        throw insErr;
+      }
 
       const link = generateWhatsAppLink(
         shop,
