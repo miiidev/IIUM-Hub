@@ -9,7 +9,7 @@ export const SHOP_CATEGORIES: ShopCategoryOption[] = [
   { value: 'shoe_wash', label: 'Shoe Wash' },
   { value: 'repairs', label: 'Repairs' },
   { value: 'rentals', label: 'Rentals' },
-  { value: 'custom', label: 'Others / Custom' },
+  { value: 'custom', label: 'Others' },
 ];
 
 export function categoryLabel(value: string): string {
