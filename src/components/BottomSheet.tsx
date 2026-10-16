@@ -74,10 +74,10 @@ export default function BottomSheet({ open, onClose, title, children, footer, bu
         <div
           ref={panelRef}
           tabIndex={-1}
-          className="pointer-events-auto flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-2xl bg-white outline-none sm:max-w-lg sm:rounded-2xl"
+          className="pointer-events-auto flex max-h-[92dvh] w-full max-w-md flex-col rounded-t-card bg-white outline-none sm:max-w-lg sm:rounded-card"
         >
-          <div className="flex items-center justify-between gap-2 border-b border-slate-200 p-4">
-            <h2 id={titleId} className="text-lg font-bold text-slate-900">
+          <div className="flex items-center justify-between gap-2 border-b border-line p-4">
+            <h2 id={titleId} className="text-lg font-bold text-ink">
               {title}
             </h2>
             <button
@@ -85,14 +85,14 @@ export default function BottomSheet({ open, onClose, title, children, footer, bu
               onClick={onClose}
               disabled={busy}
               aria-label="Close"
-              className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 text-xl font-bold text-slate-700 disabled:opacity-40"
+              className="flex h-11 w-11 items-center justify-center rounded-control border border-line text-xl font-bold text-ink transition-colors hover:bg-mint/30 disabled:opacity-40"
             >
               ×
             </button>
           </div>
           <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
           {footer && (
-            <div className="safe-bottom border-t border-slate-200 bg-white p-4">{footer}</div>
+            <div className="safe-bottom border-t border-line bg-white p-4">{footer}</div>
           )}
         </div>
       </div>

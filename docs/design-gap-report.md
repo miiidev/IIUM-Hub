@@ -207,3 +207,38 @@ changed.
   welcome/role routes — **not built**.
 - Principle/loop conflicts (E): options-product stepper, full-page checkout, step model,
   checkout fields — **our structure kept, design applied visually only.**
+
+## 11. Phase 7 outcome (what was actually built) + corrections
+
+Corrections to the tables above (found while implementing):
+
+- **MKT-2 (search) and MKT-3 (mahalla filter) already existed** in `Marketplace.tsx`
+  (`q`/`mahalla` state + filtering). Reclassified **A (restyle)** — the design's search bar
+  and Mahallah dropdown were built from the existing controls. The separate emerald search
+  button is wired to focus the input (no dead control).
+- **Routes:** Marketplace `/`, storefront `/s/:slug`, seller login `/seller/login`, signup
+  `/seller/signup`, tracker `/order/:orderId/track` (the §2 map used placeholders).
+- **MKT-5 Sort:** omitted (new logic). "Open only" also omitted — the query already returns
+  active shops only.
+- **MKT-9/MKT-10 (new):** a mobile tab bar (Marketplace / How to order / Sell) and a static
+  `/how-to-order` page were added (category B).
+- **AU-5 / WB-1 / WB-2 / AU-2:** logged-out page, welcome landing, role choice and
+  forgot-password were **not** added (D/E). Login/Signup restyled only.
+- **Shoe Wash** category chip is kept (the design omits it) — functionality over fidelity.
+
+Built this phase:
+
+- **A/B/C implemented:** nav + footer + tab bar; Marketplace hero/search/chips/shop cards/
+  CTA; storefront breadcrumb/overline/Active pill/price-range/How-to-order strip/Order
+  Summary; checkout modal restyle + step indicator; tracker; login/signup card restyle;
+  seller shell, dashboard, products, configurator, question rows/editor, wizard, order page,
+  settings; `ui/` primitives; `@theme` tokens; self-hosted **Sofia Sans**.
+- **D skipped (with safe fallbacks):** shop search button (focus-only), no images → initial
+  letter / lucide mark; no sort; no ratings/reviews/etc.
+- **E: structure kept, visuals applied** (options-product sheet, modal checkout, Review/
+  Details/Pay steps, name + Mahalla/Room fields).
+- **Contrast:** body/muted text uses `#56665D` on cream (≥4.5:1); placeholders `#6B7A72`.
+- **Verification:** built with a **fake** Supabase URL (live project never contacted) and
+  screenshotted the public routes at 390px/1440px with headless Edge —
+  `design/shots/01..06`. Confirmed the nav, hero, search, chips, cards, CTA, footer, tab bar,
+  login card and How-to-order page match the frames.

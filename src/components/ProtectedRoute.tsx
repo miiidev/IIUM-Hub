@@ -8,8 +8,8 @@ export default function ProtectedRoute({ children }: { children: ReactNode }) {
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-md min-h-screen bg-slate-50 p-4">
-        <p className="text-sm text-slate-500">Memeriksa sesi...</p>
+      <div className="mx-auto w-full max-w-md min-h-screen p-4">
+        <p className="text-sm text-muted">Checking session...</p>
       </div>
     );
   }

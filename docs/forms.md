@@ -5,6 +5,10 @@ the form is shown immediately → live total → Review → Details → Pay → 
 Nothing is hidden; Add is explicit. No standalone forms, no drag-and-drop, no blank
 builder.
 
+Visual system: see `docs/design-system.md` (tokens in `src/index.css`, `src/components/ui/`
+primitives). A static buyer-facing "How to order" page lives at `/how-to-order`
+(`src/pages/HowToOrder.tsx`) and is linked from the nav, footer and mobile tab bar.
+
 ## Buyer flow (`Storefront` → `ProductSheet` → `CheckoutModal`)
 
 Menu cards show title + price range (`formatRange(priceRange(...))`: "RM 5.00",

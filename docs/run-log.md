@@ -46,8 +46,8 @@ Evidence (file:line) is recorded in the Phase B checklist below.
 - [x] **Phase A** — Safety + baseline (branch `overhaul`, tag `pre-overhaul`, this log)
 - [x] **Phase B** — Audit Phases 1–5 vs code; fix only residual gaps (lint, docs drift)
 - [x] **Phase C** — Figma access + `docs/design-gap-report.md`
-- [ ] **Phase D** — Apply design (tokens, fonts, `src/components/ui/`, buyer then seller)
-- [ ] **Phase E** — Polish, `docs/design-system.md`, `docs/forms.md`, final report
+- [x] **Phase D** — Apply design (tokens, fonts, `src/components/ui/`, buyer then seller)
+- [x] **Phase E** — Polish, `docs/design-system.md`, `docs/forms.md`, final report
 
 ---
 
@@ -156,4 +156,93 @@ _(Populated as the run proceeds.)_
 
 Recorded during Phase B/C. Order is critical: **deploy the new frontend before running 0011.**
 
-_(See Phase B privacy section; finalized in Phase E report.)_
+### Privacy migrations (do NOT apply from this branch)
+
+Run these **in the dashboard SQL editor**, in this exact order, only after the new frontend
+is deployed and live:
+
+1. Deploy this branch (`overhaul` → your host). The frontend must already use client-generated
+   order ids + the `get_order` RPC tracker.
+2. Run `supabase/migrations/0010_buyer_uploads_private.sql`.
+3. Run `supabase/migrations/0011_orders_privacy.sql`.
+
+> **`0011` must never run before the new frontend is live**, or checkout (anon insert without
+> `select`) and the tracker (`get_order` RPC) break.
+
+Verification checklist after 0012 is applied:
+
+- Logged-out `GET /rest/v1/orders?select=*` returns **no rows**.
+- A `/order/<id>/track` link still loads and updates (polls every 5s).
+- Checkout still creates orders.
+- The seller dashboard and `/seller/orders/:id` still work (owner policies).
+- Old public `buyer-uploads` file URLs now 404 (after `0010`).
+
+---
+
+## Phase D — design application (result)
+
+- **Tokens** in `src/index.css` via Tailwind 4 `@theme` (+ `@font-face`). No hard-coded hex
+  in components.
+- **Font:** Sofia Sans, self-hosted variable woff2 (`public/fonts/`, Latin + Latin-ext,
+  `font-display: swap`). SIL OFL 1.1 — free. 1 family / 3 weights.
+- **Primitives:** `src/components/ui/` — `Button, Card, Input, Badge, Chip, SectionHeader,
+  EmptyState, Skeleton`. **Site chrome:** `src/components/site/` — `Logo, SiteHeader,
+  SiteFooter, MobileTabBar`.
+- **Restyle order (one commit each):**
+  - D1 base: tokens, fonts, primitives, app shell.
+  - D2a buyer chrome + `HowToOrder` + Marketplace.
+  - D2b buyer flow: Storefront, ProductSheet, DynamicFormEngine, CheckoutModal, OrderTracker.
+  - D3 seller flow: Login, Signup, Dashboard, Products, Configurator, QuestionRow/Editor,
+    ProductWizard, SellerDashboard, Settings, SellerNav, RequireShop, ProductImage.
+  - D4 polish: BottomSheet + ProtectedRoute stragglers.
+- **Locked-area check:** `git diff --stat -- supabase src/utils src/lib src/context src/types`
+  stayed **empty** after every stage.
+- **Logic changes:** none beyond copy/`useId` (Phase B) and the sanctioned Phase-4 banner move.
+  No locked logic touched.
+- **Visual verification:** built with a **fake** Supabase URL (live project never contacted),
+  served with `vite preview`, screenshotted at 390px/1440px with headless Edge →
+  `design/shots/01..06`. Confirmed against `design/frames/`.
+
+## Phase E — polish (result)
+
+- Removed all legacy `slate-*`/`rounded-xl`/`emerald-600` classes (0 remaining in `src`).
+- Contrast: body/muted `#56665D` on cream, placeholders `#6B7A72` (both ≥4.5:1 for their use).
+- Tap targets ≥44px (48px primary); focus rings via `focus-visible`; `prefers-reduced-motion`
+  honoured in `index.css`.
+- Docs: added `docs/design-system.md`; updated `docs/forms.md`; added §11 to
+  `docs/design-gap-report.md`.
+
+### Bundle size (gzip)
+
+| Asset | baseline | after | delta |
+|---|---|---|---|
+| JS | 165.48 kB | ~170.6 kB | +5.1 kB (lucide icons + tokens) |
+| CSS | 5.45 kB | ~6.8 kB | +1.4 kB (tokens, font-face) |
+| HTML | 0.33 kB | 0.33 kB | 0 |
+
+### Verified this run
+
+- `npm run test` → 8 files / 78 tests pass (unchanged).
+- `npm run build` → success.
+- `npm run lint` → 0 errors, 5 pre-existing warnings (all deferred, above).
+
+### Phone QA checklist (manual, against `design/frames/`)
+
+Sheets: open/close/Escape · keyboard never hides the Add button · chips & tick rows · quick
+picks · error banner + scroll-to-first-error · edit from Review · removing the last item ·
+uploading blocks Add · 390px and desktop layouts · WhatsApp text unchanged · invalid page
+counts rejected · tamper badge · tracker polling · seller editing a question · product creation
+with preset and copy · preview as buyer · long names/text · empty and error states · full order
+flow ending in WhatsApp · seller order page.
+
+## Final summary
+
+- **What changed:** Phases 1–5 audited (already implemented) with two small fixes
+  (BottomSheet `useId`, `forms.md` drift). Phases 6–8 delivered: Figma audit + gap report,
+  full token-based visual restyle of the buyer and seller flows, `ui/` + site primitives,
+  self-hosted Sofia Sans, a new static `/how-to-order` page and mobile tab bar, and docs.
+- **Decisions/deviations:** `docs/design-gap-report.md` §9 (owner decisions) and §11
+  (outcome + corrections); locked logic and structure preserved (E items restyled only).
+- **Deferred (D):** shop search/sort logic, shop images, forgot-password, rental checkout
+  fields, welcome/role routes, ratings/reviews/etc.
+- **Manual steps:** the privacy migration order + verification list above.
