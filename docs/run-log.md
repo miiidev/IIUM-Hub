@@ -258,6 +258,12 @@ the time of writing):
 7. **Category label rename** — `src/utils/categories.ts`: `Others / Custom` → `Others` (label
    only; the `custom` value is unchanged). This is a deliberate edit to the previously-locked
    `src/utils/` dir, so the locked-area diff is intentionally non-empty now.
+8. **WhatsApp message restructured** — `src/utils/whatsapp.ts` `buildOrderMessage` now uses
+   labelled sections (👤 Buyer / 🛒 Items (n) / 📋 Details / Total / 🔗 Manage order) with a
+   divider. All asserted substrings preserved, so the WhatsApp tests are unchanged; the
+   "file values are names, never URLs" guarantee is intact. (Also a deliberate `src/utils/` edit.)
+9. **Upload field standout** — `DynamicFormEngine` buyer file field is now a prominent dashed
+   dropzone (icon, "Tap to upload", accepted types/size, drag-and-drop, Uploading…/Replace states).
 
 Verification: build clean, 78 tests pass, 0 lint errors, locked-area diff empty; new screens
 screenshotted below `sm` (500px) and at 800/1440 → `design/shots/`.

@@ -79,15 +79,21 @@ old label-keyed `custom_data` → one "Additional details" group. All consumers
 
 ## WhatsApp (`src/utils/whatsapp.ts`)
 
-Per-item lines `- Title x2 @ RM 2.95 = RM 5.90` + spec sub-lines
-`- Label: display (+RM 1.00)`, then Total, Ref ID, `/seller/orders/:id` link.
-**File values are names, never URLs** (rule; enforced by test).
+Structured into labelled sections separated by a divider: title, **👤 Buyer** (name, location),
+**🛒 Items (n)** (per-item `- Title x2 @ RM 2.95 = RM 5.90` + indented spec sub-lines
+`- Label: display (+RM 1.00)`), optional **📋 Details** (legacy `custom_data`), then
+`*Total: …*`, `DuitNow Ref ID: …`, and **🔗 Manage order** with the `/seller/orders/:id` link.
+**File values are names, never URLs** (rule; enforced by test — the structure may change but
+this guarantee may not).
 
 ## Uploads (`src/utils/uploadFile.ts`, bucket `buyer-uploads`)
 
 Immediate upload on file select, 5MB + jpg/png/webp/pdf pre-check (bucket enforces
 the same), path `shopId/uuid-name`, checkout blocked while uploading. Values stored
 as paths (new) or legacy public URLs (old orders — still link until the bucket flips).
+The buyer file field (`DynamicFormEngine`) is a prominent dashed dropzone (icon + "Tap to
+upload a file" + accepted types/size), supports drag-and-drop, and shows "Uploading…" /
+"Replace file" states.
 
 Privacy status: bucket is STILL PUBLIC until `0010_buyer_uploads_private.sql` is run
 in Dashboard → SQL Editor (it makes SELECT owner-only via `shops.owner_id`; anon
