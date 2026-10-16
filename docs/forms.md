@@ -72,7 +72,17 @@ blur; checkout re-validates. Inline errors, checkout blocked until valid.
 
 ## RLS summary (forms-relevant)
 
-Anon INSERT + SELECT on `orders` (honor flow + tracker); anon UPDATE removed (0009) —
-status changes are owner-authenticated only. `buyer-uploads`: anon INSERT open,
-SELECT public until 0010, then owner-only. Never scope public reads to `anon` alone
-(breaks logged-in users).
+Anon INSERT (status locked to `pending_verification` after 0011) + SELECT on `orders`
+for the honor flow and tracker; anon UPDATE removed (0009) — status changes are
+owner-authenticated only. Buyer tracker reads via `get_order()` RPC (no realtime sub;
+5s visibility-aware polling) so anon bulk SELECT can go away with 0011.
+`buyer-uploads`: anon INSERT open, SELECT public until 0010, then owner-only.
+Never scope public reads to `anon` alone (breaks logged-in users).
+
+## Pending manual steps (in order)
+
+1. Deploy this frontend (client-generated order ids + RPC tracker must be live first).
+2. Run `0010_buyer_uploads_private.sql`.
+3. Run `0011_orders_privacy.sql`.
+4. Verify: logged-out `/rest/v1/orders?select=*` empty · tracker link works + updates ·
+   checkout works · seller sees own orders · old public file URLs 404.

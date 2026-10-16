@@ -29,7 +29,6 @@ export default function OrderTracker() {
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [live, setLive] = useState(false);
 
   useEffect(() => {
     if (!orderId) {
@@ -37,39 +36,45 @@ export default function OrderTracker() {
       setLoading(false);
       return;
     }
-    async function fetchOrder() {
-      setLoading(true);
+    let cancelled = false;
+    let timer: ReturnType<typeof setInterval> | null = null;
+
+    function terminal(status: Order['status']): boolean {
+      return status === 'completed' || status === 'cancelled' || status === 'rejected';
+    }
+
+    async function fetchOrder(first = false) {
+      if (document.hidden) return;
+      if (first) setLoading(true);
       try {
-        const { data, error: err } = await supabase
-          .from('orders')
-          .select('*')
-          .eq('id', orderId)
-          .single();
+        const { data, error: err } = await supabase.rpc('get_order', { p_id: orderId });
         if (err) throw err;
-        setOrder(data as Order);
+        const row = (data as Order[] | null)?.[0] ?? null;
+        if (cancelled) return;
+        if (!row) {
+          setError('Order not found.');
+          setOrder(null);
+        } else {
+          setError(null);
+          setOrder(row);
+          if (terminal(row.status) && timer) {
+            clearInterval(timer);
+            timer = null;
+          }
+        }
       } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : 'Failed to load order.');
+        if (!cancelled) setError(e instanceof Error ? e.message : 'Failed to load order.');
       } finally {
-        setLoading(false);
+        if (!cancelled && first) setLoading(false);
       }
     }
-    fetchOrder();
 
-    const channel = supabase
-      .channel(`order-${orderId}`)
-      .on(
-        'postgres_changes',
-        { event: 'UPDATE', schema: 'public', table: 'orders', filter: `id=eq.${orderId}` },
-        (payload) => {
-          setOrder(payload.new as Order);
-        }
-      )
-      .subscribe((status) => {
-        setLive(status === 'SUBSCRIBED');
-      });
+    fetchOrder(true);
+    timer = setInterval(() => fetchOrder(false), 5000);
 
     return () => {
-      supabase.removeChannel(channel);
+      cancelled = true;
+      if (timer) clearInterval(timer);
     };
   }, [orderId]);
 
@@ -181,7 +186,7 @@ export default function OrderTracker() {
       )}
 
       <p className="mt-4 text-xs text-slate-500 lg:col-span-2">
-        {live ? 'LIVE - status updates automatically, no refresh needed.' : 'Connecting to live status... (refresh if nothing updates)'}
+        Status auto-refreshes every few seconds — no need to reload.
       </p>
       </div>
     </div>

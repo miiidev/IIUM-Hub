@@ -4,6 +4,7 @@ import { X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { OrderItemSummary, Shop } from '../types';
 import { generateWhatsAppLink } from '../utils/whatsapp';
+import { randomUuid } from '../utils/uuid';
 
 interface Props {
   shop: Shop;
@@ -49,7 +50,9 @@ export default function CheckoutModal({
 
     setLoading(true);
     try {
+      const orderId = randomUuid();
       const payload = {
+        id: orderId,
         shop_id,
         buyer_name: buyerName.trim(),
         location: location.trim(),
@@ -60,14 +63,9 @@ export default function CheckoutModal({
         status: 'pending_verification' as const,
       };
 
-      const { data, error: insErr } = await supabase
-        .from('orders')
-        .insert(payload)
-        .select('id')
-        .single();
+      const { error: insErr } = await supabase.from('orders').insert(payload);
 
       if (insErr) throw insErr;
-      const orderId = (data as { id: string }).id;
 
       const link = generateWhatsAppLink(
         shop,

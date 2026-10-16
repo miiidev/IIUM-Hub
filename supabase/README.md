@@ -18,7 +18,8 @@ if the DB is ever wiped or a new environment is needed, re-apply in order:
 
 ## Dashboard checklist (per environment)
 
-- [ ] SQL: run `0001_init.sql`, the `0002`-`0011` migrations (0008/0010/0011 need a manual Dashboard run), then `seed.sql`
+- [ ] SQL: run `0001_init.sql`, the `0002`-`0011` migrations (0008/0010/0011 need a manual Dashboard run), then `seed.sql`.
+  DEPLOY ORDER: `0008` any time; `0010` then `0011` only AFTER the matching frontend is deployed and live.
 - [ ] Realtime: `orders` table must be in the `supabase_realtime` publication
   (the migration does `alter publication ... add table`; verify under Database → Replication)
 - [ ] Auth → Providers → Email: turn OFF **Confirm email** for frictionless demo logins
