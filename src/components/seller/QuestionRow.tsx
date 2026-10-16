@@ -1,5 +1,6 @@
 import type { CustomField } from '../../types';
 import { FIELD_TYPE_LABEL } from '../../utils/fieldLabels';
+import Badge from '../ui/Badge';
 
 interface Props {
   field: CustomField;
@@ -37,31 +38,19 @@ export default function QuestionRow({ field: f, onOpen, disabled = false }: Prop
       type="button"
       onClick={onOpen}
       disabled={disabled}
-      className={`min-h-[48px] w-full rounded-xl border bg-white p-3 text-left disabled:opacity-50 ${
-        off ? 'border-slate-200 opacity-60' : 'border-slate-300'
+      className={`min-h-[48px] w-full rounded-control border border-line bg-white p-3 text-left transition-colors hover:bg-mint/20 disabled:opacity-50 ${
+        off ? 'opacity-60' : ''
       }`}
     >
-      <span className="flex items-center gap-2">
-        <span className="min-w-0 flex-1 truncate text-sm font-bold text-slate-900">
+      <span className="flex flex-wrap items-center gap-2">
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-ink">
           {f.label || '(No label yet)'}
         </span>
-        <span className="shrink-0 rounded-full bg-slate-100 px-2 py-1 text-xs font-bold text-slate-700">
-          {FIELD_TYPE_LABEL[f.type]}
-        </span>
-        <span
-          className={`shrink-0 rounded-full px-2 py-1 text-xs font-bold ${
-            f.required ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'
-          }`}
-        >
-          {f.required ? 'Required' : 'Optional'}
-        </span>
-        {off && (
-          <span className="shrink-0 rounded-full bg-slate-200 px-2 py-1 text-xs font-bold text-slate-600">
-            OFF
-          </span>
-        )}
+        <Badge tone="muted">{FIELD_TYPE_LABEL[f.type]}</Badge>
+        <Badge tone={f.required ? 'mint' : 'muted'}>{f.required ? 'Required' : 'Optional'}</Badge>
+        {off && <Badge tone="muted">OFF</Badge>}
       </span>
-      <span className="mt-1 block truncate text-xs text-slate-600">{compactView(f)}</span>
+      <span className="mt-1 block truncate text-xs text-muted">{compactView(f)}</span>
     </button>
   );
 }

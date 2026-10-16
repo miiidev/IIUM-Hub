@@ -14,8 +14,8 @@ export default function FormPreview({ fields, basePrice, shopId }: Props) {
   const unit = computeUnitTotal(basePrice, fields, values);
 
   return (
-    <div className="rounded-xl border border-slate-300 bg-white p-3">
-      <p className="text-xs font-bold uppercase text-slate-700">Buyer preview</p>
+    <div className="rounded-control border border-line bg-white p-3">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted">Buyer preview</p>
       <div className="mt-2">
         <DynamicFormEngine
           fields={fields}
@@ -25,12 +25,12 @@ export default function FormPreview({ fields, basePrice, shopId }: Props) {
           preview
         />
       </div>
-      <div className="mt-3 border-t border-slate-200 pt-2 text-sm">
-        <p className="flex justify-between text-slate-700">
+      <div className="mt-3 border-t border-line pt-2 text-sm">
+        <p className="flex justify-between text-muted">
           <span>Base price</span>
           <span>RM {basePrice.toFixed(2)}</span>
         </p>
-        <p className="flex justify-between font-bold text-slate-900">
+        <p className="flex justify-between font-semibold text-ink">
           <span>Per-unit total</span>
           <span>RM {unit.toFixed(2)}</span>
         </p>

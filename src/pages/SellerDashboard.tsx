@@ -3,6 +3,9 @@ import { Link, useParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import BottomSheet from '../components/BottomSheet';
+import Card from '../components/ui/Card';
+import Button from '../components/ui/Button';
+import Badge from '../components/ui/Badge';
 import type { Order, Shop } from '../types';
 import { normalizeOrderFields, orderTotalCheck, type NormalizedEntry } from '../utils/orderSnapshot';
 import { isFilePath, isLegacyFileUrl, signBuyerFile, storagePathFromValue } from '../utils/uploadFile';
@@ -34,14 +37,14 @@ function SellerFileLink({ path, name }: { path: string; name: string }) {
 
   if (url) {
     return (
-      <a href={url} target="_blank" rel="noreferrer" className="font-bold text-emerald-700 underline">
+      <a href={url} target="_blank" rel="noreferrer" className="font-semibold text-emerald underline">
         View file ({name})
       </a>
     );
   }
   return (
     <span>
-      <span className="font-bold">{name}</span>{' '}
+      <span className="font-semibold">{name}</span>{' '}
       <button
         type="button"
         disabled={signing}
@@ -56,7 +59,7 @@ function SellerFileLink({ path, name }: { path: string; name: string }) {
             setSigning(false);
           }
         }}
-        className="h-11 px-2 text-xs font-bold text-emerald-700 underline disabled:opacity-50"
+        className="h-11 px-2 text-xs font-semibold text-emerald underline disabled:opacity-50"
       >
         {signing ? 'Preparing link…' : failed ? 'Link expired — Retry' : 'Get link'}
       </button>
@@ -75,7 +78,7 @@ function renderEntry(entry: NormalizedEntry) {
     ) : isLegacyFileUrl(entry.value) ? (
       <span>
         {entry.display}{' '}
-        <span className="text-xs font-medium text-slate-500">(file unavailable)</span>
+        <span className="text-xs font-medium text-muted">(file unavailable)</span>
       </span>
     ) : (
       entry.display
@@ -85,9 +88,9 @@ function renderEntry(entry: NormalizedEntry) {
   );
   return (
     <span>
-      <span className="font-bold">{entry.label}:</span> {body}
+      <span className="font-semibold text-ink">{entry.label}:</span> {body}
       {entry.price_applied > 0 && (
-        <span className="ml-1 text-xs font-bold text-emerald-700">
+        <span className="ml-1 text-xs font-semibold text-emerald">
           (+RM {entry.price_applied.toFixed(2)})
         </span>
       )}
@@ -196,16 +199,16 @@ export default function SellerDashboard() {
 
   if (loading) {
     return (
-      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6">
-        <p className="text-sm text-slate-500">Loading seller order...</p>
+      <div className="mx-auto w-full max-w-3xl min-h-screen px-5 py-6 sm:px-8">
+        <p className="text-sm text-muted">Loading seller order...</p>
       </div>
     );
   }
 
   if (error && !order) {
     return (
-      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
+      <div className="mx-auto w-full max-w-3xl min-h-screen px-5 py-6 sm:px-8">
+        <div role="alert" className="rounded-card border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-700">
           {error}
         </div>
       </div>
@@ -220,11 +223,11 @@ export default function SellerDashboard() {
   // Ownership check: sellers can only manage their own shop's orders.
   if (myShop && order.shop_id !== myShop.id) {
     return (
-      <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6">
-        <Link to="/seller" className="inline-flex h-11 items-center text-sm font-bold text-slate-700">
+      <div className="mx-auto w-full max-w-3xl min-h-screen px-5 py-6 sm:px-8">
+        <Link to="/seller" className="inline-flex h-11 items-center text-sm font-semibold text-emerald">
           ← Dashboard
         </Link>
-        <div className="mt-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700">
+        <div role="alert" className="mt-3 rounded-card border border-red-200 bg-red-50 p-4 text-sm font-bold text-red-700">
           403 — This order is not from your shop.
         </div>
       </div>
@@ -234,134 +237,139 @@ export default function SellerDashboard() {
   const refLast = order.payment_ref_id.slice(-4);
 
   return (
-    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 p-4 sm:p-6 pb-10">
-      <Link to="/seller" className="inline-flex h-11 items-center text-sm font-bold text-slate-700">
+    <div className="mx-auto w-full max-w-3xl min-h-screen px-5 py-6 sm:px-8">
+      <Link to="/seller" className="inline-flex h-11 items-center text-sm font-semibold text-emerald">
         ← Dashboard
       </Link>
-      <h1 className="mt-1 text-xl sm:text-2xl font-bold text-slate-900">Seller Control</h1>
-      <p className="text-sm text-slate-600 break-all">{shop?.name ?? 'Shop'} — {order.id.slice(0, 8)}...</p>
+      <h1 className="mt-1 text-2xl font-bold text-ink sm:text-3xl">Seller Control</h1>
+      <p className="break-all text-sm text-muted">
+        {shop?.name ?? 'Shop'} — {order.id.slice(0, 8)}...
+      </p>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-2 lg:items-start">
-      <div className="rounded-xl border-2 border-slate-900 bg-white p-4">
-        <p className="text-sm font-bold text-slate-500">DUITNOW REF ID — 2-SECOND CROSS-CHECK</p>
-        <p className="font-mono text-3xl sm:text-4xl font-bold tracking-widest text-slate-900 break-all">
-          ...{refLast}
-        </p>
-        <p className="text-sm text-slate-600">Full: {order.payment_ref_id}</p>
-        <p className="mt-2 text-lg font-bold text-slate-900">
-          RM {Number(order.total_amount).toFixed(2)}
-        </p>
-        {!totalCheck.ok && !totalCheck.unknown && (
-          <p className="mt-2 inline-block rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">
-            Items add up to RM {totalCheck.expected.toFixed(2)} but the order total is RM{' '}
-            {totalCheck.actual.toFixed(2)}
+      <div className="mt-5 grid gap-4 lg:grid-cols-2 lg:items-start">
+        <Card className="border-2 border-emerald p-5">
+          <p className="text-sm font-semibold text-muted">DUITNOW REF ID — 2-SECOND CROSS-CHECK</p>
+          <p className="break-all font-mono text-3xl font-bold tracking-widest text-ink sm:text-4xl">
+            ...{refLast}
           </p>
-        )}
-      </div>
+          <p className="text-sm text-muted">Full: {order.payment_ref_id}</p>
+          <p className="mt-2 text-lg font-bold text-ink">
+            RM {Number(order.total_amount).toFixed(2)}
+          </p>
+          {!totalCheck.ok && !totalCheck.unknown && (
+            <p role="alert" className="mt-2 inline-block rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">
+              Items add up to RM {totalCheck.expected.toFixed(2)} but the order total is RM{' '}
+              {totalCheck.actual.toFixed(2)}
+            </p>
+          )}
+        </Card>
 
-      <div className="mt-4 lg:mt-0 rounded-xl border border-slate-200 bg-white p-4">
-        <p className="font-bold text-slate-900">{order.buyer_name}</p>
-        <p className="text-sm text-slate-600">{order.location}</p>
-        {(order.items?.length ?? 0) > 0 && (
-          <div className="mt-2 border-t border-slate-200 pt-2">
-            {(order.items ?? []).map((it, i) => (
-              <p key={i} className="flex justify-between gap-2 text-sm text-slate-700">
-                <span>{it.title} × {it.qty}</span>
-                <span className="font-bold">RM {Number(it.lineTotal).toFixed(2)}</span>
-              </p>
-            ))}
+        <Card className="mt-0 p-5">
+          <p className="font-semibold text-ink">{order.buyer_name}</p>
+          <p className="text-sm text-muted">{order.location}</p>
+          {(order.items?.length ?? 0) > 0 && (
+            <div className="mt-2 border-t border-line pt-2">
+              {(order.items ?? []).map((it, i) => (
+                <p key={i} className="flex justify-between gap-2 text-sm text-muted">
+                  <span>{it.title} × {it.qty}</span>
+                  <span className="font-semibold text-ink">RM {Number(it.lineTotal).toFixed(2)}</span>
+                </p>
+              ))}
+            </div>
+          )}
+          {groups.map((g, gi) => (
+            <div key={gi} className="mt-2 border-t border-line pt-2">
+              {groups.length > 1 && (
+                <p className="text-sm font-semibold text-ink">
+                  {g.title} × {g.qty} — RM {g.lineTotal.toFixed(2)}
+                </p>
+              )}
+              {g.entries.map((e, ei) => (
+                <p key={ei} className="text-sm text-muted">
+                  {renderEntry(e)}
+                </p>
+              ))}
+              {g.mismatch && (
+                <p role="alert" className="mt-1 inline-block rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">
+                  Total doesn't match the form breakdown
+                </p>
+              )}
+            </div>
+          ))}
+          <span className="mt-3 inline-block">
+            <Badge tone="muted">{order.status.replace(/_/g, ' ')}</Badge>
+          </span>
+        </Card>
+
+        {error && (
+          <div role="alert" className="mt-0 rounded-card border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700 lg:col-span-2">
+            {error}
           </div>
         )}
-        {groups.map((g, gi) => (
-          <div key={gi} className="mt-2 border-t border-slate-200 pt-2">
-            {groups.length > 1 && (
-              <p className="text-sm font-bold text-slate-900">
-                {g.title} × {g.qty} — RM {g.lineTotal.toFixed(2)}
-              </p>
-            )}
-            {g.entries.map((e, ei) => (
-              <p key={ei} className="text-sm text-slate-700">
-                {renderEntry(e)}
-              </p>
-            ))}
-            {g.mismatch && (
-              <p className="mt-1 inline-block rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700">
-                Total doesn't match the form breakdown
-              </p>
-            )}
+
+        {order.status === 'pending_verification' && (
+          <div className="mt-0 grid gap-3 sm:grid-cols-2 lg:col-span-2">
+            <Button
+              size="md"
+              onClick={() => updateStatus('confirmed')}
+              disabled={updating}
+              className="h-14 text-lg"
+            >
+              Verify Payment
+            </Button>
+            <Button
+              size="md"
+              onClick={handleCancel}
+              disabled={updating}
+              className="h-14 bg-danger text-lg hover:bg-danger/90"
+            >
+              Cancel Order
+            </Button>
           </div>
-        ))}
-        <span className="mt-2 inline-block rounded-full bg-slate-100 px-3 py-1 text-xs font-bold">
-          {order.status.toUpperCase()}
-        </span>
-      </div>
+        )}
 
-      {error && (
-        <div className="mt-3 lg:col-span-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
-          {error}
-        </div>
-      )}
-
-      {order.status === 'pending_verification' && (
-        <div className="mt-4 lg:mt-0 lg:col-span-2 grid gap-3 sm:grid-cols-2">
-          <button
-            onClick={() => updateStatus('confirmed')}
+        {order.status === 'confirmed' && (
+          <Button
+            onClick={() => updateStatus('ready')}
             disabled={updating}
-            className="h-14 w-full rounded-xl bg-emerald-600 text-lg font-bold text-white disabled:opacity-60"
+            className="mt-0 h-14 text-lg lg:col-span-2"
           >
-            Verify Payment
-          </button>
-          <button
+            Mark Ready
+          </Button>
+        )}
+
+        {order.status === 'ready' && (
+          <Button
+            onClick={() => updateStatus('completed')}
+            disabled={updating}
+            className="mt-0 h-14 text-lg lg:col-span-2"
+          >
+            Mark Completed
+          </Button>
+        )}
+
+        {!['completed', 'cancelled'].includes(order.status) && order.status !== 'pending_verification' && (
+          <Button
+            variant="ghost"
             onClick={handleCancel}
             disabled={updating}
-            className="h-14 w-full rounded-xl bg-red-600 text-lg font-bold text-white disabled:opacity-60"
+            className="mt-0 lg:col-span-2"
           >
-            Cancel Order
-          </button>
-        </div>
-      )}
+            Cancel order
+          </Button>
+        )}
 
-      {order.status === 'confirmed' && (
-        <button
-          onClick={() => updateStatus('ready')}
-          disabled={updating}
-          className="mt-4 lg:col-span-2 h-14 w-full rounded-xl bg-slate-900 text-lg font-bold text-white disabled:opacity-60"
-        >
-          Mark Ready
-        </button>
-      )}
+        {order.status === 'cancelled' && order.cancel_reason && (
+          <Card className="mt-0 p-4 text-sm text-muted lg:col-span-2">
+            <span className="font-semibold text-ink">Cancel reason:</span> {order.cancel_reason}
+          </Card>
+        )}
 
-      {order.status === 'ready' && (
-        <button
-          onClick={() => updateStatus('completed')}
-          disabled={updating}
-          className="mt-4 lg:col-span-2 h-14 w-full rounded-xl bg-slate-900 text-lg font-bold text-white disabled:opacity-60"
-        >
-          Mark Completed
-        </button>
-      )}
-
-      {!['completed', 'cancelled'].includes(order.status) && order.status !== 'pending_verification' && (
-        <button
-          onClick={handleCancel}
-          disabled={updating}
-          className="mt-3 lg:col-span-2 h-11 w-full rounded-xl border border-slate-300 text-sm font-bold text-slate-600 disabled:opacity-60"
-        >
-          Cancel order
-        </button>
-      )}
-
-      {order.status === 'cancelled' && order.cancel_reason && (
-        <div className="mt-4 lg:col-span-2 rounded-xl border border-slate-200 bg-white p-4 text-sm text-slate-700">
-          <span className="font-bold">Cancel reason:</span> {order.cancel_reason}
-        </div>
-      )}
-
-      {order.status === 'completed' && (
-        <div className="mt-4 lg:col-span-2 rounded-xl border border-slate-200 bg-white p-4 text-center text-sm font-bold text-slate-700">
-          Order completed. No further action.
-        </div>
-      )}
+        {order.status === 'completed' && (
+          <Card className="mt-0 p-4 text-center text-sm font-semibold text-ink lg:col-span-2">
+            Order completed. No further action.
+          </Card>
+        )}
       </div>
 
       <BottomSheet
@@ -371,37 +379,35 @@ export default function SellerDashboard() {
         busy={updating}
         footer={
           <div className="flex gap-2">
-            <button
-              type="button"
+            <Button
+              variant="ghost"
               onClick={() => setShowCancel(false)}
               disabled={updating}
-              className="h-12 rounded-xl border border-slate-300 px-6 font-bold text-slate-700 disabled:opacity-50"
             >
               Keep order
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button
               onClick={confirmCancel}
               disabled={updating || !cancelReason.trim()}
-              className="h-12 flex-1 rounded-xl bg-red-600 font-bold text-white disabled:opacity-50"
+              className="flex-1 bg-danger hover:bg-danger/90"
             >
               {updating ? 'Cancelling…' : 'Cancel order'}
-            </button>
+            </Button>
           </div>
         }
       >
-        <p className="text-sm font-bold text-slate-900">Why are you cancelling?</p>
-        <p className="mt-1 text-xs text-slate-500">The buyer sees this reason on their tracker.</p>
+        <p className="text-sm font-semibold text-ink">Why are you cancelling?</p>
+        <p className="mt-1 text-xs text-muted">The buyer sees this reason on their tracker.</p>
         <div className="mt-3 flex flex-wrap gap-2">
           {CANCEL_REASONS.map((r) => (
             <button
               key={r}
               type="button"
               onClick={() => setCancelReason((prev) => (prev === r ? '' : r))}
-              className={`h-11 rounded-full border px-4 text-sm font-bold ${
+              className={`h-11 rounded-full border px-4 text-sm font-semibold transition-colors ${
                 cancelReason === r
-                  ? 'border-slate-900 bg-slate-900 text-white'
-                  : 'border-slate-300 bg-white text-slate-800'
+                  ? 'border-emerald bg-emerald text-white'
+                  : 'border-line bg-white text-ink hover:bg-mint/30'
               }`}
             >
               {r}
@@ -409,12 +415,12 @@ export default function SellerDashboard() {
           ))}
         </div>
         <label className="mt-3 block">
-          <span className="text-xs font-bold text-slate-600">Or type your own</span>
+          <span className="text-xs font-semibold text-muted">Or type your own</span>
           <input
             value={cancelReason}
             onChange={(e) => setCancelReason(e.target.value)}
             placeholder="e.g. Ingredient ran out"
-            className="mt-1 h-12 w-full rounded-xl border border-slate-300 bg-white px-4 text-sm text-slate-900 outline-none focus:border-slate-900"
+            className="mt-1 h-12 w-full rounded-control border border-line bg-white px-4 text-sm text-ink outline-none transition-colors placeholder:text-placeholder focus:border-emerald focus:ring-2 focus:ring-emerald/25"
           />
         </label>
       </BottomSheet>

@@ -10,16 +10,16 @@ interface Props {
 export default function ProductImage({
   src,
   alt = '',
-  className = 'aspect-video w-full rounded-xl',
+  className = 'aspect-video w-full rounded-control',
 }: Props) {
   const [failed, setFailed] = useState(false);
   if (!src || failed) {
     return (
       <div
         aria-hidden
-        className={`flex items-center justify-center border border-slate-200 bg-slate-100 ${className}`}
+        className={`flex items-center justify-center border border-line bg-mint/30 ${className}`}
       >
-        <ImageIcon className="h-8 w-8 text-slate-400" />
+        <ImageIcon className="h-8 w-8 text-emerald/50" />
       </div>
     );
   }
@@ -29,7 +29,7 @@ export default function ProductImage({
       alt={alt}
       loading="lazy"
       onError={() => setFailed(true)}
-      className={`bg-slate-100 object-cover ${className}`}
+      className={`bg-mint/30 object-cover ${className}`}
     />
   );
 }

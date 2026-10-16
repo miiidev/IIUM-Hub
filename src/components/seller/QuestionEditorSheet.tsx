@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import type { CustomField } from '../../types';
 import BottomSheet from '../BottomSheet';
 import { FIELD_TYPE_LABEL } from '../../utils/fieldLabels';
+import Button from '../ui/Button';
 
 interface Props {
   open: boolean;
@@ -12,7 +13,7 @@ interface Props {
 }
 
 const smallInput =
-  'h-11 w-full rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-900 outline-none focus:border-slate-900 disabled:opacity-50';
+  'h-11 w-full rounded-control border border-line bg-white px-3 text-sm text-ink outline-none transition-colors placeholder:text-placeholder focus:border-emerald focus:ring-2 focus:ring-emerald/25 disabled:opacity-50';
 
 export default function QuestionEditorSheet({ open, field, onClose, onSave, onRemove }: Props) {
   const [label, setLabel] = useState('');
@@ -38,7 +39,7 @@ export default function QuestionEditorSheet({ open, field, onClose, onSave, onRe
       setError(null);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open ]);
+  }, [open]);
 
   if (!field) return null;
   const isChoice = field.type === 'select' || field.type === 'multiselect';
@@ -96,32 +97,29 @@ export default function QuestionEditorSheet({ open, field, onClose, onSave, onRe
       title={field.label || 'Edit question'}
       footer={
         <div className="flex gap-2">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => {
               if (window.confirm('Remove this question?')) {
                 onRemove();
                 onClose();
               }
             }}
-            className="h-12 rounded-xl border border-red-200 px-4 font-bold text-red-700"
+            className="border-red-200 text-danger hover:bg-red-50"
           >
             Remove
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            className="h-12 flex-1 rounded-xl bg-emerald-600 font-bold text-white"
-          >
+          </Button>
+          <Button type="button" onClick={handleSave} className="flex-1">
             Save question
-          </button>
+          </Button>
         </div>
       }
     >
-      <p className="text-xs font-bold text-slate-500">{FIELD_TYPE_LABEL[field.type]}</p>
+      <p className="text-xs font-semibold text-muted">{FIELD_TYPE_LABEL[field.type]}</p>
       <div className="mt-2 space-y-3">
         <div>
-          <label className="mb-1 block text-sm font-bold text-slate-900">Question</label>
+          <label className="mb-1 block text-sm font-semibold text-ink">Question</label>
           <input
             type="text"
             value={label}
@@ -130,28 +128,28 @@ export default function QuestionEditorSheet({ open, field, onClose, onSave, onRe
             className={smallInput}
           />
         </div>
-        <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm font-bold text-slate-900">
+        <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm font-semibold text-ink">
           <input
             type="checkbox"
             checked={required}
             onChange={(e) => setRequired(e.target.checked)}
-            className="h-5 w-5 accent-emerald-600"
+            className="h-5 w-5 accent-emerald"
           />
           Required
         </label>
-        <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm font-bold text-slate-900">
+        <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm font-semibold text-ink">
           <input
             type="checkbox"
             checked={enabled}
             onChange={(e) => setEnabled(e.target.checked)}
-            className="h-5 w-5 accent-emerald-600"
+            className="h-5 w-5 accent-emerald"
           />
           On (off hides it from buyers)
         </label>
 
         {isChoice && (
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
-            <p className="text-xs font-bold text-slate-700">Options and price add-ons (RM)</p>
+          <div className="rounded-control border border-line bg-cream p-3">
+            <p className="text-xs font-semibold text-muted">Options and price add-ons (RM)</p>
             <div className="mt-2 space-y-2">
               {options.map((o, i) => (
                 <div key={i} className="flex items-center gap-2">
@@ -174,13 +172,13 @@ export default function QuestionEditorSheet({ open, field, onClose, onSave, onRe
                       setOptions((prev) => prev.map((x, j) => (j === i ? { ...x, price: e.target.value } : x)))
                     }
                     aria-label="Price add-on"
-                    className="h-11 w-20 shrink-0 rounded-lg border border-slate-300 bg-white px-2 text-sm text-slate-900 outline-none focus:border-slate-900"
+                    className="h-11 w-20 shrink-0 rounded-control border border-line bg-white px-2 text-sm text-ink outline-none transition-colors focus:border-emerald focus:ring-2 focus:ring-emerald/25"
                   />
                   <button
                     type="button"
                     onClick={() => setOptions((prev) => prev.filter((_, j) => j !== i))}
                     aria-label="Remove option"
-                    className="h-11 w-11 shrink-0 rounded-lg border border-slate-300 text-lg font-bold text-red-700"
+                    className="h-11 w-11 shrink-0 rounded-control border border-line text-lg font-bold text-danger transition-colors hover:bg-red-50"
                   >
                     ×
                   </button>
@@ -190,7 +188,7 @@ export default function QuestionEditorSheet({ open, field, onClose, onSave, onRe
             <button
               type="button"
               onClick={() => setOptions((prev) => [...prev, { name: '', price: '' }])}
-              className="mt-2 h-11 rounded-lg border border-slate-300 bg-white px-3 text-sm font-bold text-slate-800"
+              className="mt-2 h-11 rounded-control border border-line bg-white px-3 text-sm font-semibold text-ink transition-colors hover:bg-mint/30"
             >
               + Add option
             </button>
@@ -198,11 +196,11 @@ export default function QuestionEditorSheet({ open, field, onClose, onSave, onRe
         )}
 
         {isNumber && (
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
-            <p className="text-xs font-bold text-slate-700">Price per unit (RM) + limits</p>
+          <div className="rounded-control border border-line bg-cream p-3">
+            <p className="text-xs font-semibold text-muted">Price per unit (RM) + limits</p>
             <div className="mt-2 grid grid-cols-3 gap-2">
               <label className="block">
-                <span className="text-xs text-slate-600">RM / unit</span>
+                <span className="text-xs text-muted">RM / unit</span>
                 <input
                   type="number"
                   inputMode="decimal"
@@ -214,7 +212,7 @@ export default function QuestionEditorSheet({ open, field, onClose, onSave, onRe
                 />
               </label>
               <label className="block">
-                <span className="text-xs text-slate-600">Min</span>
+                <span className="text-xs text-muted">Min</span>
                 <input
                   type="number"
                   inputMode="numeric"
@@ -224,7 +222,7 @@ export default function QuestionEditorSheet({ open, field, onClose, onSave, onRe
                 />
               </label>
               <label className="block">
-                <span className="text-xs text-slate-600">Max</span>
+                <span className="text-xs text-muted">Max</span>
                 <input
                   type="number"
                   inputMode="numeric"
@@ -234,12 +232,12 @@ export default function QuestionEditorSheet({ open, field, onClose, onSave, onRe
                 />
               </label>
             </div>
-            <label className="mt-2 flex min-h-[44px] cursor-pointer items-center gap-2 text-sm font-bold text-slate-900">
+            <label className="mt-2 flex min-h-[44px] cursor-pointer items-center gap-2 text-sm font-semibold text-ink">
               <input
                 type="checkbox"
                 checked={integer}
                 onChange={(e) => setInteger(e.target.checked)}
-                className="h-5 w-5 accent-emerald-600"
+                className="h-5 w-5 accent-emerald"
               />
               Whole numbers only
             </label>
@@ -247,7 +245,7 @@ export default function QuestionEditorSheet({ open, field, onClose, onSave, onRe
         )}
 
         {error && (
-          <p role="alert" className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+          <p role="alert" className="rounded-control border border-red-200 bg-red-50 p-3 text-sm font-medium text-danger">
             {error}
           </p>
         )}

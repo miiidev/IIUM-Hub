@@ -4,6 +4,10 @@ import { useAuth } from '../../context/AuthContext';
 import type { Product } from '../../types';
 import SellerNav from '../../components/seller/SellerNav';
 import ProductWizard from '../../components/seller/ProductWizard';
+import Card from '../../components/ui/Card';
+import Button from '../../components/ui/Button';
+import Badge from '../../components/ui/Badge';
+import EmptyState from '../../components/ui/EmptyState';
 import { activeFields, clonePresetFields, getPreset, getPresetForCategory, sanitizeFields } from '../../utils/formPresets';
 
 export default function Products() {
@@ -112,100 +116,92 @@ export default function Products() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-md sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl 2xl:max-w-[1600px] min-h-screen bg-slate-50 pb-10">
+    <div className="flex min-h-screen flex-col pb-10">
       <SellerNav />
-      <main className="p-4 sm:p-6 lg:grid lg:grid-cols-[1fr_320px] lg:gap-6 lg:items-start">
+      <main className="mx-auto w-full max-w-[1312px] flex-1 px-5 py-6 sm:px-8 lg:grid lg:grid-cols-[1fr_360px] lg:items-start lg:gap-8">
         <div>
           <div className="flex items-center justify-between gap-2">
-            <h2 className="font-bold text-slate-900">Products ({products.length})</h2>
-            <button
-              type="button"
-              onClick={startAdd}
-              className="h-11 rounded-xl bg-slate-900 px-4 text-sm font-bold text-white"
-            >
+            <h2 className="text-xl font-semibold text-ink">Products ({products.length})</h2>
+            <Button size="sm" onClick={startAdd}>
               + Add product
-            </button>
+            </Button>
           </div>
+
           {shop && getPresetForCategory(shop.category) && (
-            <div className="mt-2 rounded-xl border border-slate-300 bg-white p-3">
-              <p className="text-sm text-slate-800">
+            <Card className="mt-3 bg-mint/40 p-4">
+              <p className="text-sm text-ink">
                 Preset <span className="font-bold">{getPreset(getPresetForCategory(shop.category)!).label}</span>{' '}
                 recommended for your shop category.
               </p>
-              <div className="mt-2 flex gap-2">
-                <button
-                  type="button"
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
                   disabled={saving}
                   onClick={() => handleBulkApply(false)}
-                  className="h-11 flex-1 rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-800 disabled:opacity-50"
                 >
                   Apply to empty products
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   disabled={saving}
                   onClick={() => handleBulkApply(true)}
-                  className="h-11 flex-1 rounded-xl border border-slate-300 bg-white px-3 text-sm font-bold text-slate-800 disabled:opacity-50"
                 >
                   Overwrite all
-                </button>
+                </Button>
               </div>
-            </div>
+            </Card>
           )}
-          {loading && <p className="mt-2 text-sm text-slate-500">Loading...</p>}
+
+          {loading && <p className="mt-3 text-sm text-muted">Loading...</p>}
           {error && (
-            <div className="mt-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
+            <div role="alert" className="mt-3 rounded-card border border-red-200 bg-red-50 p-3 text-sm font-medium text-red-700">
               {error}
             </div>
           )}
-          <div className="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {products.map((p) => (
-              <div key={p.id} className="rounded-xl border border-slate-200 bg-white p-4">
+              <Card key={p.id} className="p-4">
                 <div className="flex items-center justify-between gap-2">
-                  <h3 className="font-bold text-slate-900 truncate">{p.title}</h3>
-                  <span
-                    className={`shrink-0 rounded-full px-2 py-1 text-xs font-bold ${
-                      p.is_available ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'
-                    }`}
-                  >
-                    {p.is_available ? 'On' : 'Off'}
-                  </span>
+                  <h3 className="truncate font-semibold text-ink">{p.title}</h3>
+                  <Badge tone={p.is_available ? 'mint' : 'muted'}>{p.is_available ? 'On' : 'Off'}</Badge>
                 </div>
-                <p className="text-sm font-bold text-slate-700">RM {Number(p.price).toFixed(2)}</p>
-                <p className="mt-1 text-xs text-slate-600">
+                <p className="text-sm font-semibold text-emerald">RM {Number(p.price).toFixed(2)}</p>
+                <p className="mt-1 text-xs text-muted">
                   {activeFields(p.custom_fields).length} active questions
                 </p>
-                <div className="mt-2 flex gap-2">
-                  <button
-                    onClick={() => toggleAvailable(p)}
-                    className="h-11 flex-1 rounded-xl border border-slate-200 text-sm font-bold text-slate-700"
-                  >
+                <div className="mt-3 flex gap-2">
+                  <Button variant="ghost" size="sm" onClick={() => toggleAvailable(p)} className="flex-1">
                     {p.is_available ? 'Hide' : 'Show'}
-                  </button>
-                  <button
-                    onClick={() => startEdit(p)}
-                    className="h-11 flex-1 rounded-xl bg-slate-900 text-sm font-bold text-white"
-                  >
+                  </Button>
+                  <Button size="sm" onClick={() => startEdit(p)} className="flex-1">
                     Edit
-                  </button>
-                  <button
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => handleDelete(p)}
-                    className="h-11 rounded-xl border border-red-200 px-4 text-sm font-bold text-red-600"
+                    className="border-red-200 text-red-600 hover:bg-red-50"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
+
           {!loading && products.length === 0 && (
-            <div className="mt-3 rounded-xl border border-slate-200 bg-white p-6 text-center text-sm text-slate-600">
-              No products yet. Tap + Add product to create your first one.
-            </div>
+            <EmptyState
+              title="No products yet"
+              description="Tap + Add product to create your first one."
+              className="mt-4"
+            />
           )}
         </div>
 
-        <div className="mt-4 lg:mt-0 rounded-xl border border-slate-200 bg-white p-4 lg:sticky lg:top-24">
+        <div className="mt-4 lg:mt-0 lg:sticky lg:top-24">
           {showWizard ? (
             <ProductWizard
               editing={editing}
@@ -221,19 +217,15 @@ export default function Products() {
               }}
             />
           ) : (
-            <div className="p-2 text-center">
-              <p className="text-sm font-bold text-slate-900">Product editor</p>
-              <p className="mt-1 text-sm text-slate-600">
+            <Card className="p-6 text-center">
+              <p className="font-semibold text-ink">Product editor</p>
+              <p className="mt-1 text-sm text-muted">
                 Add a new product or tap Edit on one above.
               </p>
-              <button
-                type="button"
-                onClick={startAdd}
-                className="mt-3 h-12 w-full rounded-xl bg-slate-900 font-bold text-white"
-              >
+              <Button type="button" onClick={startAdd} className="mt-4 w-full">
                 + Add product
-              </button>
-            </div>
+              </Button>
+            </Card>
           )}
         </div>
       </main>
