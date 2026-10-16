@@ -273,6 +273,10 @@ the time of writing):
 11. **Product rename fix** — the wizard's edit flow opens on Review (step 3) with no editable
     name, so renaming was not discoverable. Review now has inline editable Name / Price /
     Available fields, saved via "Save Changes".
+12. **Shoe Wash removed** — dropped the `shoe_wash` shop category, its preset, the
+    `CATEGORY_PRESET_MAP` entry, the type unions and the Marketplace chip/icon; tests updated.
+    Existing shops with `category = 'shoe_wash'` still render (label falls back to the raw
+    value) but can no longer be chosen. (Deliberate `src/types` + `src/utils` edits.)
 
 Verification: build clean, 78 tests pass, 0 lint errors, locked-area diff empty; new screens
 screenshotted below `sm` (500px) and at 800/1440 → `design/shots/`.

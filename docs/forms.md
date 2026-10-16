@@ -35,9 +35,9 @@ Shared bits: `BottomSheet.tsx`, `fieldLabels.ts` (plain type names), `formUi.ts`
 
 ## Presets (`src/utils/formPresets.ts` — single source of truth)
 
-`printing`, `shoe_wash`, `food_addons`, `repairs`, `rentals`, `custom` (empty starter).
-Category map: food→food_addons, printing→printing, shoe_wash→shoe_wash,
-repairs→repairs, rentals→rentals, custom→custom. New products pre-fill; bulk apply
+`printing`, `food_addons`, `repairs`, `rentals`, `custom` (empty starter).
+Category map: food→food_addons, printing→printing, repairs→repairs,
+rentals→rentals, custom→custom. New products pre-fill; bulk apply
 covers empty-only or overwrite-with-confirm. Backfilled live + in `seed.sql`.
 
 Base-price convention: base = flat fee, modifiers add on top. Printing sellers should
