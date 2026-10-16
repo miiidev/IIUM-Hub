@@ -10,6 +10,11 @@ export function normalizeWhatsappNumber(raw: string): string {
 }
 
 export function getAppOrigin(): string {
+  const configured =
+    typeof import.meta !== 'undefined'
+      ? (import.meta.env?.VITE_PUBLIC_APP_URL as string | undefined)?.trim().replace(/\/+$/, '')
+      : undefined;
+  if (configured) return configured;
   if (typeof window !== 'undefined' && window.location?.origin) {
     return window.location.origin;
   }

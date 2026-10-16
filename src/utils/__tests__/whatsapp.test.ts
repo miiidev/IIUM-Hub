@@ -1,6 +1,6 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi, afterEach } from 'vitest';
 import type { OrderPayload, Shop } from '../../types';
-import { buildOrderMessage, generateWhatsAppLink, normalizeWhatsappNumber } from '../whatsapp';
+import { buildOrderMessage, generateWhatsAppLink, getAppOrigin, normalizeWhatsappNumber } from '../whatsapp';
 
 const shop: Shop = {
   id: 's1',
@@ -43,8 +43,7 @@ describe('whatsapp', () => {
     expect(decodeURIComponent(link.split('?text=')[1])).toBe(buildOrderMessage(shop, order, 'order-123'));
   });
 
-  it('shows file names, never urls, for file values', () => {
-    const withFile: OrderPayload = {
+  it('shows file names, never urls, for file values', () => {    const withFile: OrderPayload = {
       ...order,
       items: [
         {
@@ -74,5 +73,17 @@ describe('whatsapp', () => {
     expect(msg).not.toContain('cdn.example.com');
     expect(msg).not.toContain('/storage/v1/object/');
     expect(msg).not.toContain('12345678-1234');
+  });
+
+  it('prefers the configured public app URL over localhost origin', () => {
+    vi.stubEnv('VITE_PUBLIC_APP_URL', 'https://shop.example.com/');
+    expect(getAppOrigin()).toBe('https://shop.example.com');
+    expect(buildOrderMessage(shop, order, 'o1')).toContain(
+      'https://shop.example.com/seller/orders/o1'
+    );
+  });
+
+  afterEach(() => {
+    vi.unstubAllEnvs();
   });
 });
