@@ -22,6 +22,7 @@ export interface Shop {
   duitnow_account?: string | null;
   banner_url?: string | null;
   description?: string | null;
+  seller_email?: string | null;
 }
 
 export interface Profile {

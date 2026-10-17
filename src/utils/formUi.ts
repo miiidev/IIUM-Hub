@@ -29,5 +29,5 @@ export function firstErrorFieldId(
 }
 
 export function errorCount(errors: Record<string, string>): number {
-  return Object.keys(errors).length;
+  return Object.values(errors).filter(Boolean).length;
 }

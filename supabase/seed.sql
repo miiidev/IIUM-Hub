@@ -12,22 +12,22 @@ truncate table public.shops cascade;
 
 -- ── Shops (16, across 16 Mahallas, mixed categories) ──────────────────────
 insert into public.shops (slug, name, whatsapp_number, category, mahalla, is_active, description, banner_url) values
-  ('faruq-nasi-lemak',        'Faruq Nasi Lemak Corner',      '60123456001', 'food',     'Faruq',      true, 'Home-cooked nasi lemak and breakfast sets, ready by 7am.',                          '/seed/banners/faruq-nasi-lemak.jpg'),
-  ('siddiq-printing-hub',     'Siddiq Printing Hub',          '60123456002', 'printing', 'Siddiq',     true, 'Assignment printing, binding and lamination at student prices.',                    '/seed/banners/siddiq-printing-hub.jpg'),
-  ('ali-phone-repair',        'Ali''s Phone Repair',          '60123456003', 'repairs',  'Ali',        true, 'Screen, battery and charging port repairs while you wait.',                         '/seed/banners/ali-phone-repair.jpg'),
-  ('bilal-bike-rental',       'Bilal Bike Rental',            '60123456004', 'rentals',  'Bilal',      true, 'Daily bicycles for getting around campus.',                                         '/seed/banners/bilal-bike-rental.jpg'),
-  ('uthman-burger-shack',     'Uthman Burger Shack',          '60123456005', 'food',     'Uthman',     true, 'Fresh grilled burgers and fries, open till midnight.',                              '/seed/banners/uthman-burger-shack.jpg'),
-  ('zubair-print-copy',       'Zubair Print & Copy',          '60123456006', 'printing', 'Zubair',     true, 'Photocopy, binding and last-minute dissertation printing.',                         '/seed/banners/zubair-print-copy.jpg'),
-  ('aminah-kitchen',          'Aminah''s Kitchen',            '60123456007', 'food',     'Aminah',     true, 'Daily home-cooked rice sets, delivery to nearby mahallas.',                         '/seed/banners/aminah-kitchen.jpg'),
-  ('asiah-laptop-clinic',     'Asiah Laptop Clinic',          '60123456008', 'repairs',  'Asiah',      true, 'Laptop servicing, upgrades and data recovery.',                                     '/seed/banners/asiah-laptop-clinic.jpg'),
-  ('asma-sewing',             'Asma Sewing & Alterations',    '60123456009', 'custom',   'Asma',       true, 'Alterations, repairs and custom tailoring.',                                        '/seed/banners/asma-sewing.jpg'),
-  ('hafsah-bubble-tea',       'Hafsah Bubble Tea',            '60123456010', 'food',     'Hafsah',     true, 'Freshly shaken milk tea and fruit teas.',                                           '/seed/banners/hafsah-bubble-tea.jpg'),
-  ('halimah-room-rental',     'Halimah Room Rental',          '60123456011', 'rentals',  'Halimah',    true, 'Monthly room rentals near campus.',                                                 '/seed/banners/halimah-room-rental.jpg'),
-  ('maryam-laundry',          'Maryam Laundry Service',       '60123456012', 'custom',   'Maryam',     true, 'Wash, dry and fold laundry by the kilogram.',                                       '/seed/banners/maryam-laundry.jpg'),
-  ('nusaibah-nasi-ayam',      'Nusaibah Nasi Ayam',           '60123456013', 'food',     'Nusaibah',   true, 'Nasi ayam penyet and grilled chicken sets.',                                        '/seed/banners/nusaibah-nasi-ayam.jpg'),
-  ('safiyyah-stationery',     'Safiyyah Stationery & Print',  '60123456014', 'printing', 'Safiyyah',   true, 'Stationery, photocopy and printing services.',                                      '/seed/banners/safiyyah-stationery.jpg'),
-  ('ruqayyah-gadget-repair',  'Ruqayyah Gadget Repair',       '60123456015', 'repairs',  'Ruqayyah',   true, 'Screen repairs and diagnostics for phones and tablets.',                            '/seed/banners/ruqayyah-gadget-repair.jpg'),
-  ('salahuddin-camera-rental','Salahuddin Camera Rental',     '60123456016', 'rentals',  'Salahuddin', true, 'DSLR and mirrorless camera rentals for events.',                                   '/seed/banners/salahuddin-camera-rental.jpg');
+  ('faruq-nasi-lemak',        'Faruq Nasi Lemak Corner',      '60132446202', 'food',     'Faruq',      true, 'Home-cooked nasi lemak and breakfast sets, ready by 7am.',                          '/seed/banners/faruq-nasi-lemak.jpg'),
+  ('siddiq-printing-hub',     'Siddiq Printing Hub',          '60132446202', 'printing', 'Siddiq',     true, 'Assignment printing, binding and lamination at student prices.',                    '/seed/banners/siddiq-printing-hub.jpg'),
+  ('ali-phone-repair',        'Ali''s Phone Repair',          '60132446202', 'repairs',  'Ali',        true, 'Screen, battery and charging port repairs while you wait.',                         '/seed/banners/ali-phone-repair.jpg'),
+  ('bilal-bike-rental',       'Bilal Bike Rental',            '60132446202', 'rentals',  'Bilal',      true, 'Daily bicycles for getting around campus.',                                         '/seed/banners/bilal-bike-rental.jpg'),
+  ('uthman-burger-shack',     'Uthman Burger Shack',          '60132446202', 'food',     'Uthman',     true, 'Fresh grilled burgers and fries, open till midnight.',                              '/seed/banners/uthman-burger-shack.jpg'),
+  ('zubair-print-copy',       'Zubair Print & Copy',          '60132446202', 'printing', 'Zubair',     true, 'Photocopy, binding and last-minute dissertation printing.',                         '/seed/banners/zubair-print-copy.jpg'),
+  ('aminah-kitchen',          'Aminah''s Kitchen',            '60132446202', 'food',     'Aminah',     true, 'Daily home-cooked rice sets, delivery to nearby mahallas.',                         '/seed/banners/aminah-kitchen.jpg'),
+  ('asiah-laptop-clinic',     'Asiah Laptop Clinic',          '60132446202', 'repairs',  'Asiah',      true, 'Laptop servicing, upgrades and data recovery.',                                     '/seed/banners/asiah-laptop-clinic.jpg'),
+  ('asma-sewing',             'Asma Sewing & Alterations',    '60132446202', 'custom',   'Asma',       true, 'Alterations, repairs and custom tailoring.',                                        '/seed/banners/asma-sewing.jpg'),
+  ('hafsah-bubble-tea',       'Hafsah Bubble Tea',            '60132446202', 'food',     'Hafsah',     true, 'Freshly shaken milk tea and fruit teas.',                                           '/seed/banners/hafsah-bubble-tea.jpg'),
+  ('halimah-room-rental',     'Halimah Room Rental',          '60132446202', 'rentals',  'Halimah',    true, 'Monthly room rentals near campus.',                                                 '/seed/banners/halimah-room-rental.jpg'),
+  ('maryam-laundry',          'Maryam Laundry Service',       '60132446202', 'custom',   'Maryam',     true, 'Wash, dry and fold laundry by the kilogram.',                                       '/seed/banners/maryam-laundry.jpg'),
+  ('nusaibah-nasi-ayam',      'Nusaibah Nasi Ayam',           '60132446202', 'food',     'Nusaibah',   true, 'Nasi ayam penyet and grilled chicken sets.',                                        '/seed/banners/nusaibah-nasi-ayam.jpg'),
+  ('safiyyah-stationery',     'Safiyyah Stationery & Print',  '60132446202', 'printing', 'Safiyyah',   true, 'Stationery, photocopy and printing services.',                                      '/seed/banners/safiyyah-stationery.jpg'),
+  ('ruqayyah-gadget-repair',  'Ruqayyah Gadget Repair',       '60132446202', 'repairs',  'Ruqayyah',   true, 'Screen repairs and diagnostics for phones and tablets.',                            '/seed/banners/ruqayyah-gadget-repair.jpg'),
+  ('salahuddin-camera-rental','Salahuddin Camera Rental',     '60132446202', 'rentals',  'Salahuddin', true, 'DSLR and mirrorless camera rentals for events.',                                   '/seed/banners/salahuddin-camera-rental.jpg');
 
 -- ── Products (1–2 per shop, English), empty forms to be backfilled ────────
 insert into public.products (shop_id, title, price, is_available, custom_fields, image_url)
@@ -85,10 +85,10 @@ and shop_id in (select id from public.shops where category = 'rentals');
 
 -- ── Batch 2 (4 more shops → 20 total) ─────────────────────────────────────
 insert into public.shops (slug, name, whatsapp_number, category, mahalla, is_active, description, banner_url) values
-  ('sumayyah-nasi-kerabu','Sumayyah Nasi Kerabu','60123456017','food','Sumayyah',true,'Kelantan-style nasi kerabu with ulam and keropok.','https://wpbknrubjxbdtucigapu.supabase.co/storage/v1/object/public/shop-banners/seed/sumayyah-nasi-kerabu.jpg'),
-  ('zubair-binding','Zubair Binding & Laminating','60123456018','printing','Zubair',true,'Spiral binding, lamination and document finishing.','https://wpbknrubjxbdtucigapu.supabase.co/storage/v1/object/public/shop-banners/seed/zubair-binding.jpg'),
-  ('ali-macbook-clinic','Ali MacBook Clinic','60123456019','repairs','Ali',true,'MacBook and laptop servicing, batteries and upgrades.','https://wpbknrubjxbdtucigapu.supabase.co/storage/v1/object/public/shop-banners/seed/ali-macbook-clinic.jpg'),
-  ('bilal-scooter-rental','Bilal Scooter Rental','60123456020','rentals','Bilal',true,'Scooter and helmet rentals for the day.','https://wpbknrubjxbdtucigapu.supabase.co/storage/v1/object/public/shop-banners/seed/bilal-scooter-rental.jpg');
+  ('sumayyah-nasi-kerabu','Sumayyah Nasi Kerabu','60132446202','food','Sumayyah',true,'Kelantan-style nasi kerabu with ulam and keropok.','https://wpbknrubjxbdtucigapu.supabase.co/storage/v1/object/public/shop-banners/seed/sumayyah-nasi-kerabu.jpg'),
+  ('zubair-binding','Zubair Binding & Laminating','60132446202','printing','Zubair',true,'Spiral binding, lamination and document finishing.','https://wpbknrubjxbdtucigapu.supabase.co/storage/v1/object/public/shop-banners/seed/zubair-binding.jpg'),
+  ('ali-macbook-clinic','Ali MacBook Clinic','60132446202','repairs','Ali',true,'MacBook and laptop servicing, batteries and upgrades.','https://wpbknrubjxbdtucigapu.supabase.co/storage/v1/object/public/shop-banners/seed/ali-macbook-clinic.jpg'),
+  ('bilal-scooter-rental','Bilal Scooter Rental','60132446202','rentals','Bilal',true,'Scooter and helmet rentals for the day.','https://wpbknrubjxbdtucigapu.supabase.co/storage/v1/object/public/shop-banners/seed/bilal-scooter-rental.jpg');
 
 insert into public.products (shop_id, title, price, is_available, custom_fields, image_url)
 select s.id, v.title, v.price, true, '[]'::jsonb, v.img
@@ -158,10 +158,11 @@ on conflict (id) do nothing;
 
 -- One account per shop, matched in slug order (seller1 = 1st slug, …).
 with s as (select id, row_number() over (order by slug) as rn from public.shops),
-     a as (select id, row_number() over (order by substring(email from '([0-9]+)@')::int) as rn
+     a as (select id, email, row_number() over (order by substring(email from '([0-9]+)@')::int) as rn
            from auth.users where email like 'seller%@live.iium.edu.my')
 update public.shops shop
-set owner_id = a.id
+set owner_id = a.id,
+    seller_email = a.email
 from s join a on a.rn = s.rn
 where shop.id = s.id;
 

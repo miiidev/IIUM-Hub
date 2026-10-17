@@ -77,7 +77,7 @@ export default function Dashboard() {
     for (const o of orders) {
       if (o.status === 'pending_verification') pending++;
       if (o.status === 'completed') completed++;
-      if (!o.created_at || new Date(o.created_at).toDateString() === today) {
+      if (o.created_at && new Date(o.created_at).toDateString() === today) {
         if (o.status === 'confirmed' || o.status === 'ready' || o.status === 'completed') {
           todayRM += Number(o.total_amount) || 0;
         }

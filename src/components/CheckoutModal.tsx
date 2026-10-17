@@ -213,6 +213,10 @@ export default function CheckoutModal({
               href={waLink}
               target="_blank"
               rel="noreferrer"
+              onClick={() => {
+                onClose();
+                navigate(`/order/${placedOrderId}/track`);
+              }}
               className="mt-3 flex h-12 items-center justify-center rounded-control bg-emerald font-semibold text-white transition-colors hover:bg-emerald/90"
             >
               Open WhatsApp

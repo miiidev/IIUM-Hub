@@ -45,6 +45,9 @@ describe('formUi', () => {
     ];
     expect(firstErrorFieldId(fields, { c: 'x', b: 'y' })).toBe('b');
     expect(firstErrorFieldId(fields, {})).toBeNull();
+    expect(firstErrorFieldId(fields, { b: '' })).toBeNull();
     expect(errorCount({ b: 'y', c: 'x' })).toBe(2);
+    expect(errorCount({ a: '', b: 'y', c: '' })).toBe(1);
+    expect(errorCount({ a: '', b: '', c: '' })).toBe(0);
   });
 });

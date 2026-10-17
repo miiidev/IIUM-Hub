@@ -43,6 +43,35 @@ describe('buildItemSnapshot', () => {
     expect(pages.price_applied).toBe(50);
   });
 
+  it('prices a week-long rental as base × days', () => {
+    const rentals = clonePresetFields('rentals');
+    const values = {
+      rental_start: '2026-03-01',
+      rental_end: '2026-03-08',
+      rental_item: 'Item A',
+      rental_qty: 1,
+      rental_phone: '+60123456789',
+    };
+    const snap = buildItemSnapshot({ title: 'Camera Rental', price: 25 }, rentals, values, 1);
+    expect(snap.unitPrice).toBe(175);
+    expect(snap.lineTotal).toBe(175);
+    const days = (snap.fields ?? []).find((f) => f.field_id === 'rental_days');
+    expect(days?.display).toBe('7 days');
+    expect(days?.price_applied).toBe(150);
+    const order: Order = {
+      id: 'o3',
+      shop_id: 's1',
+      buyer_name: 'Ali',
+      location: 'Faruq',
+      total_amount: 175,
+      payment_ref_id: '99',
+      custom_data: {},
+      items: [snap],
+      status: 'pending_verification',
+    };
+    expect(normalizeOrderFields(order)[0].mismatch).toBe(false);
+  });
+
   it('skips empty values', () => {
     const snap = buildItemSnapshot({ title: 'T', price: 5 }, printing, {}, 1);
     expect(snap.fields).toEqual([]);

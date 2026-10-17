@@ -279,7 +279,28 @@ export function computeUnitTotal(
   fields: CustomField[],
   values: Record<string, CustomValue>
 ): number {
-  return (Number(base) || 0) + calculateModifierTotal(fields, values);
+  const b = Number(base) || 0;
+  const days = rentalDurationDays(values) ?? 1;
+  return Math.round((b * days + calculateModifierTotal(fields, values)) * 100) / 100;
+}
+
+export const RENTAL_START_ID = 'rental_start';
+export const RENTAL_END_ID = 'rental_end';
+export const RENTAL_DAYS_ID = 'rental_days';
+
+const MS_PER_DAY = 86_400_000;
+
+// Rental duration in days, counting the start day (end-exclusive, like
+// most rental shops): start=end -> 1 day, start Mon/end next Mon -> 7 days.
+// Returns null when either date is missing or end is before start.
+export function rentalDurationDays(values: Record<string, CustomValue>): number | null {
+  const s = String(values[RENTAL_START_ID] ?? '');
+  const e = String(values[RENTAL_END_ID] ?? '');
+  if (!s || !e) return null;
+  const start = Date.parse(`${s}T00:00:00`);
+  const end = Date.parse(`${e}T00:00:00`);
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end < start) return null;
+  return Math.max(1, Math.round((end - start) / MS_PER_DAY));
 }
 
 export function validateRequired(
@@ -292,6 +313,9 @@ export function validateRequired(
     const err = validateField(f, values[f.id], today);
     if (err) errs[f.id] = err;
   }
+  const s = String(values[RENTAL_START_ID] ?? '');
+  const e = String(values[RENTAL_END_ID] ?? '');
+  if (s && e && e < s) errs[RENTAL_END_ID] = 'Return date cannot be before the start date.';
   return errs;
 }
 
