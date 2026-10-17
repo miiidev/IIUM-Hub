@@ -91,6 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function ensureProfileAndShop(
     userId: string,
+    sellerEmail: string,
     whatsappNumber: string,
     shopName: string,
     mahalla: string,
@@ -115,6 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         mahalla,
         is_active: true,
         owner_id: userId,
+        seller_email: sellerEmail || null,
       });
       if (sErr) throw sErr;
     }
@@ -140,6 +142,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(
         'iium-pending-shop',
         JSON.stringify({
+          sellerEmail: args.email.trim(),
           whatsappNumber: args.whatsappNumber,
           shopName: args.shopName,
           mahalla: args.mahalla,
@@ -151,6 +154,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     await ensureProfileAndShop(
       data.user.id,
+      args.email.trim(),
       args.whatsappNumber,
       args.shopName,
       args.mahalla,
@@ -172,6 +176,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (raw) {
         try {
           const p = JSON.parse(raw) as {
+            sellerEmail: string;
             whatsappNumber: string;
             shopName: string;
             mahalla: string;
@@ -180,6 +185,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           };
           await ensureProfileAndShop(
             data.user.id,
+            p.sellerEmail ?? data.user.email ?? '',
             p.whatsappNumber,
             p.shopName,
             p.mahalla,
@@ -218,6 +224,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         await ensureProfileAndShop(
           user.id,
+          user.email ?? '',
           args.whatsappNumber,
           args.shopName,
           args.mahalla,

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, ChevronRight, MapPin, Minus, Plus, ShoppingBag } from 'lucide-react';
+import { ArrowLeft, ChevronRight, Mail, MapPin, Minus, Plus, ShoppingBag } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import type { CustomValue, Product, Shop } from '../types';
 import CheckoutModal from '../components/CheckoutModal';
@@ -202,6 +202,13 @@ export default function Storefront() {
               {shop.is_active ? 'Active' : 'Closed'}
             </Badge>
           </div>
+          {shop.seller_email && (
+            <p className="mt-2 inline-flex items-center gap-1.5 rounded-control bg-mint/50 px-3 py-1.5 text-sm text-ink">
+              <Mail size={14} className="shrink-0 text-emerald" aria-hidden="true" />
+              <span className="text-muted">Seller:</span>
+              <span className="font-medium break-all">{shop.seller_email}</span>
+            </p>
+          )}
           <p className="mt-2 text-base text-muted">Choose items and quantities before checkout.</p>
           {shop.description && <p className="mt-1 text-sm text-muted">{shop.description}</p>}
 
