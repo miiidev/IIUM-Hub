@@ -5,7 +5,13 @@ import type {
   OrderFieldSnapshot,
   OrderItemSummary,
 } from '../types';
-import { activeFields, clampNumberValue, computeUnitTotal } from './formPresets';
+import {
+  RENTAL_DAYS_ID,
+  activeFields,
+  clampNumberValue,
+  computeUnitTotal,
+  rentalDurationDays,
+} from './formPresets';
 import { displayFileName, fileNameFromValue } from './uploadFile';
 
 function round2(n: number): number {
@@ -93,6 +99,20 @@ export function buildItemSnapshot(
       value: v,
       display: displayForField(f, v),
       price_applied: priceForField(f, v),
+    });
+  }
+  // Record the rental duration as a priced line so the buyer breakdown,
+  // WhatsApp message and seller views all show base × days. The extra is
+  // base × (days − 1) so `basePrice + Σ price_applied` still reconciles.
+  const days = rentalDurationDays(values);
+  if (days !== null && days > 1) {
+    entries.push({
+      field_id: RENTAL_DAYS_ID,
+      label: 'Rental duration',
+      type: 'number',
+      value: days,
+      display: `${days} day${days === 1 ? '' : 's'}`,
+      price_applied: round2(base * (days - 1)),
     });
   }
   return {

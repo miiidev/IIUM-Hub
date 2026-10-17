@@ -17,6 +17,7 @@ import {
   isFormApplicable,
   maxExtraForField,
   normalizeMyPhone,
+  rentalDurationDays,
   sanitizeFields,
   todayLocal,
   validateField,
@@ -164,6 +165,45 @@ describe('clampQty', () => {
     const unit = computeUnitTotal(1, fields, { print_size: 'A3', print_color: 'Color' });
     expect(unit).toBeCloseTo(1.9);
     expect(unit * clampQty(2)).toBeCloseTo(3.8);
+  });
+});
+
+describe('rental duration pricing', () => {
+  const fields = clonePresetFields('rentals');
+
+  it('returns null when either date is missing or end precedes start', () => {
+    expect(rentalDurationDays({})).toBeNull();
+    expect(rentalDurationDays({ rental_start: '2026-03-01' })).toBeNull();
+    expect(rentalDurationDays({ rental_start: '2026-03-08', rental_end: '2026-03-01' })).toBeNull();
+  });
+
+  it('counts days end-exclusive, minimum 1 for same-day', () => {
+    expect(rentalDurationDays({ rental_start: '2026-03-01', rental_end: '2026-03-08' })).toBe(7);
+    expect(rentalDurationDays({ rental_start: '2026-03-01', rental_end: '2026-03-01' })).toBe(1);
+  });
+
+  it('multiplies the base price by rental days', () => {
+    const values = {
+      rental_start: '2026-03-01',
+      rental_end: '2026-03-08',
+      rental_item: 'Item A',
+      rental_qty: 1,
+      rental_phone: '+60123456789',
+    };
+    expect(computeUnitTotal(25, fields, values)).toBe(175);
+    expect(computeUnitTotal(25, fields, { ...values, rental_start: '2026-03-01', rental_end: '2026-03-01' })).toBe(25);
+    expect(computeUnitTotal(25, fields, {})).toBe(25);
+  });
+
+  it('flags a return date before the start date', () => {
+    const errs = validateRequired(fields, {
+      rental_start: '2030-03-08',
+      rental_end: '2030-03-01',
+      rental_item: 'Item A',
+      rental_qty: 1,
+      rental_phone: '+60123456789',
+    });
+    expect(Object.keys(errs)).toContain('rental_end');
   });
 });
 
