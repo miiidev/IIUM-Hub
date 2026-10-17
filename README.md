@@ -7,7 +7,38 @@ Zero-cost, mobile-first campus marketplace connecting student vendors and buyers
 
 ## Tech stack
 
-React 19 + Vite + TypeScript + Tailwind CSS v4, Supabase (Postgres, Auth, Realtime), `wa.me` deep links. No backend server, no paid services.
+**Core:** React 19 + Vite 8 + TypeScript 6 + Tailwind CSS v4, Supabase (Postgres, Auth, Storage, Realtime), `wa.me` deep links. No backend server, no paid services.
+
+### Runtime dependencies (5 total)
+
+| Dependency | Role |
+|---|---|
+| `react` / `react-dom` 19 | UI |
+| `react-router-dom` 7 | Routing (`/`, `/s/:slug`, `/order/:id/track`, seller dashboard) |
+| `@supabase/supabase-js` | Database, Auth, Storage, Realtime client |
+| `lucide-react` | Icons |
+
+### Tooling
+
+| Tool | Role |
+|---|---|
+| Vite 8 | Dev server + production build |
+| TypeScript 6 (`tsc -b`) | Typecheck gated into `npm run build` |
+| Tailwind CSS v4 | Styling, via `@tailwindcss/vite` plugin |
+| Vitest 5 | Unit tests (83 tests / 8 files) |
+| oxlint | Linting |
+
+### Backend (Supabase — no server code)
+
+- **Postgres schema** — 4 tables (`shops`, `products`, `orders`, `profiles`), evolved through 15 versioned migrations in `supabase/migrations/`
+- **Row Level Security** — sellers manage only their own shop; anonymous bulk order reads blocked via a `security definer` RPC (`get_order`)
+- **Realtime** — `orders` table broadcasts status changes to the live tracker
+- **Storage** — private `buyer-uploads` and DuitNow QR buckets; seller file access via short-lived signed URLs
+
+### Integrations
+
+- **DuitNow** — Malaysia's national payment QR; buyers pay directly, sellers cross-check the transaction Ref ID (honor-based, zero gateway fees)
+- **WhatsApp (`wa.me` deep links)** — checkout generates a pre-filled structured order message (items, per-field prices, DuitNow Ref ID, manage-order link) sent to the seller
 
 ## Setup
 
